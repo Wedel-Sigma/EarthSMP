@@ -1,0 +1,2 @@
+[2026-11-05 12:45:04] started world=minecraft:overworld owner=GRAMKNAJTEM center-x=7680 center-z=-256 radius=3072 radius-z=3328 shape=rectangle pattern=csv csv=overworld
+[2026-11-05 12:48:54] completed world=minecraft:overworld owner=GRAMKNAJTEM center-x=7680 center-z=-256 radius=3072 radius-z=3328 shape=rectangle pattern=csv csv=overworld chunks=159744 time=0:03:46
