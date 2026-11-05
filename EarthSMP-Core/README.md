@@ -134,3 +134,92 @@ Nie ma jeszcze niszczenia blokow, pladrowania skrzyn, kilofa oblezniczego ani pr
 rdzeni — ochrona baz pozostaje bez zmian. W kolejnej wersji podlaczymy te mechaniki
 do legalnego stanu oblezenia. Admin moze zatrzymac oblezenie bedac na danym obszarze:
 `/esmp siege adminstop`. Brak ujawniania wspolrzednych rdzeni na mapie.
+
+
+## 1.6.1 — automatyczny szturm i spójne kopie
+
+Szturm rozpoczyna się automatycznie po wejściu atakującego na chroniony obszar
+65×65 wrogiego rdzenia, jeżeli pozwalają na to zasady godzin, wojny i obecności.
+Wewnątrz 9×9 ma w przyszłości automatycznie działać przejmowanie.
+Backup w wersji 1.6.1 robi się przy **zatrzymanym serwerze**.
+
+## 1.7.0 — Kilof Oblężniczy i pochodzenie bloków
+
+**Receptura 3×3:** jak dla Rdzenia Ochronnego, ale zamiast jukeboxa
+zwykły nieulepszony diamentowy kilof w środku, a wokół po **16** jednostek:
+węgla, sztabek żelaza, miedzi, redstone, lapisu, złota, diamentów
+oraz odłamków ametystu (128 surowców + kilof).
+Przy odbieraniu craftingu użyć zwykłego lewego kliku **pustym kursorem**;
+Shift jest zablokowany. Można włożyć ponad 16, ale zużywane jest zawsze
+**dokładnie 16** z każdej z ośmiu pozycji.
+
+Kilof świeci się (glint), ma unikalne UUID w PDC i 15 **legalnych zniszczeń**.
+Licznika nie można ominąć przez kopiowanie przedmiotu: serwer przechowuje
+pozostałe użycia po ID w SQLite. Po piętnastym legalnym zniszczeniu item znika.
+Zwykłe kopanie nie zużywa legalnych użyć.
+
+Rozbijanie chronionych murów wymaga **jednocześnie**:
+- aktywnej wojny, w której gracz jest po stronie przeciwnej właścicielowi rdzenia,
+- aktywnego legalnego szturmu danego rdzenia (10:00–00:00 Polska,
+  wymagane 20% pełnego składu obrońców lub aktywne 30 minut tolerancji),
+- obecności w obszarze 65×65 i użycia prawdziwego Kilofa Oblężniczego,
+- bloku mającego potwierdzony zapis jako **postawiony przez gracza**.
+
+Rdzeń (lodestone) nie może zostać wykopany kilofem. W czasie aktywnego
+szturmu, gdy w obszarze 65×65 przebywa gracz wrogiej koalicji,
+**stawianie bloków i wylewanie wiader w obszarze jest blokowane wszystkim**,
+włącznie z obrońcą. Nie odblokowuje to jeszcze skrzyń ani nie włącza
+przejmowania 9×9 / 480 sekund.
+
+**Ważna granica wersji:** ledger `player_placed_blocks` zaczyna zapisywać
+**dopiero nowe, nieanulowane** stawiania po uruchomieniu 1.7.0, w świecie Earth.
+Bloki zbudowane przed tą wersją (także we wcześniejszych testach), bloki
+wykonane przez WorldEdit, działanie generatorów oraz nieudokumentowane
+modyfikacje świata traktowane są jako **nieznanego pochodzenia** i nie wolno
+ich rozwalać specjalnym kilofem. Przed testem zbuduj świeży mur z ręcznie
+stawianych bloków. Ledger zapisuje typ bloku i usuwa dane po standardowym
+zniszczeniu lub zmianach fizyki, aby nie otwierać drogi do kopania naturalnych
+bloków. Operacje WorldEdit i zmiany innych pluginów nie zawsze wysyłają
+standardowe eventy, więc to wymaga osobnego testu bezpieczeństwa przed startem.
+
+Migracja SQLite **v6 → v7** dodaje tabele `player_placed_blocks` i
+`siege_pickaxes`. Nie kasuje istniejących państw, granic, rdzeni ani wojen.
+Przywracaj cały świat **razem z bazą danych z tego samego backupu**.
+
+### Minimalny test po wdrożeniu
+
+1. `gradlew.bat clean build` → wszystkie testy zielone; podmiana wyłącznie JAR
+   `EarthSMP-Core-1.7.0.jar`, bez `-plain` i bez starej wersji.
+2. `/esmp` → Oblężenia: przepis Kilofa i warunki szturmu.
+3. Crafting: 16 na każdej z 8 pozycji i zwykły kilof w środku →
+   specjalny item z połyskiem; Shift lub brak surowców nie działa.
+4. Test z drugim państwem i obrońcą online, w dozwolonych godzinach:
+   ręcznie zbudowany NOWY mur (15 bloków) w wrogiej bazie; wejście w 65×65
+   automatycznie aktywuje szturm.
+5. Zwykły kilof nie niszczy wrogich bloków. Kilof oblężniczy nie niszczy
+   naturalnego stone ani lodestone. Zniszczenie 15 nowych bloków usuwa kilof.
+6. Gdy atakujący jest wewnątrz bazy, obrońca nie może stawiać nowych bloków;
+   po wyjściu atakującego i ustaniu szturmu budowanie znów działa.
+7. Restart → zachowane ID i niewykorzystane użycia Kilofa oraz historia
+   player-placed bloków; brak nowych błędów w logu.
+
+**Do późniejszego audytu:** kontrola bloków modyfikowanych przez WorldEdit,
+moduły antydupe, pozostałe obejścia mechanizmów fizyki i testy Paper/WG.
+
+
+### 1.7.1 — hotfix Kilofa Oblężniczego
+
+Kilof Oblężniczy nie wydobywa bloków w neutralnym terenie, własnej bazie ani w nielegalnym szturmie (również przy uprawnieniach admina). Jedynie bloki postawione przez graczy w chronionej bazie przeciwnika podczas legalnego szturmu mogą zostać zniszczone; każdy taki blok kosztuje jedną z 15 prób. Mining speed wynosi 6 (jak żelazny kilof), pomimo diamentowego wyglądu. Starsze egzemplarze są automatycznie aktualizowane po wejściu gracza lub pierwszej próbie użycia.
+
+Dodatkowo hotfix blokuje przerabianie specjalnego kilofa w kowadle, stole kowalskim i szlifierce oraz zwykłe zaklinanie (aby ominąć prędkość lub zasady narzędzia).
+
+
+### 1.8.0 — przejmowanie rdzeni, BossBar i zakaz rabunku podczas szturmu
+
+- Legalny szturm 65×65 uruchamia się sam, przejmowanie uruchamia obecność napastnika w 9×9×16.
+- 480 sekund w rzeczywistym czasie; zielony BossBar przy postępie, żółty przy kontestowaniu, czerwony przy cofaniu.
+- Pierwszy kraj rozpoczynający dodatni postęp otrzymuje zdobyty rdzeń, nawet po opuszczeniu strefy, dopóki licznik nie spadnie do 0.
+- 1 z >1 rdzeni: zmiana właściciela na CONQUERED bez automatycznej zmiany granic; ostatni: usunięcie rdzenia i państwa oraz neutralizacja terytorium.
+- Podczas szturmu napastnicy nie otwierają magazynów chronionej bazy; dostęp zwycięzców dopiero po przejęciu.
+- Restart, północ, koniec wojny lub adminstop zerują postęp.
+- Archiwizacja historii wojen upadłego państwa oraz odporność na wszystkie nietypowe interakcje z ekwipunkami wymagają kolejnego audytu.

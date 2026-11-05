@@ -12,6 +12,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockMultiPlaceEvent;
+import org.bukkit.block.BlockState;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
@@ -26,6 +28,8 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.event.block.Action;
 
 /** Preliminary protection events. Siege and advanced bypass checks will be added later. */
@@ -77,12 +81,49 @@ public final class CoreProtection implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        if (!mayModify(event.getPlayer(), event.getBlock())) event.setCancelled(true);
+        Block block=event.getBlock();
+        var core=findAt(block);
+        if(core.isEmpty()) return;
+        // Core anchors may NEVER be mined; only the later capture timer transfers them.
+        if(core.get().isAnchor(block.getX(),block.getY(),block.getZ())) {
+            event.setCancelled(true);return;
+        }
+        if(mayModify(event.getPlayer(),block)) return;
+        // Even a legal war cannot tunnel through NATURAL terrain, or use ordinary tools.
+        if(!plugin.getSiegePickaxe().mayBreak(event.getPlayer(),block,core.get())) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean siegePlacementBlocked(Block block) {
+        var core=findAt(block);
+        if(core.isEmpty()) return false;
+        try { return plugin.getSieges().hostilePresent(core.get()); }
+        catch(SQLException error) {
+            plugin.getLogger().log(Level.SEVERE,"Cannot verify siege building freeze; denying",error);
+            return true;
+        }
+    }
+
+    private boolean rejectPlacement(BlockPlaceEvent event) {
+        if(!mayModify(event.getPlayer(),event.getBlockPlaced()) || siegePlacementBlocked(event.getBlockPlaced())) return true;
+        if(event instanceof BlockMultiPlaceEvent multi) {
+            // Beds and doors can extend across the protection boundary.
+            for(BlockState state:multi.getReplacedBlockStates()) {
+                if(!mayModify(event.getPlayer(),state.getBlock()) || siegePlacementBlocked(state.getBlock())) return true;
+            }
+        }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        if (!mayModify(event.getPlayer(), event.getBlockPlaced())) event.setCancelled(true);
+        if(rejectPlacement(event)) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMultiPlace(BlockMultiPlaceEvent event) {
+        if(rejectPlacement(event)) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -94,9 +135,48 @@ public final class CoreProtection implements Listener {
         }
     }
 
+    /**
+     * An attacker cannot loot a core's containers during ANY phase of the
+     * assault. War and a legal siege never grant permission to open them.
+     * After capture the same core belongs to the victor, so their members
+     * gain normal owner access (or the last core disappears altogether).
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) return;
+        var inventory = event.getInventory();
+        // Custom plugin GUIs have no block location. Skip those entirely.
+        // Check BOTH halves of a double chest. A boundary-crossing chest must
+        // not allow access through the half lying outside the protected base.
+        Location[] locations = inventory instanceof DoubleChestInventory doubleChest
+                ? new Location[]{doubleChest.getLeftSide().getLocation(), doubleChest.getRightSide().getLocation()}
+                : new Location[]{inventory.getLocation()};
+        try {
+            var member = plugin.getNationDatabase().findMembership(player.getUniqueId());
+            for (Location location : locations) {
+                if (location == null) continue;
+                var found = findAt(location);
+                if (found.isEmpty() || (member.isPresent() &&
+                        member.get().nationId().equals(found.get().nationId()))) continue;
+                // Admin override in peace only; even an admin playing for an
+                // attacking nation cannot loot a hostile base during war.
+                boolean admin = player.hasPermission("earthsmp.admin");
+                if (!admin || (member.isPresent() && plugin.getWars().opposed(
+                        member.get().nationId(), found.get().nationId()))) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        } catch (SQLException error) {
+            plugin.getLogger().log(Level.SEVERE, "Cannot authorize container open; denying", error);
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
-        if (!mayModify(event.getPlayer(), event.getBlockClicked().getRelative(event.getBlockFace()))) {
+        Block target=event.getBlockClicked().getRelative(event.getBlockFace());
+        if (!mayModify(event.getPlayer(),target) || siegePlacementBlocked(target)) {
             event.setCancelled(true);
         }
     }

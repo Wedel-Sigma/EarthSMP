@@ -45,10 +45,17 @@ public final class SiegeMenu implements Listener {
         h.inventory.setItem(13,item(Material.IRON_SWORD,"Szturm: automatyczny",
                 "Wejdz do wrogiej bazy 65x65",
                 "Wymaga wojny, godziny 10-00 i 20% obroncow",
-                "Strefa 9x9 uruchomi pozniej przejmowanie"));
+                "Strefa 9x9: przejmowanie 480 sekund"));
         h.inventory.setItem(15,item(Material.CLOCK,"Reguly oblezen",
                 "10:00-00:00 Europe/Warsaw", "20% pelnego skladu, min. 1 online",
-                "Po spadku progu: 30 minut tolerancji"));
+                "Po spadku progu: 30 minut tolerancji",
+                "Skrzynie wroga: zablokowane do zdobycia rdzenia"));
+        h.inventory.setItem(16,item(Material.DIAMOND_PICKAXE,"Kilof Oblezniczy - receptura",
+                "W srodku: zwykly diamentowy kilof",
+                "Dookola po 16: wegiel, zelazo, miedz",
+                "redstone, lapis, zloto, diament, ametyst",
+                "128 surowcow + kilof; 15 legalnych blokow",
+                "Tylko gracz-postawione bloki w obleganej bazie"));
         h.inventory.setItem(22,item(Material.ARROW,"Powrot do /esmp"));
         p.openInventory(h.inventory);
     }

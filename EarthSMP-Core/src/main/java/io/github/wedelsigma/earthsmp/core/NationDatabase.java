@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 public final class NationDatabase implements AutoCloseable {
 
-    private static final int SCHEMA_VERSION = 6;
+    private static final int SCHEMA_VERSION = 7;
     private static final long INVITE_LIFETIME_SECONDS = 24 * 60 * 60;
     private final Connection connection;
 
@@ -349,6 +349,36 @@ public final class NationDatabase implements AutoCloseable {
                             )
                             """);
                     statement.execute("PRAGMA user_version = 6");
+                    connection.commit();
+                    version = 6;
+                } catch (SQLException | RuntimeException error) {
+                    rollbackAfter(connection, error);
+                    throw error;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
+            }
+            if (version == 6) {
+                connection.setAutoCommit(false);
+                try {
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS player_placed_blocks (
+                                world_name TEXT NOT NULL,
+                                block_x INTEGER NOT NULL,
+                                block_y INTEGER NOT NULL,
+                                block_z INTEGER NOT NULL,
+                                block_type TEXT NOT NULL,
+                                PRIMARY KEY (world_name, block_x, block_y, block_z)
+                            )
+                            """);
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS siege_pickaxes (
+                                id TEXT PRIMARY KEY,
+                                remaining INTEGER NOT NULL CHECK (remaining BETWEEN 0 AND 15),
+                                issued_at INTEGER NOT NULL
+                            )
+                            """);
+                    statement.execute("PRAGMA user_version = 7");
                     connection.commit();
                 } catch (SQLException | RuntimeException error) {
                     rollbackAfter(connection, error);
@@ -1434,6 +1464,92 @@ public final class NationDatabase implements AutoCloseable {
             rollbackAfter(connection, error);
             throw error;
         } finally { connection.setAutoCommit(true); }
+    }
+
+    /**
+     * Atomically changes ownership after an eight-minute capture. The final
+     * defender core is destroyed and the nation is dissolved instead.
+     * Never call this merely because a war was declared: SiegeManager has to
+     * validate the legal siege, war side, and the full capture counter first.
+     */
+    public enum CaptureOutcome { CONQUERED, LAST_CORE_DESTROYED, NOT_FOUND, INVALID_VICTOR }
+
+    public CaptureOutcome captureCore(String coreId, String expectedDefender, String victorId)
+            throws SQLException {
+        connection.setAutoCommit(false);
+        try {
+            if (expectedDefender.equals(victorId)) {
+                connection.rollback(); return CaptureOutcome.INVALID_VICTOR;
+            }
+            try (PreparedStatement q = connection.prepareStatement("SELECT 1 FROM nations WHERE id=?")) {
+                q.setString(1, victorId);
+                try (ResultSet r = q.executeQuery()) {
+                    if (!r.next()) { connection.rollback(); return CaptureOutcome.INVALID_VICTOR; }
+                }
+            }
+            try (PreparedStatement q = connection.prepareStatement(
+                    "SELECT 1 FROM protection_cores WHERE id=? AND nation_id=?")) {
+                q.setString(1, coreId); q.setString(2, expectedDefender);
+                try (ResultSet r = q.executeQuery()) {
+                    if (!r.next()) { connection.rollback(); return CaptureOutcome.NOT_FOUND; }
+                }
+            }
+            int remaining;
+            try (PreparedStatement q = connection.prepareStatement(
+                    "SELECT COUNT(*) FROM protection_cores WHERE nation_id=?")) {
+                q.setString(1, expectedDefender);
+                try (ResultSet r = q.executeQuery()) { r.next(); remaining = r.getInt(1); }
+            }
+            if (remaining > 1) {
+                // A captured core does not count against either nation's own crafting limit.
+                // Its old FREE/CRAFTED token cannot stay usable by the former owner.
+                try (PreparedStatement q = connection.prepareStatement("DELETE FROM core_tokens WHERE id=?")) {
+                    q.setString(1, coreId); q.executeUpdate();
+                }
+                try (PreparedStatement q = connection.prepareStatement("""
+                        UPDATE protection_cores SET nation_id=?,origin='CONQUERED',is_capital=0
+                        WHERE id=? AND nation_id=?
+                        """)) {
+                    q.setString(1, victorId); q.setString(2, coreId);
+                    q.setString(3, expectedDefender);
+                    if (q.executeUpdate() != 1) throw new SQLException("Core changed during conquest");
+                }
+                connection.commit();
+                return CaptureOutcome.CONQUERED;
+            }
+
+            // Nation deletion must first clear references from the diplomacy schema.
+            // The active principal wars cease; allied wars continue without this nation.
+            try (PreparedStatement q = connection.prepareStatement(
+                    "DELETE FROM wars WHERE attacker_id=? OR defender_id=?")) {
+                q.setString(1, expectedDefender); q.setString(2, expectedDefender); q.executeUpdate();
+            }
+            try (PreparedStatement q = connection.prepareStatement(
+                    "UPDATE wars SET peace_offered_by=NULL WHERE peace_offered_by=?")) {
+                q.setString(1, expectedDefender); q.executeUpdate();
+            }
+            try (PreparedStatement q = connection.prepareStatement(
+                    "DELETE FROM war_invitations WHERE nation_id=?")) {
+                q.setString(1, expectedDefender); q.executeUpdate();
+            }
+            try (PreparedStatement q = connection.prepareStatement(
+                    "DELETE FROM war_participants WHERE nation_id=?")) {
+                q.setString(1, expectedDefender); q.executeUpdate();
+            }
+            try (PreparedStatement q = connection.prepareStatement(
+                    "DELETE FROM nations WHERE id=?")) {
+                q.setString(1, expectedDefender);
+                if (q.executeUpdate() != 1) throw new SQLException("Defending nation vanished");
+            }
+            // CASCADE invalidates stored core tokens and makes all political chunks neutral.
+            connection.commit();
+            return CaptureOutcome.LAST_CORE_DESTROYED;
+        } catch (SQLException | RuntimeException error) {
+            rollbackAfter(connection, error);
+            throw error;
+        } finally {
+            connection.setAutoCommit(true);
+        }
     }
 
     @Override

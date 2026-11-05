@@ -86,7 +86,7 @@ language: "pl"
 
 Własny crafting o układzie **3 × 3**; w **centrum 1 Jukebox (szafa grająca)**, a w ośmiu pozostałych miejscach po **64 sztuki**:
 
-| Górny rząd | Górny rząd | Górny rząd |
+| Lewy slot | Środkowy slot | Prawy slot |
 |---|---|---|
 | 64 × węgiel | 64 × sztabka żelaza | 64 × sztabka miedzi |
 | 64 × redstone | **1 × Jukebox** | 64 × lapis lazuli |
@@ -103,7 +103,8 @@ Analogiczny crafting **3 × 3**: w centrum **1 zwykły diamentowy kilof**, wokó
 - Koszt: **128 surowców + diamentowy kilof**; 16 diamentów w surowcach + 3 zużyte do wykonania bazowego kilofa = **19 diamentów** (jeśli kilof jest świeżo wykonany).
 - Wygląd: specjalny kilof z wizualnym połyskiem zaklętego przedmiotu (*glint*), bez konieczności rzeczywistego enchantu.
 - **Dokładnie 15 legalnie zniszczonych bloków**, potem kilof znika. Nie można zwiększać tej liczby zwykłą wytrzymałością ani zaklęciami.
-- Działa do przełamywania ochrony tylko przy **formalnej wojnie, aktywnym legalnym oblężeniu i na wrogim chronionym terenie**, wyłącznie na **blokach postawionych przez graczy**.
+- Działa do przełamywania ochrony tylko przy **formalnej wojnie, aktywnym legalnym oblężeniu i na wrogim chronionym terenie**, wyłącznie na **blokach postawionych przez graczy**. **Samego rdzenia nie da się wykopać kilofem**: można go zdobyć wyłącznie przez licznik przejmowania.
+- Kilof Oblężniczy **w ogóle nie niszczy bloków poza legalnym szturmem na wrogi chroniony rdzeń** (również na terenie własnego państwa i terenie neutralnym). Prędkość wydobycia podczas legalnego użycia odpowiada **żelaznemu kilofowi** (6, zamiast 8 dla diamentowego). Wykonanych przed aktualizacją kilofów nie trzeba wyrzucać.
 - Naturalne niezniszczone bloki świata (stone, dirt, deepslate itd.) są dla oblężniczego niszczenia chronione. Blok tego samego typu **postawiony przez gracza** może zostać zniszczony Kilofem Oblężniczym.
 
 ## 5. Dyplomacja, sojusze i wojny
@@ -126,7 +127,7 @@ Analogiczny crafting **3 × 3**: w centrum **1 zwykły diamentowy kilof**, wokó
 - **O północy** oblężenia kończą się bez względu na pozostały czas 30-minutowej tolerancji. Koniec wojny również kończy oblężenie.
 - Zakończenie/przerwanie oblężenia **zeruje całkowicie postęp przejmowania (0/480)** i przypisanie państwa zdobywającego.
 - W czasie pokoju chronione bazy są zabezpieczone przed obcym niszczeniem, stawianiem bloków, otwieraniem skrzyń i rabunkiem.
-- Podczas legalnego oblężenia atakujący mogą **otwierać i opróżniać skrzynie** przeciwnika w chronionej bazie.
+- Podczas ataku i legalnego oblężenia **atakujący nie mogą otwierać ani opróżniać chronionych skrzyń**. Dopiero skuteczne przejęcie rdzenia odbiera obrońcom ochronę tej bazy: przejęty rdzeń i jego ochrona należą do zwycięzców, więc mogą oni rabować skrzynie; przy ostatnim rdzeniu ochrona znika całkowicie.
 - Niszczenie w chronionym terenie: wyłącznie Kilofem Oblężniczym, bloków pochodzenia graczowego, z wyłączeniem specjalnie chronionych elementów (aktywne łóżka i podpory). Niedozwolone obchodzenie ochrony przez zwykłe narzędzia, TNT, eksplozje, ogień, wodę/lawę, tłoki, redstone, fizykę bloków itp.
 - **Gdy wrogi gracz przebywa na obszarze chronionego regionu 65 × 65 podczas legalnego oblężenia, nie wolno stawiać tam bloków ANI ATAKUJĄCYM, ANI OBROŃCOM.** Po opuszczeniu regionu przez ostatniego przeciwnika zasada ta wygasa, a obowiązują zwykłe prawa do budowania.
 - **Poza chronionymi bazami** podczas wojny wolno niszczyć/okraść majątek **wrogiego państwa**; w czasie pokoju takie działania są zakazane regulaminem, nawet bez technicznego claima. Majątek neutralnych państw pozostaje chroniony regulaminowo.
@@ -136,7 +137,7 @@ Analogiczny crafting **3 × 3**: w centrum **1 zwykły diamentowy kilof**, wokó
 ### 7.1. Przejmowanie
 
 - Strefa kontroli: **9 × 9 bloków** wokół rdzenia, poziomo; pionowo od **Y −5 do Y +10** względem rdzenia.
-- Licznik od **0 do 480 sekund**. Tylko atakujący w strefie: **+1 s na sekundę**. Atakujący i obrońcy: **pauza**. Tylko obrońcy: **−2 s na sekundę**. Obecność bez uprawnienia (neutralni) nie powinna przyznawać postępu.
+- Postęp pokazywany jest uczestnikom obecnym w obleganej bazie na **BossBarze u góry ekranu**: zielony — przybywa, żółty — pauza przez kontestowanie, czerwony — cofanie. Licznik od **0 do 480 sekund**. Tylko atakujący w strefie: **+1 s na sekundę**. Atakujący i obrońcy: **pauza**. Tylko obrońcy: **−2 s na sekundę**. Obecność bez uprawnienia (neutralni) nie powinna przyznawać postępu.
 - Pierwszy uprawniony atakujący, który **rozpocznie** postęp, wskazuje **państwo przyszłego właściciela**. Przy koalicji pomoc sojuszników nie zmienia przypisania. Pierwszy atakujący może zginąć lub wyjść ze strefy, a prawo tego państwa utrzymuje się, dopóki postęp pozostaje powyżej zera i oblężenie nie zakończy się.
 - Gdy postęp spadnie do zera, następna skuteczna próba może wskazać inne państwo koalicji. Koniec oblężenia całkowicie resetuje stan.
 - Po dojściu do **480 s** rdzeń przechodzi pod kontrolę zwycięskiego państwa (o ile nie jest ostatnim rdzeniem obrońcy); ochrona bazy przechodzi z nim. **Granice polityczne nie zmieniają się automatycznie**.
@@ -244,7 +245,7 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 
 - Każdy gracz powinien znać regulamin; obowiązuje **light RP** i **Simple Voice Chat**.
 - Zakazane: cheaty, exploity, duplikowanie przedmiotów, toksyczność na czacie i voice chacie, przenoszenie konfliktów z gry do życia.
-- **Zakaz wykorzystywania braku claima** do griefingu i kradzieży w czasie pokoju. W wojnie dopuszczalne są działania opisane w specyfikacji, również rabunek wrogich skrzyń podczas legalnego oblężenia.
+- **Zakaz wykorzystywania braku claima** do griefingu i kradzieży w czasie pokoju. W wojnie dopuszczalne są działania opisane w specyfikacji, lecz rabunek skrzyń w chronionej bazie dopiero **po udanym zdobyciu rdzenia**.
 - **Nemosowanie zakazane**: zamykanie/zabudowywanie przeciwnika blokami w sposób uniemożliwiający obronę, by bić go np. po nogach. Normalne mury i barykady nie są automatycznie tym samym.
 - **Zakaz BowDamagePvP**: spamowania strzałami z efektem Instant Damage.
 - **Zakaz TNT Minecart PvP**, pułapek opartych na wagonikach TNT; **zakaz wybuchających łóżek jako PvP** w Netherze (wydobywanie jest dozwolone); **zakaz pułapek portalowych**.

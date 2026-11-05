@@ -60,3 +60,15 @@
 /plugins/EarthSMPCore/
 /plugins/squaremap/web/
 /plugins/squaremap/data/
+
+# Java / Gradle subprojects
+**/build/
+**/.gradle/
+**/target/
+**/.idea/
+*.iml
+
+# SQLite temporary files
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal

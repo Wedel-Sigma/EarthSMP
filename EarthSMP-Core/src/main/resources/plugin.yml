@@ -1,10 +1,10 @@
 name: EarthSMPCore
-version: '1.6.1'
+version: '1.8.0'
 main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
 api-version: '26.3'
 authors: [Wedel-Sigma]
 softdepend: [squaremap]
-description: "EarthSMP: nations, GUI, territories, protection cores, diplomacy and legal siege rules."
+description: "EarthSMP: nations, GUI, territories, protection cores, diplomacy and siege pickaxes and block provenance."
 website: https://github.com/Wedel-Sigma/EarthSMP
 commands:
   earthsmp:

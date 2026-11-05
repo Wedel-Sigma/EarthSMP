@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "1.6.1"
+version = "1.8.0"
 
 repositories {
     mavenCentral()
@@ -19,6 +19,10 @@ dependencies {
     testImplementation("org.yaml:snakeyaml:2.4")
     testImplementation("org.xerial:sqlite-jdbc:3.54.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+configurations {
+    testImplementation.get().extendsFrom(compileOnly.get())
 }
 
 java {

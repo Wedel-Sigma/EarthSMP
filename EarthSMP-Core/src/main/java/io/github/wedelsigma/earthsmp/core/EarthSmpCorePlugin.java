@@ -24,6 +24,9 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     private SiegeManager sieges;
     private SiegeMenu siegeMenu;
     private SiegeCommand siegeCommand;
+    private SiegeStorage siegeStorage;
+    private SiegePickaxe siegePickaxe;
+    private BlockOriginListener blockOriginListener;
 
     @Override
     public void onEnable() {
@@ -51,6 +54,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         sieges = new SiegeManager(this);
         siegeMenu = new SiegeMenu(this);
         siegeCommand = new SiegeCommand(this);
+        siegeStorage = new SiegeStorage(nationDatabase);
         nationMenu = new NationMenu(this);
         hubMenu = new EarthSmpHubMenu(this);
         coreCommand = new CoreCommand(this);
@@ -71,6 +75,11 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(coreItems, this);
         coreCaptureZone = new CoreCaptureZone(this);
         getServer().getPluginManager().registerEvents(coreCaptureZone, this);
+        siegePickaxe = new SiegePickaxe(this);
+        getServer().getPluginManager().registerEvents(siegePickaxe, this);
+        blockOriginListener = new BlockOriginListener(this);
+        // MONITOR events record only accepted placements/breaks after protection plugins.
+        getServer().getPluginManager().registerEvents(blockOriginListener, this);
 
         // Optional squaremap dependency: keep the core usable even when squaremap is absent.
         var mapPlugin = getServer().getPluginManager().getPlugin("squaremap");
@@ -84,7 +93,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         } else {
             getLogger().warning("squaremap not enabled: territory claims still work, but no public overlay");
         }
-        getLogger().info("EarthSMP Core 1.6.1 enabled - automatic siege detection, defender thresholds and grace");
+        getLogger().info("EarthSMP Core 1.8.0 enabled - legal sieges, pickaxes, persistent block provenance");
     }
 
     @Override
@@ -107,6 +116,9 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         coreCommand = null;
         coreItems = null;
         coreCaptureZone = null;
+        siegePickaxe = null;
+        blockOriginListener = null;
+        siegeStorage = null;
         warMenu = null;
         siegeCommand = null;
         siegeMenu = null;
@@ -128,6 +140,14 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             getLogger().log(Level.WARNING, "Could not refresh political squaremap layer", error);
             return false;
         }
+    }
+
+    public SiegeStorage getSiegeStorage() {
+        return Objects.requireNonNull(siegeStorage, "Siege SQLite storage not initialized");
+    }
+
+    public SiegePickaxe getSiegePickaxe() {
+        return Objects.requireNonNull(siegePickaxe, "Siege pickaxe not initialized");
     }
 
     public CoreProtection getCoreProtection() {
