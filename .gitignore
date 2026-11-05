@@ -17,6 +17,7 @@
 /cache/
 /logs/
 /crash-reports/
+/.paper/
 
 # Runtime data
 /usercache.json
