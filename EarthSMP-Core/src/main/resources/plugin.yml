@@ -1,0 +1,17 @@
+name: EarthSMPCore
+version: '0.1.0'
+main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
+api-version: '26.3'
+authors: [Wedel-Sigma]
+description: Core gameplay plugin for EarthSMP (currently only skeleton)
+website: https://github.com/Wedel-Sigma/EarthSMP
+commands:
+  earthsmp:
+    description: EarthSMP Core admin status
+    usage: /earthsmp status
+    aliases: [esmp]
+    permission: earthsmp.admin
+permissions:
+  earthsmp.admin:
+    description: Access to administrative EarthSMP Core commands
+    default: op
