@@ -39,6 +39,8 @@
 # Plugin binaries
 /plugins/*.jar
 
+/plugins/squaremap/web/
+
 # Java build
 /build/
 /target/
