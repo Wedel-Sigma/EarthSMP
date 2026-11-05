@@ -1,0 +1,46 @@
+
+# Minecraft worlds
+/Earth/
+/world/
+/world_nether/
+/world_the_end/
+
+# Backups
+/backups/
+/backup/
+*.zip
+
+# Paper runtime
+/paper.jar
+/libraries/
+/versions/
+/cache/
+/logs/
+/crash-reports/
+
+# Runtime data
+/usercache.json
+/usernamecache.json
+/banned-players.json
+/banned-ips.json
+/ops.json
+/whitelist.json
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Secrets
+/server.properties
+*.env
+
+# Plugin binaries
+/plugins/*.jar
+
+# Java build
+/build/
+/target/
+/.gradle/
+/.idea/
+*.class
