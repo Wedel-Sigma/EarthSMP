@@ -145,7 +145,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     private boolean showStatus(CommandSender sender) {
         String worldName = plugin.getConfig().getString("world-name", "Earth");
         boolean worldLoaded = Bukkit.getWorld(worldName) != null;
-        send(sender, "EarthSMP Core 1.6.0 - plugin dziala.", NamedTextColor.GREEN);
+        send(sender, "EarthSMP Core 1.6.1 - plugin dziala.", NamedTextColor.GREEN);
         send(sender, "Swiat " + worldName + ": " + (worldLoaded ? "zaladowany" : "nie znaleziono"),
                 worldLoaded ? NamedTextColor.GREEN : NamedTextColor.RED);
         try {
@@ -381,8 +381,8 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("siege")) {
             return filter(sender.hasPermission("earthsmp.admin")
-                    ? List.of("menu", "check", "status", "start", "adminstop")
-                    : List.of("menu", "check", "status", "start"), args[1]);
+                    ? List.of("menu", "check", "status", "adminstop")
+                    : List.of("menu", "check", "status"), args[1]);
         }
         if (args.length == 2 && (args[0].equalsIgnoreCase("war") || args[0].equalsIgnoreCase("diplomacy"))) {
             List<String> actions = sender.hasPermission("earthsmp.admin")

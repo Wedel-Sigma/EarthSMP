@@ -17,7 +17,9 @@ class PluginYamlTest {
             assertInstanceOf(Map.class,doc);
             Map<?,?> map=(Map<?,?>)doc;
             assertEquals("EarthSMPCore",map.get("name"));
-            assertEquals("1.6.0",map.get("version"));
+            String expectedVersion = System.getProperty("earthsmp.version");
+            assertNotNull(expectedVersion, "Gradle must provide earthsmp.version");
+            assertEquals(expectedVersion, String.valueOf(map.get("version")));
             assertEquals("io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin",map.get("main"));
             assertTrue(((Map<?,?>)map.get("commands")).containsKey("earthsmp"));
         }catch(java.io.IOException ex){fail(ex);}

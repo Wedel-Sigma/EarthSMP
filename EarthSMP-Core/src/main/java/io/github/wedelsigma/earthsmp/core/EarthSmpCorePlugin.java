@@ -84,7 +84,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         } else {
             getLogger().warning("squaremap not enabled: territory claims still work, but no public overlay");
         }
-        getLogger().info("EarthSMP Core 1.6.0 enabled - legal siege windows, defender thresholds and grace");
+        getLogger().info("EarthSMP Core 1.6.1 enabled - automatic siege detection, defender thresholds and grace");
     }
 
     @Override

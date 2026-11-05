@@ -18,7 +18,6 @@ public final class SiegeCommand {
         switch(action) {
             case "menu" -> plugin.getSiegeMenu().open(p);
             case "check", "status" -> plugin.getSieges().status(p);
-            case "start" -> plugin.getSieges().sendStartResult(p,plugin.getSieges().begin(p));
             case "adminstop" -> {
                 if(!p.hasPermission("earthsmp.admin")) {
                     p.sendMessage(Component.text("Tylko administrator moze zatrzymac oblezenie.",NamedTextColor.RED));
@@ -26,7 +25,7 @@ public final class SiegeCommand {
                     p.sendMessage(Component.text("Nie ma aktywnego oblezenia w tym regionie.",NamedTextColor.YELLOW));
                 }
             }
-            default -> p.sendMessage(Component.text("/esmp siege menu | check | start",NamedTextColor.YELLOW));
+            default -> p.sendMessage(Component.text("/esmp siege menu | check | adminstop (admin)",NamedTextColor.YELLOW));
         }
         return true;
     }

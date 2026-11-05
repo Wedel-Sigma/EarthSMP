@@ -1,141 +1,114 @@
-﻿# Earth SMP — manual backup (Windows PowerShell 5.1+) — fix ZIP check v1.1
-# The script must be placed next to paper.jar, mcrcon.exe and server.properties.
-# The Minecraft server must be running with RCON enabled on localhost:25575.
-
+﻿# EarthSMP — spójny backup offline, Windows PowerShell 5.1+
+# URUCHAMIAJ TYLKO PO ZATRZYMANIU PAPER: stop i zamknięta konsola serwera.
+# Archiwum zawiera swiaty, dane pluginow i lokalne konfiguracje, w tym server.properties.
+# PRZECHOWUJ PRYWATNIE: archiwum zawiera haslo RCON i informacje administracyjne.
+param([switch]$ConfirmStopped)
 $ErrorActionPreference = 'Stop'
-$serverDir  = $PSScriptRoot
-$backupDir  = Join-Path (Split-Path -Parent $serverDir) 'EarthSMP_Backups'
-$propsFile  = Join-Path $serverDir 'server.properties'
-$mcrconExe  = Join-Path $serverDir 'mcrcon.exe'
-$stageDir   = $null
-$timer      = $null
-$exitCode   = 0
-$mutex      = New-Object -TypeName System.Threading.Mutex -ArgumentList @($false, 'Local\EarthSMP_Backup')
-$mutexHeld  = $false
+$serverDir = $PSScriptRoot
+$backupDir = Join-Path (Split-Path -Parent $serverDir) 'EarthSMP_Backups'
+$properties = Join-Path $serverDir 'server.properties'
+$stage = $null
+$temporaryZip = $null
+$mutex = New-Object -TypeName System.Threading.Mutex -ArgumentList @($false, 'Local\EarthSMP_Backup')
+$mutexHeld = $false
 
-function Invoke-Rcon([string]$command) {
-    $output = & $script:mcrconExe -H '127.0.0.1' -P 25575 $command 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "RCON: blad wykonywania '$command': $($output -join ' ')"
-    }
-    return ($output -join "`n")
+function Copy-Directory([string]$source, [string]$dest, [string[]]$excludeDirs = @(), [string[]]$excludeFiles = @()) {
+    if (-not (Test-Path -LiteralPath $source -PathType Container)) { return }
+    New-Item -ItemType Directory -Path $dest -Force | Out-Null
+    $arguments = @($source, $dest, '/E', '/R:2', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/NP')
+    if ($excludeDirs.Count -gt 0) { $arguments += '/XD'; $arguments += $excludeDirs }
+    if ($excludeFiles.Count -gt 0) { $arguments += '/XF'; $arguments += $excludeFiles }
+    & robocopy.exe @arguments | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "Nie udalo sie skopiowac folderu $source. Robocopy: $LASTEXITCODE" }
 }
 
 try {
     $mutexHeld = $mutex.WaitOne(0)
-    if (-not $mutexHeld) { throw 'Backup juz trwa w innym procesie.' }
-    if (-not (Test-Path -LiteralPath $propsFile -PathType Leaf)) { throw 'Brak server.properties obok skryptu.' }
-    if (-not (Test-Path -LiteralPath $mcrconExe -PathType Leaf)) { throw 'Brak mcrcon.exe obok skryptu.' }
+    if (-not $mutexHeld) { throw 'Juz trwa inna kopia zapasowa.' }
+    if (-not $ConfirmStopped) { throw 'Najpierw zatrzymaj Paper komenda stop, potem uruchom .\EarthSMP-Backup.ps1 -ConfirmStopped' }
+    if (-not (Test-Path -LiteralPath $properties -PathType Leaf)) { throw 'Brakuje server.properties.' }
 
-    $props = @(Get-Content -LiteralPath $propsFile)
-    $worldLine = $props | Where-Object { $_ -match '^level-name=' } | Select-Object -Last 1
-    $passLine  = $props | Where-Object { $_ -match '^rcon\.password=' } | Select-Object -Last 1
-    if (-not $worldLine) { throw 'Nie znaleziono level-name w server.properties.' }
-    if (-not $passLine)  { throw 'Nie znaleziono rcon.password w server.properties.' }
-
+    $lines = @(Get-Content -LiteralPath $properties)
+    $worldLine = $lines | Where-Object { $_ -match '^level-name=' } | Select-Object -Last 1
+    $portLine = $lines | Where-Object { $_ -match '^server-port=' } | Select-Object -Last 1
+    if (-not $worldLine) { throw 'Brakuje level-name w server.properties.' }
     $worldName = $worldLine.Substring('level-name='.Length).Trim()
-    $password  = $passLine.Substring('rcon.password='.Length).Trim()
-    if (-not $worldName -or -not $password) { throw 'Pusta nazwa swiata lub haslo RCON.' }
-    if ([System.IO.Path]::GetFileName($worldName) -ne $worldName) { throw 'level-name musi byc nazwa folderu swiata.' }
+    if (-not $worldName -or [IO.Path]::GetFileName($worldName) -ne $worldName) { throw 'Niepoprawny level-name.' }
     $worldDir = Join-Path $serverDir $worldName
-    if (-not (Test-Path -LiteralPath (Join-Path $worldDir 'level.dat') -PathType Leaf)) {
-        throw "Nie znaleziono level.dat w '$worldDir'."
-    }
-    $env:MCRCON_PASS = $password
-    $password = $null
+    if (-not (Test-Path -LiteralPath (Join-Path $worldDir 'level.dat') -PathType Leaf)) { throw "Nie znaleziono swiata: $worldName" }
+    $database = Join-Path $serverDir 'plugins\EarthSMPCore\earthsmp.db'
+    if (-not (Test-Path -LiteralPath $database -PathType Leaf)) { throw 'Brakuje plugins/EarthSMPCore/earthsmp.db — backup przerwany.' }
 
-    # Check connectivity before issuing the 10-second warning.
-    Invoke-Rcon 'list' | Out-Null
+    # Dodatkowa kontrola portu serwera; sama komenda -ConfirmStopped pozostaje wymagana.
+    $port = 25565
+    if ($portLine) { $port = [int]$portLine.Substring('server-port='.Length).Trim() }
+    $listener = @(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue)
+    if ($listener.Count -gt 0) { throw "Port $port jest nadal nasluchiwany. Zatrzymaj serwer i ponow backup." }
+
+    # Windows blokuje jednoczesne otwarcie uzywanego session.lock przez inny proces.
+    $session = Join-Path $worldDir 'session.lock'
+    if (Test-Path -LiteralPath $session -PathType Leaf) {
+        try {
+            $stream = [IO.File]::Open($session, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+            $stream.Dispose()
+        } catch { throw 'Plik session.lock jest zablokowany. Paper moze wciaz dzialac.' }
+    }
+
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-    Write-Host 'Polaczenie RCON OK. Backup rozpocznie sie za 10 sekund.'
-    Invoke-Rcon 'say [Backup] Backup rozpocznie sie za 10 sekund.' | Out-Null
-    Start-Sleep -Seconds 10
+    $stamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
+    $stage = Join-Path $backupDir ('.staging_' + $stamp + '_' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $stage -Force | Out-Null
+    $watch = [Diagnostics.Stopwatch]::StartNew()
 
-    $timer = [Diagnostics.Stopwatch]::StartNew()
-    Invoke-Rcon 'say [Backup] Backup wystartowal.' | Out-Null
-    Write-Host 'Backup w toku...'
-
-    $stamp    = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
-    $stageDir = Join-Path $backupDir ('.staging_' + $stamp + '_' + [guid]::NewGuid().ToString('N'))
-    $stageWorld = Join-Path $stageDir $worldName
-    $archive = Join-Path $backupDir ('EarthSMP_' + $stamp + '.zip')
-    New-Item -ItemType Directory -Path $stageWorld -Force | Out-Null
-
-    $saveOffAttempted = $false
-    try {
-        # Forced save-all flush still works when autosaving is disabled.
-        $saveOffAttempted = $true
-        $offResult = Invoke-Rcon 'save-off'
-        if ($offResult -match '(?i)already|failed|error|unknown') { throw "save-off: $offResult" }
-
-        $flushResult = Invoke-Rcon 'save-all flush'
-        if ($flushResult -match '(?i)failed|error|unknown') { throw "save-all flush: $flushResult" }
-
-        # Copy quickly while level saves are off; compress AFTER resuming saves.
-        & robocopy.exe $worldDir $stageWorld /E /R:2 /W:1 /XF 'session.lock' /NFL /NDL /NJH /NJS /NP | Out-Null
-        $copyExit = $LASTEXITCODE
-        if ($copyExit -ge 8) { throw "Robocopy zakonczyl sie bledem (kod $copyExit)." }
+    # Glowne i dodatkowe swiaty (Nether/End moga znajdowac sie wewnatrz Earth).
+    foreach ($name in @($worldName, 'world', 'world_nether', 'world_the_end') | Select-Object -Unique) {
+        Copy-Directory (Join-Path $serverDir $name) (Join-Path $stage $name) -excludeFiles @('session.lock')
     }
-    finally {
-        if ($saveOffAttempted) {
-            # Important: attempt to re-enable saving even if copying failed.
-            Invoke-Rcon 'save-on' | Out-Null
-        }
-    }
+    Copy-Directory (Join-Path $serverDir 'config') (Join-Path $stage 'config')
 
-    if (-not (Test-Path -LiteralPath (Join-Path $stageWorld 'level.dat'))) {
-        throw 'Brak level.dat w kopii roboczej.'
+    # Wszystkie DANE pluginow oprocz kosztownych, odtwarzalnych kafelkow squaremap oraz JAR-ow.
+    $plugins = Join-Path $serverDir 'plugins'
+    Copy-Directory $plugins (Join-Path $stage 'plugins') `
+        -excludeDirs @((Join-Path $plugins 'squaremap\web'), (Join-Path $plugins 'squaremap\data')) `
+        -excludeFiles @('*.jar')
+
+    # Konfiguracja Paper i lista dostepu; zawiera tez prywatny server.properties.
+    foreach ($filename in @('server.properties', 'bukkit.yml', 'spigot.yml', 'commands.yml', 'eula.txt',
+                            'whitelist.json', 'ops.json', 'wepif.yml', 'start.bat')) {
+        $source = Join-Path $serverDir $filename
+        if (Test-Path -LiteralPath $source -PathType Leaf) { Copy-Item -LiteralPath $source -Destination (Join-Path $stage $filename) }
     }
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::CreateFromDirectory(
-        $stageDir, $archive, [System.IO.Compression.CompressionLevel]::Optimal, $false
-    )
-
-    if ((Get-Item -LiteralPath $archive).Length -eq 0) { throw 'Plik ZIP jest pusty.' }
-    $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
+    $temporaryZip = Join-Path $backupDir ('.temporary_' + [guid]::NewGuid().ToString('N') + '.zip')
+    [IO.Compression.ZipFile]::CreateFromDirectory($stage, $temporaryZip, [IO.Compression.CompressionLevel]::Optimal, $false)
+    $archive = Join-Path $backupDir ('EarthSMP_' + $stamp + '.zip')
+    $zip = [IO.Compression.ZipFile]::OpenRead($temporaryZip)
     try {
-        # On Windows PowerShell 5.1, .NET Framework can use \ inside ZIP entries.
-        # Normalize the entry names before checking the archive structure.
-        $entryNames = @($zip.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
-        $foundLevel = $entryNames -contains ($worldName + '/level.dat')
-        if (-not $foundLevel) {
-            $sample = ($entryNames | Select-Object -First 5) -join ', '
-            throw "W ZIP nie znaleziono level.dat. Pierwsze wpisy: $sample"
+        $entries = @($zip.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
+        if ($entries -notcontains ($worldName + '/level.dat')) { throw 'Kopia ZIP nie zawiera level.dat.' }
+        if ($entries -notcontains 'plugins/EarthSMPCore/earthsmp.db') { throw 'Kopia ZIP nie zawiera bazy państw.' }
+        $prefix = $worldName + '/dimensions/minecraft/overworld/region/'
+        if (@($entries | Where-Object { $_.StartsWith($prefix) -and $_.EndsWith('.mca') }).Count -eq 0) {
+            throw 'Kopia ZIP nie zawiera regionow mapy Earth.'
         }
-        $regionPrefix = $worldName + '/dimensions/minecraft/overworld/region/'
-        $foundRegion = @($entryNames | Where-Object { $_.StartsWith($regionPrefix) -and $_.EndsWith('.mca') }).Count -gt 0
-        if (-not $foundRegion) {
-            throw 'W ZIP nie znaleziono plikow region/*.mca mapy Earth.'
-        }
-    }
-    finally { $zip.Dispose() }
+    } finally { $zip.Dispose() }
+    Move-Item -LiteralPath $temporaryZip -Destination $archive -ErrorAction Stop
+    $temporaryZip = $null
+    $watch.Stop()
+    $megabytes = [math]::Round((Get-Item -LiteralPath $archive).Length / 1MB, 1)
+    Write-Host "SUKCES: $archive ($megabytes MB, $([math]::Round($watch.Elapsed.TotalSeconds, 1)) s)" -ForegroundColor Green
+    Write-Host 'WAZNE: ZIP zawiera server.properties (haslo RCON). Nie publikuj go.' -ForegroundColor Yellow
 
-    $timer.Stop()
-    $duration = $timer.Elapsed.TotalSeconds.ToString('0.000', [Globalization.CultureInfo]::InvariantCulture)
-    $sizeMB = [math]::Round((Get-Item -LiteralPath $archive).Length / 1MB, 1)
-    Write-Host "SUKCES: $archive | $sizeMB MB | $duration s"
-    Invoke-Rcon "say [Backup] Backup zakonczony pomyslnie! Czas: $duration s." | Out-Null
-
-    # Keep only the 12 most recent completed archives.
+    # Retencja dopiero po utworzeniu i sprawdzeniu nowej kopii.
     Get-ChildItem -LiteralPath $backupDir -Filter 'EarthSMP_*.zip' -File |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -Skip 12 |
-        Remove-Item -Force
-}
-catch {
-    $exitCode = 1
+        Sort-Object LastWriteTime -Descending | Select-Object -Skip 12 | Remove-Item -Force
+} catch {
     Write-Host "BLAD BACKUPU: $($_.Exception.Message)" -ForegroundColor Red
-    if ($timer) { $timer.Stop() }
-    try { if ($env:MCRCON_PASS) { Invoke-Rcon 'say [Backup] BLAD! Kopia zapasowa nie zostala zakonczona.' | Out-Null } } catch {}
-    Write-Host 'Jesli w konsoli pojawi sie blad save-on, wpisz recznie: save-on' -ForegroundColor Yellow
-}
-finally {
-    if ($stageDir -and (Test-Path -LiteralPath $stageDir)) {
-        Remove-Item -LiteralPath $stageDir -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    Remove-Item Env:\MCRCON_PASS -ErrorAction SilentlyContinue
+    exit 1
+} finally {
+    if ($temporaryZip -and (Test-Path -LiteralPath $temporaryZip)) { Remove-Item -LiteralPath $temporaryZip -Force -ErrorAction SilentlyContinue }
+    if ($stage -and (Test-Path -LiteralPath $stage)) { Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue }
     if ($mutexHeld) { $mutex.ReleaseMutex() }
     $mutex.Dispose()
 }
-exit $exitCode

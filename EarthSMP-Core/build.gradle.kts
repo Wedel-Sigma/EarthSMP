@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "1.6.0"
+version = "1.6.1"
 
 repositories {
     mavenCentral()
@@ -46,4 +46,7 @@ tasks.build {
 }
 
 // A successful build now also validates plugin.yml and tests SQLite war migrations.
-tasks.test { useJUnitPlatform() }
+tasks.test {
+    useJUnitPlatform()
+    systemProperty("earthsmp.version", project.version.toString())
+}

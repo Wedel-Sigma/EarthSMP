@@ -33,6 +33,8 @@ public final class SiegeManager {
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final EarthSmpCorePlugin plugin;
     private final Map<String, Session> active = new LinkedHashMap<>();
+    /** An emergency admin stop remains in effect until intruders leave that base. */
+    private final Set<String> adminStopped = new HashSet<>();
 
     private static final class Session {
         final String coreId;
@@ -101,7 +103,7 @@ public final class SiegeManager {
     public Result begin(Player player) {
         var core=plugin.getCoreProtection().findAt(player.getLocation());
         if(core.isEmpty()) return Result.NO_CORE;
-        if(active.containsKey(core.get().id())) return Result.ALREADY_ACTIVE;
+        if(active.containsKey(core.get().id()) || adminStopped.contains(core.get().id())) return Result.ALREADY_ACTIVE;
         try {
             var own=plugin.getNationDatabase().findMembership(player.getUniqueId());
             if(own.isEmpty()) return Result.NO_NATION;
@@ -125,7 +127,7 @@ public final class SiegeManager {
 
     public void sendStartResult(Player p,Result result) {
         String message=switch(result) {
-            case STARTED -> "Oblezenie rozpoczete. Strefa jest aktywna; niszczenie i przejmowanie dodamy pozniej.";
+            case STARTED -> "Szturm aktywny. Przejmowanie 9x9 i kilof dodamy pozniej.";
             case NO_CORE -> "Wejdz do chronionego obszaru 65x65 wrogiego rdzenia.";
             case NO_NATION -> "Musisz nalezec do panstwa uczestniczacego w wojnie.";
             case OWN_CORE -> "Nie mozesz oblegac wlasnego rdzenia.";
@@ -161,7 +163,7 @@ public final class SiegeManager {
                 if(own.isPresent() && !own.get().nationId().equals(c.nationId())) {
                     lines.add(findOpposingWar(own.get().nationId(),c.nationId())==null
                             ? "Nie jestes strona wojny przeciw obroncom."
-                            : "Mozesz sprobowac rozpoczac oblezenie.");
+                            : "Szturm rozpocznie sie automatycznie, jesli warunki sa spelnione.");
                 }
             } else {
                 lines.add("Stan: AKTYWNE | Wojna #"+s.warId);
@@ -181,9 +183,8 @@ public final class SiegeManager {
         for(String line:describe(player)) say(player,line,NamedTextColor.AQUA);
     }
 
-    /** Called by synchronous scheduler every 20 server ticks. Timeouts use Instant, not ticks. */
+    /** Called by synchronous scheduler every 20 ticks. Handles running sieges, then detects entrants. */
     public void tick() {
-        if(active.isEmpty()) return;
         Instant now=Instant.now();
         var it=active.values().iterator();
         while(it.hasNext()) {
@@ -218,6 +219,39 @@ public final class SiegeManager {
                 alert(s,"Oblezenie przeciwko "+s.defenderName+" (wojna #"+s.warId+") zakonczone: "+ended);
             }
         }
+
+        // Admin emergency stop is deliberately sticky while non-defenders are still in the base.
+        // It is cleared only after they leave, so /adminstop doesn't immediately restart the siege.
+        adminStopped.removeIf(coreId -> {
+            var core = plugin.getCoreProtection().all().stream().filter(c -> c.id().equals(coreId)).findFirst();
+            if (core.isEmpty()) return true;
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (!inside(p, core.get())) continue;
+                try {
+                    var nation = plugin.getNationDatabase().findMembership(p.getUniqueId());
+                    if (nation.isPresent() && !nation.get().nationId().equals(core.get().nationId())) return false;
+                } catch (SQLException error) {
+                    plugin.getLogger().log(Level.WARNING, "Cannot clear admin siege stop; keeping it blocked", error);
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // No user command or GUI click is necessary. Entering a hostile protected BASE (65x65)
+        // enables the siege, while entering the INNER 9x9 capture zone will later begin the timer.
+        if (!SiegeRules.openAt(now)) return;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            var core = plugin.getCoreProtection().findAt(player.getLocation());
+            if (core.isEmpty() || active.containsKey(core.get().id()) || adminStopped.contains(core.get().id())) continue;
+            begin(player); // Enforces war opposition, full roster threshold and all other checks.
+        }
+    }
+
+    private static boolean inside(Player player, NationDatabase.ProtectionCore core) {
+        var pos = player.getLocation();
+        return pos.getWorld() != null && core.world().equals(pos.getWorld().getName())
+                && core.contains(pos.getBlockX(), pos.getBlockZ());
     }
 
     /** Admin-only emergency action, currently targeted at the core the admin stands inside. */
@@ -226,12 +260,14 @@ public final class SiegeManager {
         if(core.isEmpty()) return false;
         Session s=active.remove(core.get().id());
         if(s==null) return false;
-        alert(s,"Administrator zakonczyl oblezenie przeciwko "+s.defenderName+".");
+        adminStopped.add(s.coreId);
+        alert(s,"Administrator przerwal szturm przeciwko "+s.defenderName+". Wznowienie po wyjsciu napastnikow.");
         return true;
     }
 
     public void shutdown() {
         if(!active.isEmpty()) plugin.getLogger().info("Stopping "+active.size()+" siege(s) on server shutdown");
         active.clear();
+        adminStopped.clear();
     }
 }

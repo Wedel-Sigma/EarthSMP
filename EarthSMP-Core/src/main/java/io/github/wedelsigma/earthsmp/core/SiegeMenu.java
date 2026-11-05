@@ -42,9 +42,10 @@ public final class SiegeMenu implements Listener {
         Holder h=new Holder(p);
         List<String> description=plugin.getSieges().describe(p);
         h.inventory.setItem(11,item(Material.BOOK,"Status oblezenia",description.toArray(String[]::new)));
-        h.inventory.setItem(13,item(Material.IRON_SWORD,"Rozpocznij legalne oblezenie",
-                "Musisz przebywac w chronionej bazie wroga",
-                "Wymaga wojny, godziny 10-00 i 20% obroncow"));
+        h.inventory.setItem(13,item(Material.IRON_SWORD,"Szturm: automatyczny",
+                "Wejdz do wrogiej bazy 65x65",
+                "Wymaga wojny, godziny 10-00 i 20% obroncow",
+                "Strefa 9x9 uruchomi pozniej przejmowanie"));
         h.inventory.setItem(15,item(Material.CLOCK,"Reguly oblezen",
                 "10:00-00:00 Europe/Warsaw", "20% pelnego skladu, min. 1 online",
                 "Po spadku progu: 30 minut tolerancji"));
@@ -57,11 +58,10 @@ public final class SiegeMenu implements Listener {
         if(!(e.getWhoClicked() instanceof Player p) || !p.getUniqueId().equals(h.viewer)) return;
         if(e.getRawSlot()<0 || e.getRawSlot()>=h.inventory.getSize()) return;
         int slot=e.getRawSlot();
-        if(slot==11 || slot==13 || slot==22) {
+        if(slot==11 || slot==22) {
             plugin.getServer().getScheduler().runTask(plugin,()-> {
                 if(!p.isOnline() || p.getOpenInventory().getTopInventory()!=h.inventory) return;
                 if(slot==11) {plugin.getSieges().status(p);open(p);}
-                if(slot==13) {plugin.getSieges().sendStartResult(p,plugin.getSieges().begin(p));open(p);}
                 if(slot==22) plugin.getHubMenu().openMain(p);
             });
         }
