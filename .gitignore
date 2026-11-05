@@ -48,3 +48,8 @@
 /.gradle/
 /.idea/
 *.class
+**/build/
+**/.gradle/
+/plugins/EarthSMPCore/
+/plugins/squaremap/web/
+/plugins/squaremap/data/

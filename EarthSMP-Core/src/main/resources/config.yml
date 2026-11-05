@@ -1,2 +1,4 @@
-# World folder name, as configured in server.properties (level-name=Earth)
+# Minecraft world folder from server.properties (level-name=Earth)
 world-name: Earth
+# Identifier of Overworld on squaremap (Earth world in Paper is minecraft:overworld)
+squaremap-world-id: minecraft:overworld

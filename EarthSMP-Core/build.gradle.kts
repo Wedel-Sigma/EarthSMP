@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "0.3.0"
+version = "1.6.0"
 
 repositories {
     mavenCentral()
@@ -14,6 +14,11 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:26.3.build.230-stable")
     implementation("org.xerial:sqlite-jdbc:3.54.1.0")
+    compileOnly("xyz.jpenilla:squaremap-api:1.4.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation("org.yaml:snakeyaml:2.4")
+    testImplementation("org.xerial:sqlite-jdbc:3.54.1.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
@@ -39,3 +44,6 @@ tasks.shadowJar {
 tasks.build {
     dependsOn(tasks.shadowJar)
 }
+
+// A successful build now also validates plugin.yml and tests SQLite war migrations.
+tasks.test { useJUnitPlatform() }

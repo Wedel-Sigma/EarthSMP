@@ -1,17 +1,21 @@
 name: EarthSMPCore
-version: '0.3.0'
+version: '1.6.0'
 main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
 api-version: '26.3'
 authors: [Wedel-Sigma]
-description: Core gameplay plugin for EarthSMP (nation creation and SQLite persistence)
+softdepend: [squaremap]
+description: "EarthSMP: nations, GUI, territories, protection cores, diplomacy and legal siege rules."
 website: https://github.com/Wedel-Sigma/EarthSMP
 commands:
   earthsmp:
-    description: EarthSMP Core test commands
-    usage: /earthsmp status
+    description: EarthSMP central GUI and admin commands
+    usage: /earthsmp menu
     aliases: [esmp]
-    permission: earthsmp.admin
+    permission: earthsmp.use
 permissions:
+  earthsmp.use:
+    description: Access to EarthSMP player commands
+    default: true
   earthsmp.admin:
-    description: Access to administrative EarthSMP Core test commands
+    description: Access to EarthSMP administrative test commands
     default: op
