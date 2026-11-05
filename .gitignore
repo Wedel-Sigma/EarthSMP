@@ -40,6 +40,7 @@
 /plugins/*.jar
 
 /plugins/squaremap/web/
+/plugins/EarthSMPCore/
 
 # Java build
 /build/

@@ -1,39 +1,32 @@
-# EarthSMP Core — etap 3.3.1
+# EarthSMP Core — 0.3.0 (etap 3.3.2a)
 
-Minimalny szkielet autorskiego pluginu Paper 26.3 (Java 25), przygotowany do umieszczenia w repozytorium `Wedel-Sigma/EarthSMP`.
+Aktualizacja **na istniejący projekt 0.2.0**. Rozpakuj do głównego katalogu repozytorium `EarthSMP` i nadpisz wskazane pliki.
+Nie kasuj `EarthSMP-Core/gradle/`, `gradlew.bat`, `gradlew`, `settings.gradle.kts`, `config.yml` ani bazy danych.
 
-**To jeszcze nie implementuje państw, wojen ani ochrony baz.** Pierwszy cel: skompilować plik JAR, załadować go na serwerze i wykonać `/earthsmp status`.
+## Co robi
 
-## Wymagania
+- `/earthsmp status` — liczba państw z SQLite.
+- `/earthsmp nation create <nazwa>` — tworzy państwo, z wykonawcy robi lidera (jedna osoba = jedno państwo).
+- `/earthsmp nation info` — pokazuje własne państwo, rangę oraz UUID państwa.
+- Nazwa: 3–32 znaki, litery/cyfry/spacja/myślnik/podkreślnik. Nazwy nie mogą się powtarzać.
+- Tworzenie państwa i przypisanie lidera jest jedną transakcją SQLite.
+- **Wszystkie komendy są tymczasowo tylko dla admina/OP** (`earthsmp.admin`). Docelowo gracze będą tworzyli państwa przez GUI.
+- **Brak darmowego rdzenia w tej wersji** — wymaga osobnej implementacji. Używaj testowych nazw/państw; brak jeszcze komendy usuwania.
 
-- JDK 25 (ta sama główna wersja co serwer).
-- Gradle 9.1+ (lub IDE wyposażone w obsługę Gradle; w archiwum **nie ma** wrappera Gradle).
-- Dostęp do internetu przy pierwszym budowaniu, by pobrać `paper-api`.
+## Test na serwerze
 
-## W VS Code / PowerShell
+1. Zatrzymaj Paper przez `stop`.
+2. Opcjonalnie skopiuj `plugins/EarthSMPCore/earthsmp.db` jako backup.
+3. W `EarthSMP-Core` wykonaj `./gradlew.bat clean build` (PowerShell: `.\gradlew.bat clean build`).
+4. W `plugins/` usuń **stary** `EarthSMP-Core-0.2.0.jar`, wgraj `EarthSMP-Core-0.3.0.jar` z `build/libs` (nie `-plain`).
+5. Włącz serwer; wpisz `/earthsmp nation create Polska`, `/earthsmp nation info`, `/earthsmp status`.
+6. Zrestartuj Paper i ponów `/earthsmp nation info` oraz `/earthsmp status`.
 
-Otwórz katalog `EarthSMP-Core` jako projekt Java/Gradle. W terminalu:
+Po prawidłowym restarcie nazwa, rola `LEADER` oraz licznik państw zostaną zachowane.
 
-```powershell
-gradle build
-```
+## Ważne
 
-JAR powstanie pod `build/libs/EarthSMP-Core-0.1.0.jar`.
-
-1. Wyłącz serwer Paper (komenda `stop`).
-2. Skopiuj JAR do katalogu serwera `plugins/`.
-3. Uruchom serwer ponownie (bez `/reload`).
-4. Sprawdź `/plugins` i `/earthsmp status` jako OP.
-5. Powinien wyświetlić `EarthSMP Core 0.1.0 - plugin dziala.` i `Swiat Earth: zaladowany`.
-
-Jeśli komenda jest niedostępna dla admina bez OP, nadaj w LuckPerms węzeł `earthsmp.admin` grupie `admin`.
-
-## Co wprowadzamy później
-
-Rozwój będzie etapowy: dane państw i członkostwo → terytoria → rdzenie → dyplomacja → oblężenia → ograniczenia PvP → integracja z mapą. Nie implementujemy wszystkiego na raz.
-
-## Uwaga o repozytorium
-
-`EarthSMP-Core/.gitignore` wyklucza katalogi `build/` i `.gradle/` tego modułu. Nie wrzucaj skompilowanego JAR-a ani baz danych pluginu do GitHuba.
-
-Stan pluginu i jego komendy są niezależne od pluginów WorldGuard, LuckPerms czy squaremap. Integracje dodamy dopiero wtedy, gdy będą potrzebne.
+Istniejąca baza z 0.2.0 **nie wymaga migracji** (schemat SQLite v1 bez zmian).
+`plugins/EarthSMPCore/` powinno być wykluczone w głównym `.gitignore`.
+Z racji backupów państw **nie zapisuj bazy do publicznego Git**.
+Nie używaj `/reload` do aktualizacji kodu.

@@ -1,17 +1,19 @@
 plugins {
     java
+    id("com.gradleup.shadow") version "9.4.3"
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "0.1.0"
+version = "0.3.0"
 
 repositories {
+    mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    // Paper 26.3 - stable API; dependency available from the PaperMC repository.
     compileOnly("io.papermc.paper:paper-api:26.3.build.230-stable")
+    implementation("org.xerial:sqlite-jdbc:3.54.1.0")
 }
 
 java {
@@ -22,6 +24,18 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
 
+// Only the shaded JAR is deployable. The plain one lacks the SQLite driver.
 tasks.jar {
     archiveBaseName.set("EarthSMP-Core")
+    archiveClassifier.set("plain")
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("EarthSMP-Core")
+    archiveClassifier.set("")
+    mergeServiceFiles()
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
