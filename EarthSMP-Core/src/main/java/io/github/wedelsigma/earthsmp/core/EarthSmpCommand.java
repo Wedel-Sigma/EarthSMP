@@ -68,6 +68,13 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
                 case "leave" -> {
                     if (args.length == 2) return leaveNation(sender);
                 }
+                case "disband" -> {
+                    if (args.length == 2) {
+                        Player player = requirePlayer(sender);
+                        if (player != null) plugin.getNationMenu().openDisbandConfirmation(player);
+                        return true;
+                    }
+                }
                 case "transfer" -> {
                     if (args.length == 3) return transferNation(sender, args[2]);
                 }
@@ -134,7 +141,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         send(sender, "/" + label + " (centralne GUI) | nation menu | nation info | members | invites", NamedTextColor.YELLOW);
         send(sender, "/" + label + " territory (granice polityczne)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " war (wojny, sojusznicy i pokoj)", NamedTextColor.YELLOW);
-        send(sender, "/" + label + " nation create <nazwa> | leave | transfer <nick>", NamedTextColor.YELLOW);
+        send(sender, "/" + label + " nation create <nazwa> | leave | disband | transfer <nick>", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation invite <nick> | accept <panstwo> | decline <panstwo>", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation promote <nick> | demote <nick> | kick <nick>", NamedTextColor.YELLOW);
         if (sender.hasPermission("earthsmp.admin")) {
