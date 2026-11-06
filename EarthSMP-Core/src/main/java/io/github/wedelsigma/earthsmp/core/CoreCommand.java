@@ -36,7 +36,7 @@ public final class CoreCommand {
             try {
                 var s = plugin.getNationDatabase().coreStock(player.getUniqueId());
                 msg(sender, "Rdzenie: darmowy " + s.free() + "/1, wykonane " + s.crafted()
-                        + "/2, postawione " + s.placed() + ".", NamedTextColor.YELLOW);
+                        + "/2, postawione " + s.placed() + ", razem kontrolowane " + s.total() + ".", NamedTextColor.YELLOW);
             } catch (SQLException error) { fail(sender, "Could not get core stock", error); }
             return true;
         }
@@ -71,10 +71,6 @@ public final class CoreCommand {
             pickup(player, looked);
             return true;
         }
-        if (!sender.hasPermission("earthsmp.admin")) {
-            msg(sender, "Ta komenda rdzeni jest dostepna tylko dla admina.", NamedTextColor.RED);
-            return true;
-        }
         if (operation.equals("zonecheck")) {
             if (!(sender instanceof Player player)) {
                 msg(sender, "Tylko w grze.", NamedTextColor.YELLOW); return true;
@@ -107,15 +103,38 @@ public final class CoreCommand {
                 return true;
             }
             try {
-                var result = plugin.getNationDatabase().adminSetCapital(found.get().id());
-                if (result == NationDatabase.SetCapitalResult.UPDATED) {
-                    plugin.getCoreProtection().reload();
-                    msg(sender, "Nowa stolica panstwa " + found.get().nationName() + " wyznaczona.", NamedTextColor.GREEN);
+                var owner = plugin.getNationDatabase().findMembership(player.getUniqueId());
+                if (owner.isPresent() && owner.get().nationId().equals(found.get().nationId())) {
+                    var result = plugin.getNationDatabase().setOwnCapital(player.getUniqueId(), found.get().id());
+                    if (result == NationDatabase.OwnCapitalResult.UPDATED) {
+                        plugin.getCoreProtection().reload();
+                        msg(sender, "Nowa stolica twojego panstwa wyznaczona.", NamedTextColor.GREEN);
+                    } else {
+                        msg(sender, switch (result) {
+                            case NOT_AUTHORIZED -> "Tylko lider lub zastepca moze zmienic stolice.";
+                            case AT_WAR -> "Nie mozna zmienic stolicy podczas wojny.";
+                            case ALREADY_CAPITAL -> "Ten rdzen jest juz stolica.";
+                            case NOT_OWNED -> "To nie jest rdzen twojego panstwa.";
+                            default -> "Nie mozna zmienic stolicy.";
+                        }, NamedTextColor.YELLOW);
+                    }
+                } else if (player.hasPermission("earthsmp.admin")) {
+                    var result = plugin.getNationDatabase().adminSetCapital(found.get().id());
+                    if (result == NationDatabase.SetCapitalResult.UPDATED) {
+                        plugin.getCoreProtection().reload();
+                        msg(sender, "Admin: zmieniono stolice panstwa " + found.get().nationName(), NamedTextColor.GREEN);
+                    } else {
+                        msg(sender, result == NationDatabase.SetCapitalResult.ALREADY_CAPITAL
+                                ? "Ten rdzen jest juz stolica." : "Nie znaleziono rdzenia.", NamedTextColor.YELLOW);
+                    }
                 } else {
-                    msg(sender, result == NationDatabase.SetCapitalResult.ALREADY_CAPITAL
-                            ? "Ten rdzen jest juz stolica." : "Nie znaleziono rdzenia w bazie.", NamedTextColor.YELLOW);
+                    msg(sender, "Nie nalezysz do wlasciciela tego rdzenia.", NamedTextColor.RED);
                 }
             } catch (SQLException error) { fail(sender, "Could not change nation capital", error); }
+            return true;
+        }
+        if (!sender.hasPermission("earthsmp.admin")) {
+            msg(sender, "Ta komenda rdzeni jest dostepna tylko dla admina.", NamedTextColor.RED);
             return true;
         }
         if (operation.equals("list")) {
@@ -142,7 +161,7 @@ public final class CoreCommand {
     public List<String> tab(CommandSender sender, String[] args) {
         List<String> opts = sender.hasPermission("earthsmp.admin")
                 ? List.of("here", "stock", "free", "pickup", "place", "remove", "capital", "zonecheck", "list")
-                : List.of("here", "stock", "free", "pickup");
+                : List.of("here", "stock", "free", "pickup", "capital");
         String prefix = args.length > 1 ? args[1].toLowerCase(java.util.Locale.ROOT) : "";
         return opts.stream().filter(o -> o.startsWith(prefix)).toList();
     }

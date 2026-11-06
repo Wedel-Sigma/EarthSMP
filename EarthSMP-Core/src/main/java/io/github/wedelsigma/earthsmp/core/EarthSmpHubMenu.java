@@ -228,7 +228,8 @@ public final class EarthSmpHubMenu implements Listener {
                     "Sprawdz ochrone aktualnej pozycji"));
             inv.setItem(12, item(Material.NETHER_STAR, "Stan rdzeni", NamedTextColor.GREEN,
                     "Darmowy: " + stock.free() + "/1", "Wykonane: " + stock.crafted() + "/2",
-                    "Postawione: " + stock.placed()));
+                    "Postawione: " + stock.placed(),
+                    "Lacznie kontrolowane: " + stock.total()));
             inv.setItem(14, item(manager ? Material.LODESTONE : Material.GRAY_DYE,
                     "Odbierz darmowy rdzen", manager ? NamedTextColor.GREEN : NamedTextColor.GRAY,
                     "Tylko lider lub zastepca", "Jednorazowo na panstwo", "Bezpieczne potwierdzenie"));
@@ -241,8 +242,11 @@ public final class EarthSmpHubMenu implements Listener {
             if (admin) {
                 inv.setItem(30, item(Material.SPYGLASS, "Admin: audyt strefy 9x9", NamedTextColor.GOLD,
                         "Patrz na lodestone rdzenia"));
-                inv.setItem(32, item(Material.GOLD_BLOCK, "Admin: ustaw stolice", NamedTextColor.GOLD,
-                        "Patrz na lodestone docelowego rdzenia", "Wymaga potwierdzenia"));
+            }
+            if (manager || admin) {
+                inv.setItem(32, item(Material.GOLD_BLOCK, "Ustaw stolice", NamedTextColor.GOLD,
+                        "Lider/zastepca: wlasne rdzenie, podczas pokoju",
+                        "Admin: takze korekta innych panstw", "Wymaga potwierdzenia"));
             }
             inv.setItem(49, back());
             player.openInventory(inv);
@@ -253,11 +257,7 @@ public final class EarthSmpHubMenu implements Listener {
         try {
             boolean manager = plugin.getNationDatabase().findMembership(player.getUniqueId())
                     .map(m -> isManager(m.role())).orElse(false);
-            if (action == Screen.CORE_CONFIRM_CAPITAL && !player.hasPermission("earthsmp.admin")) {
-                warn(player, "Tylko administrator moze zmienic stolice.");
-                return;
-            }
-            if (action != Screen.CORE_CONFIRM_CAPITAL && !manager) {
+            if (!manager && !(action == Screen.CORE_CONFIRM_CAPITAL && player.hasPermission("earthsmp.admin"))) {
                 warn(player, "Tylko lider lub zastepca moze wykonac te operacje.");
                 return;
             }
@@ -393,8 +393,7 @@ public final class EarthSmpHubMenu implements Listener {
                     case 14 -> () -> coreConfirm(player, Screen.CORE_CONFIRM_FREE);
                     case 28 -> () -> coreConfirm(player, Screen.CORE_CONFIRM_PICKUP);
                     case 30 -> player.hasPermission("earthsmp.admin") ? () -> core(player, "zonecheck") : null;
-                    case 32 -> player.hasPermission("earthsmp.admin")
-                            ? () -> coreConfirm(player, Screen.CORE_CONFIRM_CAPITAL) : null;
+                    case 32 -> () -> coreConfirm(player, Screen.CORE_CONFIRM_CAPITAL);
                     case 49 -> () -> openMain(player);
                     default -> null;
                 };

@@ -93,7 +93,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         } else {
             getLogger().warning("squaremap not enabled: territory claims still work, but no public overlay");
         }
-        getLogger().info("EarthSMP Core 1.8.0 enabled - legal sieges, pickaxes, persistent block provenance");
+        getLogger().info("EarthSMP Core 1.8.1 enabled - legal sieges, pickaxes, persistent block provenance");
     }
 
     @Override

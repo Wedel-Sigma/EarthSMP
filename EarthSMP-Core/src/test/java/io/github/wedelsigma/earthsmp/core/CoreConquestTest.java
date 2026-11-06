@@ -43,12 +43,59 @@ class CoreConquestTest {
             assertEquals(0, count(c,"SELECT COUNT(*) FROM core_tokens WHERE id='core1'"));
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core1' AND nation_id='a' AND origin='CONQUERED'"));
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='b'"));
+            assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core2' AND nation_id='b' AND is_capital=1"),
+                    "The defender's remaining core must automatically become the new capital");
             assertEquals(NationDatabase.CaptureOutcome.LAST_CORE_DESTROYED,db.captureCore("core2","b","a"));
             assertEquals(1,db.countNations());
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='a' AND id='core1'"));
             assertEquals(0, count(c,"SELECT COUNT(*) FROM territory_chunks WHERE nation_id='b'"));
             assertEquals(0, count(c,"SELECT COUNT(*) FROM wars WHERE ended_at IS NULL"));
             assertEquals(0, count(c,"SELECT COUNT(*) FROM core_tokens WHERE nation_id='b'"));
+        }
+    }
+
+    @Test void nationLeaderCanDisbandInPeaceAndLoseAllCoreTypes() throws Exception {
+        try (NationDatabase db = new NationDatabase(temp.resolve("disband.db"))) {
+            Connection c = db.diplomacyConnection();
+            UUID leader = UUID.randomUUID();
+            statement(c, "INSERT INTO nations(id,name) VALUES ('a','Alfa'),('b','Bravo')");
+            statement(c, "INSERT INTO nation_members(player_uuid,nation_id,role) VALUES (?, 'a','LEADER')", leader);
+            statement(c, "INSERT INTO territory_chunks(world_name,chunk_x,chunk_z,nation_id) VALUES ('Earth',1,1,'a')");
+            statement(c, "INSERT INTO protection_cores(id,nation_id,world_name,block_x,block_y,block_z,origin,is_capital,placed_by) VALUES "
+                    + "('own','a','Earth',100,70,100,'FREE',1,'test'),"
+                    + "('won','a','Earth',300,70,100,'CONQUERED',0,'test'),"
+                    + "('other','b','Earth',600,70,100,'FREE',1,'test')");
+            statement(c, "INSERT INTO core_tokens(id,nation_id,origin,state) VALUES ('own','a','FREE','PLACED')");
+            assertEquals(2, db.coreStock(leader).total());
+            assertEquals(NationDatabase.DisbandResult.DISBANDED, db.disbandNation(leader));
+            assertEquals(0, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='a'"));
+            assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='b'"));
+            assertEquals(0, count(c,"SELECT COUNT(*) FROM territory_chunks WHERE nation_id='a'"));
+            assertEquals(0, count(c,"SELECT COUNT(*) FROM nation_members WHERE nation_id='a'"));
+            assertEquals(0, count(c,"SELECT COUNT(*) FROM core_tokens WHERE nation_id='a'"));
+            assertEquals(1, db.countNations());
+        }
+    }
+
+    @Test void cannotDisbandOrMoveCapitalDuringWar() throws Exception {
+        try (NationDatabase db = new NationDatabase(temp.resolve("blocked.db"))) {
+            Connection c = db.diplomacyConnection();
+            UUID leader = UUID.randomUUID();
+            UUID opponent = UUID.randomUUID();
+            statement(c, "INSERT INTO nations(id,name) VALUES ('a','Alfa'),('b','Bravo')");
+            statement(c, "INSERT INTO nation_members(player_uuid,nation_id,role) VALUES (?, 'a','LEADER')", leader);
+            statement(c, "INSERT INTO nation_members(player_uuid,nation_id,role) VALUES (?, 'b','LEADER')", opponent);
+            statement(c, "INSERT INTO protection_cores(id,nation_id,world_name,block_x,block_y,block_z,origin,is_capital,placed_by) VALUES "
+                    + "('a1','a','Earth',100,70,100,'FREE',1,'test'),"
+                    + "('a2','a','Earth',300,70,100,'CRAFTED',0,'test')");
+            assertEquals(NationDatabase.OwnCapitalResult.UPDATED, db.setOwnCapital(leader,"a2"));
+            assertEquals(1, count(c, "SELECT COUNT(*) FROM protection_cores WHERE id='a2' AND is_capital=1"));
+            WarRepository wars = new WarRepository(db);
+            assertEquals(WarRepository.Status.SUCCESS,wars.declare(leader,"b","").status());
+            assertEquals(NationDatabase.DisbandResult.AT_WAR,db.disbandNation(leader));
+            assertEquals(NationDatabase.OwnCapitalResult.AT_WAR, db.setOwnCapital(leader,"a1"));
+            assertEquals(2,db.countNations());
+            assertEquals(1,count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='a2' AND is_capital=1"));
         }
     }
 
