@@ -223,3 +223,16 @@ Dodatkowo hotfix blokuje przerabianie specjalnego kilofa w kowadle, stole kowals
 - Podczas szturmu napastnicy nie otwierają magazynów chronionej bazy; dostęp zwycięzców dopiero po przejęciu.
 - Restart, północ, koniec wojny lub adminstop zerują postęp.
 - Archiwizacja historii wojen upadłego państwa oraz odporność na wszystkie nietypowe interakcje z ekwipunkami wymagają kolejnego audytu.
+
+### 1.8.2 (wersja testowa) — zegar edycji, /home, cooldown stolicy
+
+- Centralny `ServerClock`: dzień liczony według `Europe/Warsaw`, granica 06:00 czasu lokalnego; prawidłowo obsługuje czas letni/zimowy i restart serwera.
+- `/esmp clock` (administrator) pokazuje stan edycji, numer dnia, datę startu i następny reset.
+- `/esmp clock start` (administrator) **jednorazowo rozpoczyna edycję** i zapisuje start do SQLite. NIE używać w bazie docelowej na próbach; do testów użyć kopii serwera/bazy.
+- `/home` i `/esmp home`: przeniesienie do bezpiecznego miejsca przy aktualnej stolicy państwa także w czasie wojny. Przed startem i w dniach 1–2 bez limitu, od dnia 3 cztery udane teleportacje na każdy dzień serwera (reset 06:00). Zużycie zapisywane per gracz w SQLite.
+- Zmiana stolicy przez lidera/zastępcę: raz na sześć godzin na państwo, z trwałym zapisem do SQLite; nie dotyczy sukcesji po zdobyciu stolicy ani korekt administracyjnych przez bazową metodę adminSetCapital.
+- Migracja bazy: `PRAGMA user_version` 7 -> 8, dane 1.8.1 zachowane.
+- Nowe testy: zmiana dnia i DST, uruchomienie edycji, licznik `/home`, cooldown stolicy.
+
+Stan: gotowe źródła **do lokalnego clean build i testów in-game**; brak potwierdzonego builda Gradle/Paper w tym środowisku. Nie nadpisuj jedynej kopii świata ani SQLite.
+- Korekta administracyjna: `/esmp core capital force` patrząc na docelowy rdzeń omija cooldown i zakaz wojenny. Zwykłe `/esmp core capital` nadal przestrzega ograniczeń.

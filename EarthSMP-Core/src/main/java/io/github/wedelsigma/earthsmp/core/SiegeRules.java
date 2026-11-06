@@ -14,12 +14,8 @@ public final class SiegeRules {
 
     /** The legal window is [10:00, 24:00) in Poland, including DST transitions. */
     public static boolean openAt(Instant instant) {
-    if (Boolean.getBoolean("earthsmp.testing.ignoreSiegeHours")) {
-        return true;
+        return !instant.atZone(WARSAW).toLocalTime().isBefore(OPENS);
     }
-
-    return !instant.atZone(WARSAW).toLocalTime().isBefore(OPENS);
-}
 
     /** Offline and inactive players are counted in the roster denominator. */
     public static int requiredDefenders(int rosterSize) {

@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -22,7 +23,8 @@ import java.util.UUID;
  */
 public final class NationDatabase implements AutoCloseable {
 
-    private static final int SCHEMA_VERSION = 7;
+    private static final int SCHEMA_VERSION = 8;
+    private static final long CAPITAL_COOLDOWN_SECONDS = 6 * 60 * 60;
     private static final long INVITE_LIFETIME_SECONDS = 24 * 60 * 60;
     private final Connection connection;
 
@@ -380,12 +382,107 @@ public final class NationDatabase implements AutoCloseable {
                             """);
                     statement.execute("PRAGMA user_version = 7");
                     connection.commit();
+                    version = 7;
                 } catch (SQLException | RuntimeException error) {
                     rollbackAfter(connection, error);
                     throw error;
                 } finally {
                     connection.setAutoCommit(true);
                 }
+            }
+            if (version == 7) {
+                connection.setAutoCommit(false);
+                try {
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS edition_state (
+                                setting TEXT PRIMARY KEY,
+                                value TEXT NOT NULL
+                            )
+                            """);
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS home_usage (
+                                player_uuid TEXT PRIMARY KEY,
+                                day_key TEXT NOT NULL,
+                                used INTEGER NOT NULL CHECK (used >= 0)
+                            )
+                            """);
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS nation_capital_cooldowns (
+                                nation_id TEXT PRIMARY KEY REFERENCES nations(id) ON DELETE CASCADE,
+                                changed_at INTEGER NOT NULL
+                            )
+                            """);
+                    statement.execute("PRAGMA user_version = 8");
+                    connection.commit();
+                } catch (SQLException | RuntimeException error) {
+                    rollbackAfter(connection, error);
+                    throw error;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
+            }
+        }
+    }
+
+    /** Empty before an admin explicitly starts the edition. */
+    public Optional<Instant> editionStart() throws SQLException {
+        try (PreparedStatement q = connection.prepareStatement(
+                "SELECT value FROM edition_state WHERE setting='edition_start_epoch'")) {
+            try (ResultSet r = q.executeQuery()) {
+                if (!r.next()) return Optional.empty();
+                return Optional.of(Instant.ofEpochSecond(Long.parseLong(r.getString(1))));
+            }
+        }
+    }
+
+    /** Can only be started once; never resets on plugin restarts. */
+    public boolean startEdition(Instant now) throws SQLException {
+        try (PreparedStatement q = connection.prepareStatement("""
+                INSERT OR IGNORE INTO edition_state(setting,value)
+                VALUES('edition_start_epoch',?)
+                """)) {
+            q.setString(1, Long.toString(now.getEpochSecond()));
+            return q.executeUpdate() == 1;
+        }
+    }
+
+    /** Four successful /home uses each server-date, per player. */
+    public int homeUses(UUID player, LocalDate dayKey) throws SQLException {
+        try (PreparedStatement q = connection.prepareStatement(
+                "SELECT day_key, used FROM home_usage WHERE player_uuid=?")) {
+            q.setString(1, player.toString());
+            try (ResultSet r = q.executeQuery()) {
+                if (!r.next() || !dayKey.toString().equals(r.getString(1))) return 0;
+                return r.getInt(2);
+            }
+        }
+    }
+
+    /** Record a completed teleport only; per-player row is replaced when the day changes. */
+    public int recordHomeUse(UUID player, LocalDate dayKey, int dailyLimit) throws SQLException {
+        int used = homeUses(player, dayKey);
+        if (used >= dailyLimit) throw new SQLException("Daily /home quota exhausted");
+        int count = used + 1;
+        try (PreparedStatement q = connection.prepareStatement("""
+                INSERT INTO home_usage(player_uuid,day_key,used) VALUES(?,?,?)
+                ON CONFLICT(player_uuid) DO UPDATE SET day_key=excluded.day_key, used=excluded.used
+                """)) {
+            q.setString(1, player.toString());
+            q.setString(2, dayKey.toString());
+            q.setInt(3, count);
+            q.executeUpdate();
+        }
+        return count;
+    }
+
+    /** Remaining peacetime cooldown for an ordinary capital transfer. */
+    public long capitalCooldownRemaining(String nationId, Instant now) throws SQLException {
+        try (PreparedStatement q = connection.prepareStatement(
+                "SELECT changed_at FROM nation_capital_cooldowns WHERE nation_id=?")) {
+            q.setString(1, nationId);
+            try (ResultSet r = q.executeQuery()) {
+                if (!r.next()) return 0;
+                return Math.max(0L, r.getLong(1) + CAPITAL_COOLDOWN_SECONDS - now.getEpochSecond());
             }
         }
     }
@@ -1147,7 +1244,7 @@ public final class NationDatabase implements AutoCloseable {
 
     public enum CoreIssueStatus { ISSUED, NOT_AUTHORIZED, ALREADY_FREE, CRAFT_LIMIT }
     public record CoreIssue(CoreIssueStatus status, String tokenId, String nationId, String origin) {}
-    /** 'placed' counts original FREE/CRAFTED tokens, 'total' also includes conquered cores. */
+    /** 'placed' counts original FREE/CRAFTED tokens, 'total' includes conquered cores. */
     public record CoreStock(int free, int crafted, int placed, int total) {}
     public enum TokenPlaceResult { PLACED, INVALID_TOKEN, ALREADY_PLACED, NOT_AUTHORIZED, NO_CLAIM, OVERLAP, AT_WAR }
 
@@ -1431,60 +1528,74 @@ public final class NationDatabase implements AutoCloseable {
 
     public enum SetCapitalResult { UPDATED, ALREADY_CAPITAL, NOT_FOUND }
 
-    public enum OwnCapitalResult { UPDATED, NOT_AUTHORIZED, NOT_OWNED, ALREADY_CAPITAL, AT_WAR }
+    public enum OwnCapitalResult { UPDATED, NOT_AUTHORIZED, NOT_OWNED, ALREADY_CAPITAL, AT_WAR, COOLDOWN }
 
-    /**
-     * Leaders/deputies may appoint a new capital from an already placed national core.
-     * A nation cannot change its capital during any active war.
-     */
+    /** Leaders and deputies may choose an owned, placed core as the new peacetime capital. */
     public OwnCapitalResult setOwnCapital(UUID actor, String targetCoreId) throws SQLException {
         connection.setAutoCommit(false);
         try {
             Optional<Membership> member = findMembership(actor);
             if (member.isEmpty() || !isManager(member.get().role())) {
-                connection.rollback();
-                return OwnCapitalResult.NOT_AUTHORIZED;
+                connection.rollback(); return OwnCapitalResult.NOT_AUTHORIZED;
             }
             String nationId = member.get().nationId();
             if (nationAtWar(nationId)) {
-                connection.rollback();
-                return OwnCapitalResult.AT_WAR;
+                connection.rollback(); return OwnCapitalResult.AT_WAR;
             }
             boolean isCapital;
             try (PreparedStatement q = connection.prepareStatement(
                     "SELECT is_capital FROM protection_cores WHERE id=? AND nation_id=?")) {
-                q.setString(1, targetCoreId);
-                q.setString(2, nationId);
+                q.setString(1, targetCoreId); q.setString(2, nationId);
                 try (ResultSet r = q.executeQuery()) {
                     if (!r.next()) {
-                        connection.rollback();
-                        return OwnCapitalResult.NOT_OWNED;
+                        connection.rollback(); return OwnCapitalResult.NOT_OWNED;
                     }
                     isCapital = r.getInt(1) == 1;
                 }
             }
-            if (isCapital) {
-                connection.rollback();
-                return OwnCapitalResult.ALREADY_CAPITAL;
+            if (isCapital) { connection.rollback(); return OwnCapitalResult.ALREADY_CAPITAL; }
+            Instant now = Instant.now();
+            if (capitalCooldownRemaining(nationId, now) > 0) {
+                connection.rollback(); return OwnCapitalResult.COOLDOWN;
             }
             try (PreparedStatement q = connection.prepareStatement(
                     "UPDATE protection_cores SET is_capital=0 WHERE nation_id=? AND is_capital=1")) {
-                q.setString(1, nationId);
-                q.executeUpdate();
+                q.setString(1, nationId); q.executeUpdate();
             }
             try (PreparedStatement q = connection.prepareStatement(
                     "UPDATE protection_cores SET is_capital=1 WHERE id=? AND nation_id=?")) {
-                q.setString(1, targetCoreId);
-                q.setString(2, nationId);
+                q.setString(1, targetCoreId); q.setString(2, nationId);
                 if (q.executeUpdate() != 1) throw new SQLException("New capital disappeared");
+            }
+            try (PreparedStatement q = connection.prepareStatement("""
+                    INSERT INTO nation_capital_cooldowns(nation_id,changed_at) VALUES(?,?)
+                    ON CONFLICT(nation_id) DO UPDATE SET changed_at=excluded.changed_at
+                    """)) {
+                q.setString(1, nationId);
+                q.setLong(2, now.getEpochSecond());
+                q.executeUpdate();
             }
             connection.commit();
             return OwnCapitalResult.UPDATED;
         } catch (SQLException | RuntimeException error) {
-            rollbackAfter(connection, error);
-            throw error;
-        } finally {
-            connection.setAutoCommit(true);
+            rollbackAfter(connection, error); throw error;
+        } finally { connection.setAutoCommit(true); }
+    }
+
+    /** Capital for /home; none when no placed capital exists. */
+    public Optional<ProtectionCore> capitalOf(String nationId) throws SQLException {
+        try (PreparedStatement q = connection.prepareStatement("""
+                SELECT c.id, c.nation_id, n.name, c.world_name,
+                       c.block_x, c.block_y, c.block_z, c.is_capital
+                FROM protection_cores c JOIN nations n ON n.id=c.nation_id
+                WHERE c.nation_id=? AND c.is_capital=1 LIMIT 1
+                """)) {
+            q.setString(1, nationId);
+            try (ResultSet r = q.executeQuery()) {
+                if (!r.next()) return Optional.empty();
+                return Optional.of(new ProtectionCore(r.getString(1), r.getString(2), r.getString(3),
+                        r.getString(4), r.getInt(5), r.getInt(6), r.getInt(7), true));
+            }
         }
     }
 
@@ -1574,9 +1685,7 @@ public final class NationDatabase implements AutoCloseable {
                     q.setString(3, expectedDefender);
                     if (q.executeUpdate() != 1) throw new SQLException("Core changed during conquest");
                 }
-                // The defender must retain a capital if it still owns another core.
-                // Prefer a non-conquered core; use the oldest placed core as a stable fallback.
-                // This also repairs a missing capital left by an older conquest.
+                // Automatically elect another defender core if the capital was lost.
                 try (PreparedStatement q = connection.prepareStatement("""
                         UPDATE protection_cores SET is_capital=1
                         WHERE id=(
@@ -1589,8 +1698,7 @@ public final class NationDatabase implements AutoCloseable {
                             SELECT 1 FROM protection_cores WHERE nation_id=? AND is_capital=1
                         )
                         """)) {
-                    q.setString(1, expectedDefender);
-                    q.setString(2, expectedDefender);
+                    q.setString(1, expectedDefender); q.setString(2, expectedDefender);
                     q.executeUpdate();
                 }
                 connection.commit();
@@ -1633,60 +1741,42 @@ public final class NationDatabase implements AutoCloseable {
 
     public enum DisbandResult { DISBANDED, NOT_LEADER, AT_WAR }
 
-    /**
-     * Called only after the server has preflight-checked all physical core anchors.
-     * Removes every currently-owned core, including CONQUERED cores, in one SQLite
-     * transaction. Physical lodestones are removed separately by NationMenu.
-     */
+    /** Remove a nation's cores, claims, members and diplomacy in a SQLite transaction. */
     public DisbandResult disbandNation(UUID actor) throws SQLException {
         connection.setAutoCommit(false);
         try {
             Optional<Membership> member = findMembership(actor);
             if (member.isEmpty() || !"LEADER".equals(member.get().role())) {
-                connection.rollback();
-                return DisbandResult.NOT_LEADER;
+                connection.rollback(); return DisbandResult.NOT_LEADER;
             }
             String nationId = member.get().nationId();
             if (nationAtWar(nationId)) {
-                connection.rollback();
-                return DisbandResult.AT_WAR;
+                connection.rollback(); return DisbandResult.AT_WAR;
             }
-            // No foreign-key references to the nation may remain in war history.
             try (PreparedStatement q = connection.prepareStatement(
                     "UPDATE wars SET peace_offered_by=NULL WHERE peace_offered_by=?")) {
-                q.setString(1, nationId);
-                q.executeUpdate();
+                q.setString(1, nationId); q.executeUpdate();
             }
             try (PreparedStatement q = connection.prepareStatement(
                     "DELETE FROM war_invitations WHERE nation_id=?")) {
-                q.setString(1, nationId);
-                q.executeUpdate();
+                q.setString(1, nationId); q.executeUpdate();
             }
             try (PreparedStatement q = connection.prepareStatement(
                     "DELETE FROM war_participants WHERE nation_id=?")) {
-                q.setString(1, nationId);
-                q.executeUpdate();
+                q.setString(1, nationId); q.executeUpdate();
             }
             try (PreparedStatement q = connection.prepareStatement(
                     "DELETE FROM wars WHERE attacker_id=? OR defender_id=?")) {
-                q.setString(1, nationId);
-                q.setString(2, nationId);
-                q.executeUpdate();
+                q.setString(1, nationId); q.setString(2, nationId); q.executeUpdate();
             }
-            // Cascades: nation_members, invites, territory, requests, tokens and cores.
-            try (PreparedStatement q = connection.prepareStatement(
-                    "DELETE FROM nations WHERE id=?")) {
+            try (PreparedStatement q = connection.prepareStatement("DELETE FROM nations WHERE id=?")) {
                 q.setString(1, nationId);
-                if (q.executeUpdate() != 1) throw new SQLException("Nation vanished during disband");
+                if (q.executeUpdate() != 1) throw new SQLException("Nation disappeared");
             }
-            connection.commit();
-            return DisbandResult.DISBANDED;
+            connection.commit(); return DisbandResult.DISBANDED;
         } catch (SQLException | RuntimeException error) {
-            rollbackAfter(connection, error);
-            throw error;
-        } finally {
-            connection.setAutoCommit(true);
-        }
+            rollbackAfter(connection, error); throw error;
+        } finally { connection.setAutoCommit(true); }
     }
 
     @Override

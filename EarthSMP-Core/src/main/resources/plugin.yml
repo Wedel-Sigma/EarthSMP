@@ -1,5 +1,5 @@
 name: EarthSMPCore
-version: '1.8.1'
+version: '1.8.2'
 main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
 api-version: '26.3'
 authors: [Wedel-Sigma]
@@ -11,6 +11,10 @@ commands:
     description: EarthSMP central GUI and admin commands
     usage: /earthsmp menu
     aliases: [esmp]
+    permission: earthsmp.use
+  home:
+    description: Teleport to your nation's capital (also during war)
+    usage: /home
     permission: earthsmp.use
 permissions:
   earthsmp.use:

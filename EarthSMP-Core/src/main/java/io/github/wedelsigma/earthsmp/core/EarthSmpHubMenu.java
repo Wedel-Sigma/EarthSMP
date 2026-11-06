@@ -1,6 +1,7 @@
 package io.github.wedelsigma.earthsmp.core;
 
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -244,13 +245,25 @@ public final class EarthSmpHubMenu implements Listener {
                         "Patrz na lodestone rdzenia"));
             }
             if (manager || admin) {
+                String cooldown = capitalCooldownLabel(member);
                 inv.setItem(32, item(Material.GOLD_BLOCK, "Ustaw stolice", NamedTextColor.GOLD,
                         "Lider/zastepca: wlasne rdzenie, podczas pokoju",
-                        "Admin: takze korekta innych panstw", "Wymaga potwierdzenia"));
+                        cooldown, "Admin: /esmp core capital force omija limit",
+                        "Wymaga potwierdzenia"));
             }
             inv.setItem(49, back());
             player.openInventory(inv);
         } catch (SQLException e) { error(player, "Opening protection-core GUI", e); }
+    }
+
+    /** Re-evaluated whenever the GUI opens; never a fixed '6 hours' label. */
+    private String capitalCooldownLabel(Optional<NationDatabase.Membership> membership) throws SQLException {
+        if (membership.isEmpty()) return "Brak panstwa: cooldown nie dotyczy";
+        long seconds = plugin.getNationDatabase().capitalCooldownRemaining(
+                membership.get().nationId(), Instant.now());
+        return seconds > 0
+                ? "Pozostalo: " + CapitalCooldownText.remaining(seconds)
+                : "Cooldown: gotowe (0 s)";
     }
 
     private void coreConfirm(Player player, Screen action) {
@@ -268,8 +281,14 @@ public final class EarthSmpHubMenu implements Listener {
                 default -> throw new IllegalArgumentException("Invalid core action");
             };
             Holder h = new Holder(player, action, 0, 0L, "EarthSMP | Potwierdz rdzen");
-            h.inventory.setItem(13, item(Material.LODESTONE, description, NamedTextColor.YELLOW,
-                    "Operacja ponownie sprawdzi wszystkie zasady"));
+            if (action == Screen.CORE_CONFIRM_CAPITAL) {
+                var membership = plugin.getNationDatabase().findMembership(player.getUniqueId());
+                h.inventory.setItem(13, item(Material.LODESTONE, description, NamedTextColor.YELLOW,
+                        capitalCooldownLabel(membership), "Operacja ponownie sprawdzi wszystkie zasady"));
+            } else {
+                h.inventory.setItem(13, item(Material.LODESTONE, description, NamedTextColor.YELLOW,
+                        "Operacja ponownie sprawdzi wszystkie zasady"));
+            }
             h.inventory.setItem(11, confirm());
             h.inventory.setItem(15, cancel());
             h.inventory.setItem(49, back());

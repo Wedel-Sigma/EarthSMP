@@ -43,8 +43,7 @@ class CoreConquestTest {
             assertEquals(0, count(c,"SELECT COUNT(*) FROM core_tokens WHERE id='core1'"));
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core1' AND nation_id='a' AND origin='CONQUERED'"));
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='b'"));
-            assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core2' AND nation_id='b' AND is_capital=1"),
-                    "The defender's remaining core must automatically become the new capital");
+            assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core2' AND nation_id='b' AND is_capital=1"));
             assertEquals(NationDatabase.CaptureOutcome.LAST_CORE_DESTROYED,db.captureCore("core2","b","a"));
             assertEquals(1,db.countNations());
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='a' AND id='core1'"));
@@ -68,11 +67,11 @@ class CoreConquestTest {
             statement(c, "INSERT INTO core_tokens(id,nation_id,origin,state) VALUES ('own','a','FREE','PLACED')");
             assertEquals(2, db.coreStock(leader).total());
             assertEquals(NationDatabase.DisbandResult.DISBANDED, db.disbandNation(leader));
-            assertEquals(0, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='a'"));
-            assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='b'"));
-            assertEquals(0, count(c,"SELECT COUNT(*) FROM territory_chunks WHERE nation_id='a'"));
-            assertEquals(0, count(c,"SELECT COUNT(*) FROM nation_members WHERE nation_id='a'"));
-            assertEquals(0, count(c,"SELECT COUNT(*) FROM core_tokens WHERE nation_id='a'"));
+            assertEquals(0, count(c, "SELECT COUNT(*) FROM protection_cores WHERE nation_id='a'"));
+            assertEquals(1, count(c, "SELECT COUNT(*) FROM protection_cores WHERE nation_id='b'"));
+            assertEquals(0, count(c, "SELECT COUNT(*) FROM territory_chunks WHERE nation_id='a'"));
+            assertEquals(0, count(c, "SELECT COUNT(*) FROM nation_members WHERE nation_id='a'"));
+            assertEquals(0, count(c, "SELECT COUNT(*) FROM core_tokens WHERE nation_id='a'"));
             assertEquals(1, db.countNations());
         }
     }
@@ -88,14 +87,13 @@ class CoreConquestTest {
             statement(c, "INSERT INTO protection_cores(id,nation_id,world_name,block_x,block_y,block_z,origin,is_capital,placed_by) VALUES "
                     + "('a1','a','Earth',100,70,100,'FREE',1,'test'),"
                     + "('a2','a','Earth',300,70,100,'CRAFTED',0,'test')");
-            assertEquals(NationDatabase.OwnCapitalResult.UPDATED, db.setOwnCapital(leader,"a2"));
-            assertEquals(1, count(c, "SELECT COUNT(*) FROM protection_cores WHERE id='a2' AND is_capital=1"));
+            assertEquals(NationDatabase.OwnCapitalResult.UPDATED, db.setOwnCapital(leader, "a2"));
             WarRepository wars = new WarRepository(db);
-            assertEquals(WarRepository.Status.SUCCESS,wars.declare(leader,"b","").status());
-            assertEquals(NationDatabase.DisbandResult.AT_WAR,db.disbandNation(leader));
-            assertEquals(NationDatabase.OwnCapitalResult.AT_WAR, db.setOwnCapital(leader,"a1"));
-            assertEquals(2,db.countNations());
-            assertEquals(1,count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='a2' AND is_capital=1"));
+            assertEquals(WarRepository.Status.SUCCESS, wars.declare(leader, "b", "").status());
+            assertEquals(NationDatabase.DisbandResult.AT_WAR, db.disbandNation(leader));
+            assertEquals(NationDatabase.OwnCapitalResult.AT_WAR, db.setOwnCapital(leader, "a1"));
+            assertEquals(2, db.countNations());
+            assertEquals(1, count(c, "SELECT COUNT(*) FROM protection_cores WHERE id='a2' AND is_capital=1"));
         }
     }
 

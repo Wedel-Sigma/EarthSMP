@@ -1,6 +1,10 @@
 package io.github.wedelsigma.earthsmp.core;
 
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +40,15 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     ) {
         if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("menu"))) {
             return showHubMenu(sender);
+        }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("clock")) {
+            if (!requireAdmin(sender)) return true;
+            return showClock(sender, args);
+        }
+        if (args.length == 1 && args[0].equalsIgnoreCase("home")) {
+            Player player = requirePlayer(sender);
+            if (player != null) plugin.getHomeCommand().execute(player);
+            return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("status")) {
             if (!requireAdmin(sender)) return true;
@@ -142,17 +155,18 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         send(sender, "/" + label + " territory (granice polityczne)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " war (wojny, sojusznicy i pokoj)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation create <nazwa> | leave | disband | transfer <nick>", NamedTextColor.YELLOW);
+        send(sender, "/home lub /" + label + " home (powrot do stolicy)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation invite <nick> | accept <panstwo> | decline <panstwo>", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation promote <nick> | demote <nick> | kick <nick>", NamedTextColor.YELLOW);
         if (sender.hasPermission("earthsmp.admin")) {
-            send(sender, "/" + label + " status", NamedTextColor.GRAY);
+            send(sender, "/" + label + " status | clock | clock start", NamedTextColor.GRAY);
         }
     }
 
     private boolean showStatus(CommandSender sender) {
         String worldName = plugin.getConfig().getString("world-name", "Earth");
         boolean worldLoaded = Bukkit.getWorld(worldName) != null;
-        send(sender, "EarthSMP Core 1.8.1 - plugin dziala.", NamedTextColor.GREEN);
+        send(sender, "EarthSMP Core 1.8.2 - plugin dziala.", NamedTextColor.GREEN);
         send(sender, "Swiat " + worldName + ": " + (worldLoaded ? "zaladowany" : "nie znaleziono"),
                 worldLoaded ? NamedTextColor.GREEN : NamedTextColor.RED);
         try {
@@ -165,6 +179,37 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
             send(sender, "Aktywne wojny: " + plugin.getWars().activeWars().size(), NamedTextColor.YELLOW);
             send(sender, "Aktywne oblezenia: " + plugin.getSieges().activeCount(), NamedTextColor.YELLOW);
         } catch (SQLException error) { dbError(sender, "War status query failed", error); }
+        return true;
+    }
+
+    private boolean showClock(CommandSender sender, String[] args) {
+        try {
+            var clock = plugin.getServerClock();
+            if (args.length == 2 && args[1].equalsIgnoreCase("start")) {
+                if (plugin.getNationDatabase().startEdition(clock.now())) {
+                    send(sender, "Edycja EarthSMP rozpoczeta! Dzien 1. Reset dni o 06:00 Europe/Warsaw.",
+                            NamedTextColor.GREEN);
+                } else {
+                    send(sender, "Edycja zostala juz rozpoczeta. Nie resetuje zegara.", NamedTextColor.YELLOW);
+                }
+            } else if (args.length != 1) {
+                send(sender, "Uzycie: /esmp clock [start] (start tylko raz)", NamedTextColor.YELLOW);
+                return true;
+            }
+            Instant now = clock.now();
+            var start = plugin.getNationDatabase().editionStart();
+            int day = clock.day(start, now);
+            send(sender, day == 0 ? "Edycja jeszcze nie rozpoczeta."
+                    : "Dzien serwera: " + day, NamedTextColor.GOLD);
+            if (start.isPresent()) {
+                send(sender, "Start: " + DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z")
+                        .format(start.get().atZone(ServerClock.ZONE)), NamedTextColor.GRAY);
+            }
+            var next = clock.nextReset(now);
+            Duration left = clock.untilReset(now);
+            send(sender, "Nastepny dzien: " + next.format(DateTimeFormatter.ofPattern("dd.MM HH:mm z"))
+                    + " (za " + left.toHours() + "h " + left.toMinutesPart() + "min)", NamedTextColor.YELLOW);
+        } catch (SQLException e) { dbError(sender, "Edition clock error", e); }
         return true;
     }
 
@@ -383,9 +428,11 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     ) {
         if (args.length == 1) {
             List<String> actions = sender.hasPermission("earthsmp.admin")
-                    ? List.of("status", "nation", "menu", "territory", "core", "war", "siege") : List.of("nation", "menu", "territory", "core", "war", "siege");
+                    ? List.of("status", "clock", "home", "nation", "menu", "territory", "core", "war", "siege") : List.of("home", "nation", "menu", "territory", "core", "war", "siege");
             return filter(actions, args[0]);
         }
+        if (args.length == 2 && args[0].equalsIgnoreCase("clock")
+                && sender.hasPermission("earthsmp.admin")) return filter(List.of("start"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("siege")) {
             return filter(sender.hasPermission("earthsmp.admin")
                     ? List.of("menu", "check", "status", "adminstop")
@@ -405,7 +452,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("nation")) {
             List<String> actions = List.of("menu", "gui", "info", "members", "invites", "invite", "accept",
-                    "decline", "promote", "demote", "kick", "create", "leave", "transfer");
+                    "decline", "promote", "demote", "kick", "create", "leave", "disband", "transfer");
             return filter(actions, args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("nation")) {

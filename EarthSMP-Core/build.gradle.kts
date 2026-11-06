@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "1.8.1"
+version = "1.8.2"
 
 repositories {
     mavenCentral()
@@ -21,6 +21,8 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+// Paper API is compileOnly for the deployed plugin, but JUnit tests also
+// reference Bukkit types through CoreCaptureZone and need it on their classpath.
 configurations {
     testImplementation.get().extendsFrom(compileOnly.get())
 }

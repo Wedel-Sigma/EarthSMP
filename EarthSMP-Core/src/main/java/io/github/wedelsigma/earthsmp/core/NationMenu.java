@@ -79,7 +79,7 @@ public final class NationMenu implements Listener {
                             || screen == Screen.MEMBER_DETAILS || screen == Screen.CONFIRM_MEMBER_ACTION
                             || screen == Screen.CONFIRM_SEND_INVITE || screen == Screen.CONFIRM_WITHDRAW
                             || screen == Screen.CONFIRM_LEAVE || screen == Screen.CONFIRM_TRANSFER
-                             || screen == Screen.CONFIRM_DISBAND ? 27 : 54,
+                            || screen == Screen.CONFIRM_DISBAND ? 27 : 54,
                     Component.text(title, NamedTextColor.GOLD));
         }
 
@@ -617,13 +617,11 @@ public final class NationMenu implements Listener {
             var member = plugin.getNationDatabase().findMembership(player.getUniqueId());
             if (member.isEmpty() || !"LEADER".equals(member.get().role())) {
                 player.sendMessage(Component.text("Tylko lider moze rozwiazac panstwo.", NamedTextColor.RED));
-                openMain(player);
-                return;
+                openMain(player); return;
             }
             if (plugin.getNationDatabase().nationAtWar(member.get().nationId())) {
                 player.sendMessage(Component.text("Nie mozna rozwiazac panstwa podczas wojny.", NamedTextColor.RED));
-                openMain(player);
-                return;
+                openMain(player); return;
             }
             List<Block> anchors = new ArrayList<>();
             for (var core : plugin.getNationDatabase().allProtectionCores()) {
@@ -635,23 +633,18 @@ public final class NationMenu implements Listener {
                 }
                 Block anchor = world.getBlockAt(core.x(), core.y(), core.z());
                 if (anchor.getType() != Material.LODESTONE) {
-                    player.sendMessage(Component.text("Brak fizycznego lodestone rdzenia " + core.id()
-                            + ". Zglos to administratorowi.", NamedTextColor.RED));
+                    player.sendMessage(Component.text("Brak lodestone rdzenia " + core.id(), NamedTextColor.RED));
                     return;
                 }
                 anchors.add(anchor);
             }
-            // World modification cannot join an SQLite transaction. Undo the block changes
-            // on a database failure. A hard crash in this short window still needs backup recovery.
             try {
                 for (Block anchor : anchors) anchor.setType(Material.AIR, false);
                 var result = plugin.getNationDatabase().disbandNation(player.getUniqueId());
                 if (result != NationDatabase.DisbandResult.DISBANDED) {
                     for (Block anchor : anchors) anchor.setType(Material.LODESTONE, false);
-                    player.sendMessage(Component.text("Nie mozna rozwiazac panstwa (wojna albo brak uprawnien).",
-                            NamedTextColor.RED));
-                    openMain(player);
-                    return;
+                    player.sendMessage(Component.text("Nie mozna rozwiazac panstwa.", NamedTextColor.RED));
+                    openMain(player); return;
                 }
             } catch (SQLException | RuntimeException failure) {
                 for (Block anchor : anchors) {

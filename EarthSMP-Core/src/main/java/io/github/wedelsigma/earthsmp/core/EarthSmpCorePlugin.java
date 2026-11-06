@@ -2,6 +2,9 @@ package io.github.wedelsigma.earthsmp.core;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.entity.Player;
 import java.util.Objects;
 import java.util.logging.Level;
 import org.bukkit.command.PluginCommand;
@@ -10,6 +13,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class EarthSmpCorePlugin extends JavaPlugin {
 
     private NationDatabase nationDatabase;
+    private ServerClock serverClock;
+    private HomeCommand homeCommand;
     private NationMenu nationMenu;
     private EarthSmpHubMenu hubMenu;
     private TerritoryCommand territoryCommand;
@@ -40,6 +45,14 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             return;
         }
 
+        serverClock = new ServerClock();
+        homeCommand = new HomeCommand(this);
+        PluginCommand home = Objects.requireNonNull(getCommand("home"), "Missing home command in plugin.yml");
+        home.setExecutor((sender, command, label, args) -> {
+            if (sender instanceof Player player) homeCommand.execute(player);
+            else sender.sendMessage(Component.text("/home wymaga gracza w grze.", NamedTextColor.YELLOW));
+            return true;
+        });
         PluginCommand earthSmpCommand = Objects.requireNonNull(
                 getCommand("earthsmp"),
                 "The 'earthsmp' command must be declared in plugin.yml"
@@ -93,7 +106,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         } else {
             getLogger().warning("squaremap not enabled: territory claims still work, but no public overlay");
         }
-        getLogger().info("EarthSMP Core 1.8.1 enabled - legal sieges, pickaxes, persistent block provenance");
+        getLogger().info("EarthSMP Core 1.8.2 enabled - legal sieges, pickaxes, persistent block provenance");
     }
 
     @Override
@@ -118,6 +131,8 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         coreCaptureZone = null;
         siegePickaxe = null;
         blockOriginListener = null;
+        homeCommand = null;
+        serverClock = null;
         siegeStorage = null;
         warMenu = null;
         siegeCommand = null;
@@ -140,6 +155,14 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             getLogger().log(Level.WARNING, "Could not refresh political squaremap layer", error);
             return false;
         }
+    }
+
+    public ServerClock getServerClock() {
+        return Objects.requireNonNull(serverClock, "Edition clock not initialized");
+    }
+
+    public HomeCommand getHomeCommand() {
+        return Objects.requireNonNull(homeCommand, "Home teleport not initialized");
     }
 
     public SiegeStorage getSiegeStorage() {

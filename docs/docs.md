@@ -1,12 +1,12 @@
 ---
-title: "Earth SMP — dokumentacja i specyfikacja v1.2"
-version: "1.2"
+title: "Earth SMP — dokumentacja i specyfikacja v1.3"
+version: "1.3"
 date: "2026-11-06"
-status: "EarthSMP-Core 1.8.0 — zamknięte testy multiplayer; dalsze mechaniki w planie"
+status: "EarthSMP-Core 1.8.1 na main — testy solo zaliczone; testy końcowe multiplayer oraz dalsze mechaniki w planie"
 language: "pl"
 ---
 
-# EARTH SMP — DOKUMENTACJA I SPECYFIKACJA v1.2
+# EARTH SMP — DOKUMENTACJA I SPECYFIKACJA v1.3
 
 **Stan ustaleń: 6 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -14,33 +14,39 @@ language: "pl"
 
 > **Zasada pierwszeństwa:** wszystkie uzgodnione poniżej zasady nowej edycji mają pierwszeństwo przed regulaminem poprzednich edycji. Ze starego regulaminu obowiązuje wszystko, co nie koliduje bezpośrednio z nowymi zasadami. Nie przedstawiać propozycji jako decyzji zatwierdzonych.
 
-## STATUS IMPLEMENTACJI — EarthSMP-Core 1.8.0 (6 listopada 2026)
+## STATUS IMPLEMENTACJI — EarthSMP-Core 1.8.1 (6 listopada 2026)
 
 > **To wersja do zamkniętych testów**, nie deklaracja gotowości na publiczny serwer. Poniżej odróżniamy potwierdzone zachowanie gry od planów oraz punktów wymagających poprawek.
 
-**Kod:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **wersja pluginu:** `1.8.0` · **środowisko:** Paper 26.3 / Java 25 / SQLite / squaremap.
+**Kod:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **wersja pluginu:** `1.8.1` (scalona do `main`, PR #1) · **środowisko:** Paper 26.3 / Java 25 / SQLite / squaremap.
 
-### Potwierdzone podczas testów dwóch graczy
+### Weryfikacja: dotychczasowe testy 1.8.0 i nowe testy 1.8.1
 
-- **Pierwsza seria:** 40/49 testów oznaczono jako zaliczone. Pozostałych 9 nie należy interpretować jako dziewięciu awarii — część była niewykonana lub dotyczyła funkcji niewdrożonych.
-- **Końcowa seria:** **12/12 zaliczonych**: blokada demontażu rdzenia na wojnie, reset przejmowania po restarcie, pełne 480 s, zmiana właściciela zdobytego rdzenia, dostęp do zdobytej bazy, brak zmiany granic, zdobycie ostatniego rdzenia, upadek państwa, czyszczenie powiązanych danych oraz trwałość po restarcie.
+- **EarthSMP-Core 1.8.0 — pierwsza seria multiplayer:** 40/49 testów oznaczono jako zaliczone. Pozostałych 9 nie należy interpretować jako dziewięciu awarii — część była niewykonana lub dotyczyła funkcji niewdrożonych.
+- **EarthSMP-Core 1.8.0 — końcowa seria multiplayer:** **12/12 zaliczonych**: blokada demontażu rdzenia na wojnie, reset przejmowania po restarcie, pełne 480 s, zmiana właściciela zdobytego rdzenia, dostęp do zdobytej bazy, brak zmiany granic, zdobycie ostatniego rdzenia, upadek państwa, czyszczenie powiązanych danych oraz trwałość po restarcie.
 - Z wcześniejszych testów: państwa i uprawnienia, zaproszenia i role, wnioski o terytoria, mapa polityczna, stawianie i ochrona rdzeni, blokada TNT/pistonów, crafting i 15 użyć Kilofa Oblężniczego, deklaracja wojny, automatyczne oblężenie, BossBar, kontestowanie i cofanie postępu, kontrola obecności obrońcy, `/esmp siege check`, zatrzymanie szturmu i pokój.
 - **Dostęp do skrzyń:** przed zdobyciem chronionej bazy zwykły gracz nie mógł otworzyć skrzyni; po prawidłowym zdobyciu test dostępu do zdobytej bazy zaliczono. Przechwytywanie przedmiotów przez mechanizmy techniczne (np. hoppery) wymaga osobnych testów.
 - Po testach przywrócono normalne **godziny oblężeń 10:00–00:00 Europe/Warsaw**. Tymczasowe obejście godzin służyło wyłącznie do testów.
+- **EarthSMP-Core 1.8.1 (6.11.2026):** zbudowano JAR, uruchomiono na serwerze i **zaliczono dostępne testy solo** (m.in. czwarty licznik rdzeni i zmianę stolicy). Kod 1.8.1 został scalony do `main`. **Nie wykonano jeszcze końcowej sesji multiplayer dla 1.8.1**; zaplanowano trzech testerów (dwóch zwykłych graczy + administrator).
+- **Stan implementacji 1.8.1:** automatyczna sukcesja stolicy po zdobyciu, ręczne wskazanie nowej stolicy w pokoju przez lidera/zastępcę, dobrowolne rozwiązanie państwa przez lidera w pokoju z potwierdzeniem oraz licznik wszystkich kontrolowanych rdzeni (własne + zdobyczne) w GUI i `/esmp core stock`. Rozwiązanie państwa i sukcesja po zdobyciu nadal wymagają pełnych testów multiplayer.
 
-### Znane ograniczenia i zadania 1.8.1
 
-1. **Stolica:** po utracie stolicy przez państwo z kilkoma rdzeniami nie następuje sukcesja stolicy. Potrzebne są automatyczne wyznaczenie następnej i zabezpieczenie przed zostawieniem państwa bez rdzenia/stolicy.
-2. **Przenoszenie stolicy:** pierwszego rdzenia-stolicy nie można obecnie przemieścić samodzielnie. Planowane są bezpieczne przenosiny wyłącznie w pokoju.
-3. **Rozwiązanie państwa:** funkcja nie istnieje. Docelowo wyłącznie lider, wyłącznie w pokoju, z potwierdzeniem; usuwa **wszystkie rdzenie aktualnie należące do państwa** (własne i zdobyczne), neutralizuje granice, usuwa członkostwa i relacje, pozostawia zwykłą zabudowę. Rdzenie wcześniej zdobyte przez inne państwa pozostają ich własnością.
-4. **GUI rdzeni:** `/esmp core list` wyświetla prawidłowe dane, ale GUI „postawione” pokazuje tylko własne, np. 2, bez zdobycznego trzeciego rdzenia. Zachowujemy dotychczasowy licznik i dodajemy **czwarty — łączna liczba kontrolowanych rdzeni** (do późniejszego rankingu).
-5. **Backup:** istniejący skrypt backupowy wymaga objęcia także pliku SQLite i sprawdzenia spójnego przywracania świata oraz bazy.
+### Stan 1.8.1 i rzeczy pozostałe do sprawdzenia
+
+1. **Stolica:** automatyczna sukcesja po zdobyciu starej jest zaimplementowana; lider/zastępca może podczas pokoju wskazać inny własny, już postawiony rdzeń. Podniesienie aktualnej stolicy pozostaje zablokowane — najpierw trzeba przenieść status stolicy na inny rdzeń. **Nowy cooldown 6 h na państwo to ustalony plan, a nie funkcja 1.8.1.**
+2. **Rozwiązanie państwa:** dostępne dla lidera w pokoju przez GUI lub `/esmp nation disband`, po potwierdzeniu; dotyczy wszystkich aktualnie należących do niego rdzeni (własnych i zdobycznych), członkostw oraz granic. Budynki pozostają. **Test destrukcyjny wykonywać wyłącznie na kopii świata i bazy.**
+3. **GUI rdzeni:** czwarty licznik pokazuje łączną liczbę aktualnie postawionych rdzeni kontrolowanych przez państwo, w tym zdobyczne; dotychczasowy licznik postawionych własnych rdzeni pozostaje.
+4. **Backup:** aktualny `EarthSMP-Backup.ps1` tworzy spójny backup **offline po zatrzymaniu Paper**, obejmuje `plugins/EarthSMPCore/earthsmp.db` i sprawdza jego obecność w ZIP. Nie jest to dawny wariant backupu online przez RCON. Pełny test przywrócenia kopii z SQLite nadal warto przeprowadzić.
+5. **Testy zaległe:** wojenne ograniczenia i zmiana stolicy z drugim graczem, fizyczne usuwanie własnych i zdobytych rdzeni przy rozwiązaniu państwa, trwałość SQLite po restarcie, próby obejścia ochrony i testy kilku państw.
 
 ### Dalsze prace / niepotwierdzone w testach
 
-- **Nowe, zatwierdzone założenie interfejsu terytoriów:** claimowanie chunków ma docelowo przypominać **FTB Chunks**, ale odbywać się **na internetowej mapie squaremap**, bez obowiązkowego moda. Gracz zaznacza chunki myszką, a wniosek o zmianę granic wciąż zatwierdza administrator. **W 1.8.0 działa tylko dotychczasowy system komend i wniosków, nie edytor mapowy.**
+- **Nowe, zatwierdzone założenie interfejsu terytoriów:** claimowanie chunków ma docelowo przypominać **FTB Chunks**, ale odbywać się **na internetowej mapie squaremap**, bez obowiązkowego moda. Gracz zaznacza chunki myszką, a wniosek o zmianę granic wciąż zatwierdza administrator. **W 1.8.1 działa tylko dotychczasowy system komend i wniosków, nie edytor mapowy.**
 - **Mody klienta są opcjonalne**; zamiast obowiązkowego instalatora-wizarda planujemy paczkę modów i krótki tutorial dla chętnych. Czysty klient Minecrafta ma pozostać wystarczający do gry.
-- Prywatne pozycje graczy na mapie (tylko własne państwo; żadnych pozycji wrogów, sojuszników ani w Netherze) — **plan**, nie funkcja 1.8.0.
+- Prywatne pozycje graczy na mapie (tylko własne państwo; żadnych pozycji wrogów, sojuszników ani w Netherze) — **plan**, nie funkcja 1.8.1.
+- **Publiczne pozycje wszystkich postawionych rdzeni** (niezależnie od właściciela, granic i dyplomacji) — zaakceptowane przez głosowanie graczy, **jeszcze niewdrożone**; tylko ikona lodestone i współrzędne `X/Y/Z`, bez numerów oraz oznaczenia stolicy.
+- **Centralny zegar edycji:** dzień serwera zmienia się o **06:00 Europe/Warsaw**. Planowana komenda admina `/esmp clock`, `/home` również w wojnie: bez limitu w dniach 1–2, od dnia 3 **4 teleportacje na gracza na dzień**, reset o 06:00. Planowany **cooldown 6 godzin na państwo** przy ręcznej zmianie stolicy. Żaden z tych modułów nie jest wdrożony w 1.8.1.
+- **Końcowy polish UI:** `/esmp tierlist` — ranking wszystkich państw według liczby ich aktualnie postawionych rdzeni (własnych i zdobycznych); scoreboard/sidebar z dniem serwera, nazwą państwa, rdzeniami i przydatnym statusem. **Plan, nie funkcjonalność 1.8.1.**
 - Testy większych koalicji, jednoczesnych wojen i obciążenia serwera, omijania ochrony skrzyń (hoppery, wagoniki), niespodziewanych zdarzeń bloków, exploitów i odporności na awarie.
 - Pełne funkcje PvP pokojowego, timerów respawnu, progresji, limitów ekwipunku, enchantów, barterowych sklepów i pozostałych dodatków z dalszych rozdziałów — **zasady docelowe; bez osobnej weryfikacji nie oznaczamy jako ukończonych**.
 
@@ -52,7 +58,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 
 ## 0. Skrót kluczowych reguł
 
-- Każdy gracz należy do jednego państwa; nawet jednoosobowego. Granice polityczne to kolorowe, zatwierdzane przez administratora **chunki**, ale same granice nie chronią bloków. Docelowe zaznaczanie chunków odbywa się **myszką na internetowej mapie (interakcja w stylu FTB Chunks)**; na dziś 1.8.0 obsługuje wnioski przez komendy.
+- Każdy gracz należy do jednego państwa; nawet jednoosobowego. Granice polityczne to kolorowe, zatwierdzane przez administratora **chunki**, ale same granice nie chronią bloków. Docelowe zaznaczanie chunków odbywa się **myszką na internetowej mapie (interakcja w stylu FTB Chunks)**; obecnie 1.8.1 obsługuje wnioski przez komendy.
 - Każde państwo dostaje **1 darmowy rdzeń**, może wykonać **2 dodatkowe**; maksimum **3 rdzenie własne**. Rdzenie zdobyte w wojnach **nie liczą się do limitu**.
 - Każdy rdzeń chroni **65 × 65 bloków**, w całej wysokości Overworldu (**Y −64…319**). Obszary ochronne nie mogą na siebie nachodzić, ale mogą sąsiadować. Nowy rdzeń można postawić tylko na zatwierdzonym własnym terytorium; zdobyty rdzeń jest wyjątkiem od wymogu stawiania.
 - Formalna wojna pozwala na oblężenia między **10:00 a 00:00 Europe/Warsaw**, gdy online jest co najmniej **20% całego składu broniącego państwa** (zaokrąglenie w górę; min. 1). Spadek poniżej progu w trakcie daje **30 minut** na dokończenie; o północy koniec bez wyjątku.
@@ -63,7 +69,9 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Podczas wojny po kliknięciu **Respawn** rozpoczyna się widoczne **na ekranie (nie na czacie)** odliczanie zależne od członków **własnego państwa online**: 1–2 = 15 s; 3–5 = 20 s; 6–10 = 30 s; 11–15 = 40 s; 16+ = 50 s. Przez ten czas gracz nie może się poruszać, z niczym wchodzić w interakcje ani zostać zabity. Po zakończeniu odliczania natychmiast wraca zwykła rozgrywka, w tym możliwość zaatakowania go przez wrogów. W pokoju brak dodatkowego timera.
 - Limity w **całym ekwipunku przez cały czas**: zwykłe złote jabłka 8; perły Endu 3; pajęczyny 16; totemy 3. Zaklęte złote jabłka, End Crystals i Respawn Anchors — całkowicie wyłączone. Po śmierci **cały ekwipunek wypada**.
 - **Nether** dostępny po 10 dniach; **End** wyłączony na stałe. Zaklęcia przez handel z villagerami uzyskanymi przez leczenie zombie villagerów; Mending zakazany. Fortune: brak do dnia 6, I od dnia 7, III od dnia 16, Fortune II nigdy. Enchanty wpływające na PvP: maks. I przez pierwsze 9 dni, następnie maks. II.
-- Barter **przedmiot za przedmiot**, bez wirtualnej waluty. Gracze: sklepy skrzynkowe. Admin: nieskończone wymiany podstawowych materiałów (np. cobblestone ↔ cobbled deepslate 1:1). Mapa przeglądarkowa koloruje chunki państw; pokazuje lokalizację na żywo **tylko własnego państwa**; rdzenie nigdy nie są zaznaczone.
+- Barter **przedmiot za przedmiot**, bez wirtualnej waluty. Gracze: sklepy skrzynkowe. Admin: nieskończone wymiany podstawowych materiałów (np. cobblestone ↔ cobbled deepslate 1:1). Docelowa mapa przeglądarkowa koloruje chunki państw, pokazuje **graczy tylko członkom tego samego państwa**, a **wszystkie postawione rdzenie publicznie** z ikoną lodestone i współrzędnymi.
+- **Zegar edycji:** centralny numer dnia zmienia się codziennie o **06:00 czasu polskiego**. Docelowe `/home` działa także podczas wojny: dni 1–2 bez limitu, od dnia 3 maksymalnie **4 razy dziennie na gracza** (reset 06:00). Ręczna zmiana stolicy: **6 godzin cooldownu na państwo** (plan).
+- **Etap końcowy:** `/esmp tierlist` — państwa sortowane według łącznej liczby postawionych rdzeni (w tym zdobycznych); indywidualny panel boczny serwera/państwa w grze (plan).
 
 ---
 
@@ -79,22 +87,22 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Główne ustawienia: `difficulty=hard`, `enforce-whitelist=true`, `generate-structures=false`, `spawn-protection=0` (ochrona pluginem), `online-mode=true`, whitelist, view-distance około 10; `respawn_radius=0`, `players_sleeping_percentage=50`.
 - Planowanych dwóch administratorów z pełną kontrolą nad państwami, terytoriami, rdzeniami i wyjątkowymi sytuacjami.
 
-### 1.2. Backupy
+### 1.2. Backupy i stan pluginu
 
-- Istnieje skrypt **EarthSMP-Backup.ps1**, PowerShell 5.1 z RCON/mcrcon: powiadomienie graczy, `save-off`, `save-all flush`, kopia świata, `save-on`, archiwum ZIP i kontrola poprawności. **Uwaga:** podczas audytu stwierdzono, że archiwum nie obejmuje jeszcze bazy `earthsmp.db`; sama kopia świata nie wystarcza do odtworzenia państw i rdzeni.
-- Backup testowy: około **427,4 MB**, **14,6 s**; sprawdzono rozpakowanie oraz **uruchomienie osobnego serwera z kopii**.
-- Harmonogram co 2 godziny został przetestowany, a następnie **usunięty celowo** na czas testowania; regularny backup wróci po ustaleniu hostingu. Backup ręczny pozostaje dostępny.
-- **Aktualizacja 2026-11-06:** EarthSMP-Core **1.8.0 działa na serwerze testowym**. Państwa, terytoria, rdzenie, ochrona, formalne wojny, Kilof Oblężniczy, przejmowanie rdzeni i upadek państw przeszły testy multiplayer opisane w sekcji „Status 1.8.0”. Pozostałych rozdziałów specyfikacji **nie należy automatycznie traktować jako wdrożonych**.
+- Aktualny skrypt **`EarthSMP-Backup.ps1`** tworzy backup **offline**: należy zatrzymać Paper (`stop`), następnie uruchomić skrypt z `-ConfirmStopped`. Sprawdza on m.in. port, blokadę świata, obecność `level.dat` oraz **`plugins/EarthSMPCore/earthsmp.db`**. Do ZIP trafiają świat, baza SQLite, dane pluginów (z wyłączeniem dużych odtwarzalnych danych squaremap) i konfiguracja. Nie należy traktować go jako działającego backupu online przez RCON.
+- Historyczny test przywracania wcześniejszej kopii świata: około **427,4 MB**, **14,6 s**. **Nie potwierdza on jeszcze przywracania nowego ZIP z SQLite**; test odtworzenia świata razem z bazą pozostaje do wykonania.
+- Harmonogram backupu co 2 godziny był przetestowany, a potem usunięty na czas testowania; backupy automatyczne i retencja na docelowym hostingu są osobnym zadaniem.
+- **Aktualizacja 2026-11-06:** `EarthSMP-Core 1.8.1` działa w testach solo i znajduje się na `main`. Testy multiplayer mechanik wojennych bazują dotychczas na **1.8.0**, a pełny test końcowy 1.8.1 odbędzie się w trzyosobowym składzie. Pozostałe rozdziały tego dokumentu zawierają również zasady **planowane**, a nie wdrożone.
 
 ## 2. Państwa i terytoria
 
 - Członkostwo w państwie jest **obowiązkowe regulaminowo**. Dopuszczone państwa jednoosobowe, grupy i organizacje najemnicze. Jeden gracz może należeć do tylko **jednego** państwa.
-- Rangi: **1 przywódca**, do **2 zastępców**, dowolni członkowie. Przywódca i zastępcy mają **identyczne uprawnienia funkcjonalne**, np. zaproszenia, wyrzucanie, dyplomacja i zarządzanie państwem.
+- Rangi: **1 przywódca**, do **2 zastępców**, dowolni członkowie. Przywódca i zastępcy mają **zbliżone uprawnienia funkcjonalne**, np. zaproszenia, wyrzucanie członków, dyplomacja i zmiana stolicy w pokoju. **Wyjątek:** dobrowolnie rozwiązać państwo może tylko przywódca.
 - Państwo można zakładać poprzez system serwera/GUI; otrzymuje jeden darmowy rdzeń.
 - Terytorium polityczne jest zbiorem **chunków** oznaczonych kolorem państwa. Państwo proponuje zmianę granic, jeden z administratorów ją zatwierdza. **Zatwierdzony docelowy interfejs** to zaznaczanie chunków na mapie przeglądarkowej podobnie jak w FTB Chunks, a nie tylko wskazywanie dwóch punktów w świecie. Nie ma rozbudowanych punktów ekspansji czy sztywnych limitów terytorium. Granice nie powinny nakładać się na inny zatwierdzony obszar bez zgody/rozstrzygnięcia administracji.
 - **Granice polityczne nie chronią bloków** i same w sobie nie blokują wejścia. Ochronę fizyczną dają tylko rdzenie i obszary publiczne.
 - Brak automatycznego wykrywania casus belli i kar za samo wejście na cudze terytorium. Spory o granice są podstawą dyplomacji/RP.
-- **Plan 1.8.1 — rozwiązanie państwa:** decyzję podejmuje lider po potwierdzeniu, tylko gdy państwo **nie uczestniczy w wojnie**. Znikają wszystkie aktualnie należące do państwa rdzenie (również zdobyczne), członkostwa, relacje i jego ochrona, terytorium staje się neutralne. Zwykłe budowle pozostają. **W 1.8.0 ta komenda nie jest jeszcze zaimplementowana.** Administrator może ręcznie interweniować w nietypowych przypadkach.
+- **Stan 1.8.1 — rozwiązanie państwa:** decyzję podejmuje **lider** po potwierdzeniu, tylko gdy państwo **nie uczestniczy w wojnie**. Znikają wszystkie aktualnie należące do państwa postawione rdzenie (własne i zdobyczne), członkostwa, relacje i jego ochrona; terytorium staje się neutralne, a zwykłe budowle pozostają. Dostępne przez GUI i `/esmp nation disband`; pełny test destrukcyjny na kopii świata pozostaje do wykonania. Administrator może interweniować w wyjątkowych przypadkach.
 - Po upadku/rozwiązaniu państwa jego **polityczne terytorium staje się neutralne**; administrator nadaje później nowe granice zgodnie z pokojem i ustaleniami graczy. Dawni członkowie mogą wstąpić do innego państwa albo założyć nowe i uzyskać nowy darmowy rdzeń.
 - Ukryte obozy, magazyny i bunkry poza ochroną są dozwolone. Nie można traktować braku rdzenia/claima jako zgody na kradzież lub grief w czasie pokoju.
 
@@ -108,7 +116,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Rdzeń musi mieć unikalne ID i powiązanie z państwem, aby nie obchodzić limitów; usunięcie państwa unieważnia i usuwa jego rdzenie, także przedmioty w ekwipunkach i schowkach, a chronione regiony tracą ochronę.
 - **Własne** rdzenie można zdjąć i przestawić wyłącznie, gdy państwo **nie uczestniczy w wojnie**, i tylko na własne terytorium, bez nakładania regionów.
 - **Rdzeni zdobytych w wojnie nie można przenosić** ani demontować w celu ustawienia gdzie indziej.
-- Jeden z rdzeni państwa jest wyznaczony jako **stolica** (gdy istnieje). **Stan 1.8.0:** pierwszej stolicy nie można samodzielnie przenieść; jeśli zostanie zdobyta, może zabraknąć stolicy przy innych pozostających rdzeniach. **Plan 1.8.1:** automatyczne wskazanie nowej stolicy spośród pozostałych rdzeni po utracie starej oraz bezpieczne przenoszenie stolicy w czasie pokoju, z ograniczeniami zapobiegającymi nadużyciom.
+- Jeden z aktualnie posiadanych rdzeni państwa jest wyznaczony jako **stolica** (gdy istnieje). **Stan 1.8.1:** po utracie stolicy system automatycznie wybiera nową spośród pozostałych rdzeni. Lider lub zastępca może ręcznie wskazać inny własny postawiony rdzeń **podczas pokoju**; aktywnej stolicy nie można podnieść, dopóki nie wyznaczy się następnej. Admin może wykonać korektę ręcznie. **Nowe ustalenie DO WDROŻENIA:** ręczna zmiana stolicy ma **6 godzin cooldownu na całe państwo** (wspólny dla lidera i zastępców), bez ograniczania automatycznej sukcesji i korekt admina. Oznaczenie stolicy nie będzie publicznie wyróżniane na mapie.
 
 ### 3.1. Strefa bezpośrednio przy rdzeniu
 
@@ -292,26 +300,47 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Zmiana względem starej edycji:** stary całkowity zakaz PvP bez wypowiedzenia wojny **nie obowiązuje**; zastępuje go nowy system PvP pokojowego. Stary bezwzględny zakaz każdej kradzieży i griefu ma wyjątki działań wojennych uzgodnione wyżej. Stary zakaz eksplozji łóżek w Endzie jest bezprzedmiotowy, bo End nie działa.
 - Zakazy czysto społeczne, takie jak nemosowanie, portal trapping i TNT Minecart PvP, pozostają **regulaminowe**, nie trzeba ich automatycznie kodować.
 
-## 15. Teleportacja i stolice
+## 15. Teleportacja, stolice i centralny zegar edycji — NOWE USTALENIA, DO WDROŻENIA
 
-- W czasie pokoju gracz należący do państwa posiadającego rdzeń może użyć **`/home`** (alternatywnie alias w stylu `/tp home`) w celu przeniesienia się do bezpiecznego miejsca przy **jednym rdzeniu stołecznym** tego państwa.
-- Pozostałe rdzenie **nie są** punktami fast travel. Nie ma wyboru dowolnej twierdzy.
-- Gdy państwo uczestniczy w **jakiejkolwiek wojnie**, `/home` zostaje **całkowicie wyłączone** do końca udziału w wojnie.
-- **Zmianę stolicy zatwierdza administrator**; przywódca nie może zmieniać jej co chwilę sam, aby teleportować armię po świecie.
-- **Stan 1.8.0:** po zdobyciu stolicy `/home` może pozostać nieczynne, dopóki admin ręcznie nie wskaże następnej. **Plan 1.8.1:** automatyczna sukcesja stolicy po zdobyciu, jeśli istnieją inne rdzenie. Klasyczny respawn przy łóżku pozostaje niezależny od `/home`.
+### 15.1. Jeden zegar dla całej edycji
+
+- Plugin ma utrzymywać **centralny numer dnia serwera**: dzień **1** zaczyna się w chwili oficjalnego uruchomienia edycji; kolejne dni zaczynają się **codziennie o 06:00 czasu polskiego**, w strefie `Europe/Warsaw` (z uwzględnieniem zmian czasu letniego/zimowego).
+- Są to **dni kalendarzowe serwera z granicą o 06:00**, a nie kolejne 24-godzinne okna liczone od startu. Gdy edycja rozpocznie się wieczorem, dzień 1 będzie krótszy. Przestój Paper nie zatrzymuje upływu dni — po restarcie numer dnia ma być obliczany z daty startu i bieżącej daty w przyjętej strefie.
+- Data/godzina początku edycji powinna być utrwalona trwale (np. SQLite) i nie zmieniać się wraz z restartami ani logowaniem poszczególnych graczy.
+- Ten sam zegar jest podstawą **wszystkich mechanik opartych na numerze dnia**: limitów `/home`, odblokowania wymiarów, etapów zaklęć, przyszłych wydarzeń i podobnych reguł. Istniejące szczegółowe progi opisują rozdziały 11–12.
+- Zatwierdzona **administracyjna komenda `/esmp clock`** ma pokazywać aktualny dzień serwera, datę/godzinę rozpoczęcia edycji oraz czas do kolejnej zmiany dnia o 06:00. **Nie jest zaimplementowana w 1.8.1.**
+
+### 15.2. `/home`: także podczas wojny
+
+- `/home` teleportuje gracza **wyłącznie w pobliże rdzenia będącego aktualną stolicą jego państwa**. Pozostałe rdzenie nie są dowolnymi punktami szybkiej podróży. Sposób wyznaczania bezpiecznego miejsca docelowego jest szczegółem technicznym.
+- **Dozwolone zarówno w pokoju, jak i podczas wojny.** Poprzednia zasada całkowitej blokady `/home` podczas wojny **została uchylona**.
+- **Dni serwera 1–2:** `/home` jest **nielimitowane** dla wszystkich graczy, by ułatwić start.
+- **Od dnia serwera 3:** każdy gracz ma **4 udane teleportacje na dzień serwera**, niezależnie od wojny i od tego, jak długo jest na serwerze. Limit jest **na gracza**, nie na państwo.
+- **Reset dokładnie o 06:00 Europe/Warsaw**, przy przeskoku centralnego dnia serwera. To nie jest przesuwające się 24-godzinne okno. Akceptujemy możliwość użycia **4 teleportacji tuż przed 06:00 i 4 tuż po 06:00**.
+- Użycie jest pobierane **dopiero po pomyślnej teleportacji**; nieudane wywołanie nie zużywa limitu. Dane limitów pozostają w SQLite i nie resetują się przy restarcie lub wylogowaniu.
+- Informacja o pozostałych użyciach i następnym resecie powinna być czytelna dla gracza (komunikat i docelowo sidebar). W dniach 1–2 interfejs pokazuje `∞`.
+- **Status:** zatwierdzona mechanika na przyszły etap pluginu, **nieobecna w 1.8.1**. Klasyczny respawn przy łóżku pozostaje niezależny od `/home`.
+
+### 15.3. Zmiana stolicy i cooldown 6 godzin
+
+- **Stan obecny 1.8.1:** lider i zastępca mogą podczas pokoju przeznaczyć inny, już postawiony własny rdzeń na stolicę. W czasie wojny ręczna zmiana jest zabroniona. Wyznaczenie nowej stolicy pozwala spakować poprzednią (o ile jest własna, nie zdobyczna).
+- **Nowe ograniczenie DO WDROŻENIA:** po udanej ręcznej zmianie stolicy obowiązuje **6 godzin rzeczywistego cooldownu dla całego państwa**, a nie osobno dla graczy. Obejmuje to także zmianę wykonaną naprzemiennie przez lidera i zastępcę.
+- Cooldown zapisujemy trwale i **nie resetujemy go o 06:00**, podczas restartu ani po zmianie składu państwa. Komunikat ma podać czas pozostały do kolejnej możliwej zmiany.
+- **Automatyczna sukcesja** po utracie stolicy nie może zostać zablokowana przez cooldown; **interwencja administratora** również może go ominąć.
+- Sam status stolicy jest istotny dla mechaniki `/home` i możliwości demontażu rdzenia, ale **na publicznej mapie wszystkie rdzenie wyglądają identycznie**.
 
 ## 16. Mapa polityczna i widoczność graczy
 
 - Przeglądarkowa mapa świata w stylu dawnych Earth SMP: geografia + **półprzezroczyste kolorowe zaznaczenie chunków** należących do poszczególnych państw. Każde państwo ma kolor; obszar neutralny jest bez koloru. Po kliknięciu terenu pojawia się nazwa państwa.
 - Polityczne granice i ochrona 65×65 rdzeni to **dwie odrębne warstwy systemu**.
 - Zatwierdzona przez administratora zmiana granic trafia na mapę.
-- **Lokalizacji rdzeni nigdy nie pokazujemy** na publicznej mapie, żeby zwiad miał znaczenie.
+- **Wszystkie aktualnie postawione rdzenie pokazujemy PUBLICZNIE**, niezależnie od właściciela, położenia na terenie innego państwa oraz relacji dyplomatycznych. Decyzja zatwierdzona w głosowaniu przyszłych graczy. Każdy znacznik: **ikonka lodestone i nad nią współrzędne `X`, `Y`, `Z`**. Bez numerów rdzeni, nazw, rangi ani oznaczenia stolicy. Rdzenie w przedmiotach/ekwipunku nie mają znaczników.
 - Pozycje graczy są widoczne **na żywo** tylko dla **członków tego samego państwa**, po autoryzacji konta. Nie pokazujemy innych państw, wrogów, neutralnych ani nawet sojuszników. Na mapie publicznej nie pokazujemy nikogo.
 - Lokalizacje odświeżają się na bieżąco, bez sztucznego opóźnienia (praktycznie co kilka sekund według możliwości integracji).
 - Po wejściu do **Netheru** znacznik gracza znika z mapy Overworldu i wraca po powrocie. **Nie robimy osobnej mapy politycznej Netheru.**
 - Technicznie widoczność musi wynikać z uwierzytelnienia i serwerowego filtrowania danych — ukrycie markerów w JavaScripcie przeglądarki nie zabezpiecza współrzędnych wroga.
-- **Stan 1.8.0:** polityczne kolory chunków są widoczne przez squaremap; tracker graczy jest wyłączony i **prywatne znaczniki graczy nie są jeszcze wdrożone**. Mapa na `localhost` jest dostępna lokalnie, dopóki nie skonfiguruje się osobnego bezpiecznego dostępu.
-- Używamy **squaremap** do istniejącej warstwy politycznej. Mechanizm autoryzowanych, prywatnych pozycji członków państwa pozostaje do zaprojektowania i wdrożenia.
+- **Stan 1.8.1:** polityczne kolory chunków są widoczne przez squaremap; tracker graczy jest wyłączony; **prywatne znaczniki graczy, publiczne znaczniki rdzeni i edytor WWW nie są jeszcze wdrożone**. Mapa na `localhost` działa lokalnie, dopóki nie skonfiguruje się osobnego bezpiecznego dostępu.
+- Używamy **squaremap** do istniejącej warstwy politycznej. Prywatne pozycje graczy wymagają uwierzytelnienia i filtrowania danych na backendzie; **publiczne rdzenie są osobną, jawną warstwą**. Obie należy aktualizować po zmianach właścicieli, zakładaniu, podnoszeniu, zdobyciu i likwidacji rdzeni.
 
 ### 16.1. Edytor terytoriów na mapie — zatwierdzony kierunek, DO WDROŻENIA
 
@@ -332,9 +361,32 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Zachowujemy istniejący proces zatwierdzania przez administrację, bazę SQLite i dane terytoriów.** Zmieniamy przede wszystkim UX wyboru chunków, nie zasady granic.
 - Istniejące `/esmp territory pos1`, `pos2`, `propose` i narzędzia admina pozostają jako **alternatywa/tryb awaryjny**; edytor WWW będzie domyślnym sposobem dla zwykłych graczy.
 - Mapa musi być osiągalna przez graczy **spoza komputera hosta**; sam `localhost` nie wystarczy. Zapewniamy bezpieczny dostęp WWW i autoryzację operacji, nie udostępniamy bez potrzeby prywatnych znaczników i danych.
-- **Stan 1.8.0:** istnieje publiczna warstwa kolorowych terytoriów squaremap oraz komendowe składanie wniosków. **Brak jeszcze klikalnego edytora**, logowania do niego i panelu zatwierdzania w przeglądarce. To prace na **następny etap mapy po stabilizacji 1.8.1**, nie już wydana funkcja.
+- **Stan 1.8.1:** istnieje publiczna warstwa kolorowych terytoriów squaremap oraz komendowe składanie wniosków. **Brak jeszcze klikalnego edytora**, logowania do niego i panelu zatwierdzania w przeglądarce. To prace na **następny etap mapy**, nie już wydana funkcja.
 
-### 16.2. Instalacja klienta — brak obowiązkowych modów i wizarda
+### 16.2. Publiczne znaczniki rdzeni — zatwierdzone głosowaniem, DO WDROŻENIA
+
+- Na mapie WWW każdy obserwator, **również niezalogowany, z innego państwa, sojusznik lub wróg**, widzi **wszystkie postawione rdzenie**. Nie ma ukrywania według dyplomacji ani granic politycznych.
+- Znak graficzny to **lodestone**. **Nad nim koordynaty `X`, `Y`, `Z`** rzeczywistego bloku rdzenia. Nie podajemy numeru („rdzeń 1/2”), nazwy, właściciela ani statusu **STOLICA** przy znaczniku. Polityczne kolory terytoriów są osobną warstwą.
+- Po postawieniu lub przeniesieniu rdzenia marker pojawia się/zmienia lokalizację; po zdobyciu pozostaje w tym samym miejscu (bez publicznego oznaczania zmiany właściciela); po demontażu, zniszczeniu ostatniego rdzenia lub rozwiązaniu państwa znika. Dane synchronizowane z zatwierdzonym stanem świata/SQLite.
+- **Publiczność znaczników rdzeni NIE oznacza upublicznienia pozycji graczy**. Pozycje graczy nadal widoczne tylko dla członków ich własnego państwa (oraz samego gracza), z wykluczeniem sojuszników, wrogów i publicznej mapy.
+- **Stan 1.8.1:** znaczniki rdzeni są planowane; dotychczas nie są publikowane przez squaremap.
+
+### 16.3. `/esmp tierlist` — ranking państw (końcowy etap GUI)
+
+- Komenda otwiera **minecraftowe GUI** wszystkich istniejących państw, posortowanych **malejąco według łącznej liczby ich aktualnie postawionych rdzeni**; liczą się **własne i zdobyczne**, lecz nie rdzenie-przedmioty w ekwipunku czy magazynie. Remisy mogą mieć stabilny porządek alfabetyczny (detal techniczny).
+- Każde państwo ma ikonę (np. baner/ikona kraju); po **najechaniu kursorem** gracz widzi tooltip: **nazwa państwa, liczba jego członków i liczba kontrolowanych rdzeni**. Liczba członków online może być dodatkową przydatną informacją, jeśli nie będzie zaśmiecać interfejsu.
+- Ranking jest czytany z aktualnego stanu państw i rdzeni, a nie ręcznie wprowadzany; po zdobyciu lub utracie rdzenia kolejność się zmienia.
+- **Status:** zatwierdzony pomysł na końcowe upiększanie interfejsu; **brak w 1.8.1**.
+
+### 16.4. Sidebar / scoreboard — informacja widoczna podczas gry (końcowy etap GUI)
+
+- Po **prawej stronie ekranu**, w standardowym minecraftowym scoreboard sidebar, pokazujemy **aktualny dzień edycji**, **nazwę własnego państwa**, **łączną liczbę jego kontrolowanych rdzeni (własne + zdobyczne)**.
+- Dodatkowe przydatne informacje 24/7: **liczba członków państwa online / łącznie**, **status pokój/wojna** oraz **pozostały limit `/home`** (`∞` w dniach 1–2; od dnia 3 np. `2/4`). To docelowy, zwięzły układ; kolejność i wygląd zostaną dopracowane w ostatniej fazie.
+- Gracz bez państwa ma widzieć czytelne `Brak państwa` i sensowną informację o stanie serwera. Dane powinny być **indywidualne dla oglądającego**, aktualizowane po zmianach państwa, rdzeni, wojny i dnia serwera.
+- Możliwość wyłączania HUD komendą `/esmp sidebar` to **propozycja techniczna**, nie wymóg zatwierdzony przez głosowanie.
+- **Status:** plan na etap polish, niegotowe w 1.8.1.
+
+### 16.5. Instalacja klienta — brak obowiązkowych modów i wizarda
 
 - EarthSMP pozostaje **grywalny na czystym kliencie Minecraft Java**. Do claimowania przez mapę WWW **nie potrzeba moda klienta**.
 - Własny instalator typu **wizard (Windows/C#) nie jest obecnie planowany jako wymagany element wdrożenia**. Rezygnujemy z przymusowej instalacji dodatkowego oprogramowania.
@@ -345,7 +397,7 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 
 - Administratorzy mają **pełną kontrolę nad wszystkimi państwami, rdzeniami, członkostwem, wojnami, granicami i ochroną**. Błędy lub nietypowe zakończenia konfliktów można ręcznie naprawić.
 - W trakcie wojny dobrowolne rozwiązanie państwa jest zablokowane. Jeśli państwo **przymusowo upada** po utracie ostatniego rdzenia, likwidację równoległych wojen i relacji koalicyjnych może przeprowadzić administrator.
-- **Stan 1.8.0:** jeśli zdobyty zostanie rdzeń stołeczny, a obrońca ma jeszcze rdzenie, nie jest wyznaczana nowa stolica. To znany przypadek brzegowy do naprawy w **1.8.1**; docelowo należy automatycznie przypisać stolicę do jednego z pozostałych rdzeni.
+- **Stan 1.8.1:** zdobycie stolicy państwa posiadającego kolejne rdzenie wyznacza nową stolicę automatycznie; komenda zmiany stolicy jest dostępna dla lidera/zastępcy podczas pokoju. **Sześciogodzinny cooldown na państwo to nowy, jeszcze niewdrożony warunek.**
 - W czasie pokoju gracz bez państwa (np. bezpośrednio po upadku) powinien jak najszybciej dołączyć do innego albo założyć nowe; obowiązek jest regulaminowy, nie trzeba budować skomplikowanego systemu kar za chwilowy stan przejściowy.
 - System rozpoznawania pochodzenia bloków należy uruchomić **zanim gracze zaczną budować** na docelowym serwerze; trzeba uwzględnić tłoki, grawitację, płyny, automatyczne farmy, budowanie zniszczonych struktur i zmiany właściciela.
 
@@ -355,9 +407,14 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 
 **Etap 3.2:** dobór gotowych pluginów, np. LuckPerms, WorldGuard/WorldEdit, CoreProtect, barterowych Chest Shops i komunikacji głosowej. **Stan wdrożenia poszczególnych dodatków wymaga osobnej weryfikacji**.
 
-**Etap 3.3 — w trakcie:** istnieje własny plugin **EarthSMP-Core 1.8.0** (Paper, Java 25, Gradle, SQLite) z przetestowanymi systemami państw, terytoriów, mapy politycznej, rdzeni, ochrony, formalnych wojen, kilofa i przejmowania. **Nie potwierdzono jeszcze ukończenia** wszystkich pozostałych mechanik wymienionych w pierwotnym planie: timerów respawnu, PvP terytorialnego, limitów ekwipunku, enchantów, progresji i prywatnych znaczników graczy. Backup wymaga zintegrowania SQLite.
+**Etap 3.3 — w trakcie:** własny plugin **EarthSMP-Core 1.8.1** (Paper, Java 25, Gradle, SQLite) znajduje się na `main`. Mechaniki państw, terytoriów, mapy politycznej, rdzeni, ochrony, wojen, kilofa i przejmowania przeszły testy multiplayer w **1.8.0**; zmiany **1.8.1** przeszły dostępne testy solo, a końcowy test trzech osób pozostaje do wykonania. Backup offline obejmuje już bazę SQLite, ale jego pełne przywracanie wymaga testu. **Nie potwierdzono jeszcze ukończenia** timerów respawnu, PvP terytorialnego, limitów ekwipunku, enchantów, progresji, `/home`, zegara edycji, rankingów i znaczników graczy/rdzeni.
 
-**Kolejne etapy:** po stabilizacji 1.8.1 — **edytor chunków na mapie squaremap w stylu FTB Chunks** (autoryzacja gracza, zaznaczanie myszką, wnioski, panel zatwierdzania), prywatne znaczniki członków państw, bezpieczny publiczny dostęp do mapy; następnie pregenerowanie mapy/LOD dla Distant Horizons, **opcjonalna paczka modów QoL/wizualnych z krótkim tutorialem (bez obowiązkowego instalatora-wizarda)**, docelowy hosting i automatyczne backupy.
+**Kolejne etapy (kierunek rozwoju, bez deklarowania dat):**
+
+1. **Mechaniki przed kolejną dużą aktualizacją:** centralny zegar edycji ze zmianą dnia o **06:00 Europe/Warsaw** i `/esmp clock`; `/home` również podczas wojny (dni 1–2 bez limitu, od dnia 3 cztery użycia na gracza na dzień, reset 06:00); **6 h cooldownu ręcznej zmiany stolicy na państwo**.
+2. **Mapa WWW squaremap:** edytor chunków w stylu FTB Chunks (autoryzacja gracza, zaznaczanie myszką, wnioski, panel admina); **prywatne pozycje członków tego samego państwa** na żywo; **publiczne znaczniki wszystkich postawionych rdzeni** z ikoną lodestone i współrzędnymi; bezpieczny dostęp spoza localhost.
+3. **Końcowy polish:** `/esmp tierlist` według liczby postawionych własnych i zdobycznych rdzeni, tooltipy państw, indywidualny scoreboard/sidebar z dniem, państwem, liczbą rdzeni i przydatnymi statusami; dopracowanie interfejsu.
+4. **Infrastruktura i inne mechaniki:** opcjonalny modpack QoL/wizualny z tutorialem, pregenerowanie mapy/LOD dla Distant Horizons, docelowy hosting i automatyczne backupy; pozostałe zasady rozdziałów 8–14 według osobnych etapów. **Kod kolejnej wersji będzie dostarczany użytkownikowi jako pełny ZIP projektu, nie wymaga przełączania gałęzi Git.**
 
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
@@ -367,8 +424,10 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 2. **Dokładna lista zaklęć QoL:** pełne wyjątki dla butów/hełmu, zwłaszcza enchanty jednocześnie poprawiające mobilność w PvP. Pozostałe zaklęcia podlegają ogólnemu limitowi I/II.
 3. **Odporność systemu ochrony:** pełna lista wyjątków fizyki, tłoków, eksplozji, zastępowania bloków, redstone oraz obrony łóżek i ich podpór.
 4. **Precyzyjna mechanika startu oblężenia:** rozróżnienie obecności wrogiego gracza w chronionej bazie, startu ataku przy progu online i prowadzenia licznika; nie rozszerzać blokad na pokój lub neutralnych.
-5. **Mapa prywatnych pozycji:** system logowania i autoryzacji do współobywateli; aktualizacja „na żywo” bez publikacji ukrytych pozycji klientowi.
+5. **Mapa prywatnych pozycji i jawnych rdzeni:** uwierzytelnienie do pozycji współobywateli; aktualizacja na żywo i filtrowanie po stronie serwera. **Pozycje wszystkich rdzeni są publiczne, ale pozycje graczy pozostają prywatne.**
 6. **Edytor terytoriów WWW (kierunek zatwierdzony):** autoryzacja konta Minecraft, narzędzia zaznaczania wielu chunków (również mobilnie), podgląd wniosków, panel admina i walidacja backendowa. Sam wybór mapy WWW zamiast moda jest już rozstrzygnięty.
-7. **Interfejsy i konkretne pluginy:** wybór narzędzi oraz adminowskie komendy ręcznej korekty; to decyzje implementacyjne.
+7. **Zegar i `/home`:** prawidłowe obchodzenie się ze strefą `Europe/Warsaw`, zmianą czasu i restartami; czytelne komunikaty o resecie i cooldownie. Zachować ustalone 06:00, dni 1–2 bez limitu i 4 użycia od dnia 3.
+8. **Istniejące zapisy „od dnia 10” a „po 10 dniach”:** rozdziały 11–12 historycznie używają obu sformułowań dla Netheru. Przed implementacją ustalić jednoznaczny próg wg centralnego numeru dnia, bez domyślnej reinterpretacji wcześniejszych reguł.
+9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, ewentualne ukrywanie sidebaru oraz adminowskie komendy ręcznej korekty. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.2.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. Starsze fragmenty zachowano jako specyfikację docelową; w razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia.
+**Koniec dokumentacji v1.3.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. W razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia (w szczególności §15–16 dotyczące `/home`, zegara i mapy).
