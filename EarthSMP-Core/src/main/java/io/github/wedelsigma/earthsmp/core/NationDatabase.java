@@ -1514,6 +1514,25 @@ public final class NationDatabase implements AutoCloseable {
                     q.setString(3, expectedDefender);
                     if (q.executeUpdate() != 1) throw new SQLException("Core changed during conquest");
                 }
+                // The defender must retain a capital if it still owns another core.
+                // Prefer a non-conquered core; use the oldest placed core as a stable fallback.
+                // This also repairs a missing capital left by an older conquest.
+                try (PreparedStatement q = connection.prepareStatement("""
+                        UPDATE protection_cores SET is_capital=1
+                        WHERE id=(
+                            SELECT id FROM protection_cores
+                            WHERE nation_id=?
+                            ORDER BY CASE WHEN origin='CONQUERED' THEN 1 ELSE 0 END, rowid ASC
+                            LIMIT 1
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1 FROM protection_cores WHERE nation_id=? AND is_capital=1
+                        )
+                        """)) {
+                    q.setString(1, expectedDefender);
+                    q.setString(2, expectedDefender);
+                    q.executeUpdate();
+                }
                 connection.commit();
                 return CaptureOutcome.CONQUERED;
             }
