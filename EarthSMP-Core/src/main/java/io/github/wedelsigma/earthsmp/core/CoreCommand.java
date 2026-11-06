@@ -36,7 +36,7 @@ public final class CoreCommand {
             try {
                 var s = plugin.getNationDatabase().coreStock(player.getUniqueId());
                 msg(sender, "Rdzenie: darmowy " + s.free() + "/1, wykonane " + s.crafted()
-                        + "/2, postawione " + s.placed() + ".", NamedTextColor.YELLOW);
+                        + "/2, postawione " + s.placed() + ", razem kontrolowane " + s.total() + ".", NamedTextColor.YELLOW);
             } catch (SQLException error) { fail(sender, "Could not get core stock", error); }
             return true;
         }
