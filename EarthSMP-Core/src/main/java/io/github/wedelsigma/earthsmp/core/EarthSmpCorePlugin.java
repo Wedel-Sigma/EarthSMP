@@ -24,6 +24,8 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     private MapPortalServer mapPortalServer;
     private ServerClock serverClock;
     private HomeCommand homeCommand;
+    private EarthSmpSidebar sidebar;
+    private NationTierlistMenu tierlist;
     private NationMenu nationMenu;
     private EarthSmpHubMenu hubMenu;
     private TerritoryCommand territoryCommand;
@@ -80,6 +82,11 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         siegeStorage = new SiegeStorage(nationDatabase);
         nationMenu = new NationMenu(this);
         hubMenu = new EarthSmpHubMenu(this);
+        tierlist = new NationTierlistMenu(this);
+        sidebar = new EarthSmpSidebar(this);
+        getServer().getPluginManager().registerEvents(tierlist, this);
+        getServer().getPluginManager().registerEvents(sidebar, this);
+        getServer().getScheduler().runTaskTimer(this, sidebar::refresh, 20L, 40L);
         coreCommand = new CoreCommand(this);
         try {
             coreProtection = new CoreProtection(this);
@@ -146,11 +153,13 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }
             }
         }
-        getLogger().info("EarthSMP Core 1.8.5 enabled - web territory requests");
+        getLogger().info("EarthSMP Core 1.8.6 enabled - tierlist and sidebar");
     }
 
     @Override
     public void onDisable() {
+        if (sidebar != null) { sidebar.shutdown(); sidebar = null; }
+        tierlist = null;
         if (mapPortalServer != null) {
             mapPortalServer.close();
             mapPortalServer = null;
@@ -266,11 +275,28 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         }
     }
 
+    /** Public-facing brand. No internal identifiers or commands depend on this value. */
+    public String getDisplayName() {
+        String value = getConfig().getString("server.display-name", "Kabina Narodów 2.0");
+        if (value == null || value.isBlank()) return "Kabina Narodów 2.0";
+        // Keep scoreboard titles and inventory windows readable; ignore control characters.
+        value = value.strip().replaceAll("[\\p{Cntrl}]", "");
+        return value.length() > 40 ? value.substring(0, 40) : value;
+    }
+
     public MapPortalAuth getMapPortalAuth() { return mapPortalAuth; }
     public String getMapPortalUrl() { return mapPortalServer == null ? null : mapPortalServer.url(); }
 
     public ServerClock getServerClock() {
         return Objects.requireNonNull(serverClock, "Edition clock not initialized");
+    }
+
+    public EarthSmpSidebar getSidebar() {
+        return Objects.requireNonNull(sidebar, "Sidebar not initialized");
+    }
+
+    public NationTierlistMenu getTierlist() {
+        return Objects.requireNonNull(tierlist, "Tierlist not initialized");
     }
 
     public HomeCommand getHomeCommand() {

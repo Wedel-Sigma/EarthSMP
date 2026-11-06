@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>EarthSMP — Mapa państw</title>
+  <title>{{SERVER_DISPLAY_NAME}} — Mapa państw</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyo7hV1lDY3iK0=" crossorigin="anonymous">
   <link rel="stylesheet" href="/assets/portal.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" defer></script>
   <script src="/assets/portal.js" defer></script>
 </head>
 <body>
-  <main id="map" aria-label="Mapa świata EarthSMP"></main>
-  <section class="panel" aria-label="Panel EarthSMP">
-    <h1>EARTH<span>SMP</span></h1>
+  <main id="map" aria-label="Mapa świata {{SERVER_DISPLAY_NAME}}"></main>
+  <section class="panel" aria-label="Panel {{SERVER_DISPLAY_NAME}}">
+    <h1>{{SERVER_DISPLAY_NAME}}</h1>
     <p class="subtitle">Mapa polityczna i prywatne pozycje państwa</p>
     <div id="map-status" class="status">Ładowanie mapy…</div>
     <button id="refresh-tiles" type="button" class="tile-refresh" title="Załaduj ponownie widoczne kafelki mapy">Odśwież kafelki</button>
@@ -24,7 +24,7 @@
     </div>
     <hr>
     <section id="login-section">
-      <strong>Konto mapy EarthSMP</strong>
+      <strong>Konto mapy {{SERVER_DISPLAY_NAME}}</strong>
       <p>Konto powiązujesz z Minecraftem tylko raz. Potem logujesz się z dowolnego urządzenia nickiem i hasłem — nawet bez włączonej gry.</p>
       <div class="auth-tabs">
         <button id="tab-login" type="button" class="active">Mam konto</button>

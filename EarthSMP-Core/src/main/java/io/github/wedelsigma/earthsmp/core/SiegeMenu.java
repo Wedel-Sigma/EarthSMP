@@ -23,9 +23,9 @@ public final class SiegeMenu implements Listener {
     private static final class Holder implements InventoryHolder {
         final UUID viewer;
         final Inventory inventory;
-        Holder(Player p) {
+        Holder(Player p, String displayName) {
             viewer=p.getUniqueId();
-            inventory=Bukkit.createInventory(this,27,Component.text("EarthSMP | Oblezenia",NamedTextColor.GOLD));
+            inventory=Bukkit.createInventory(this,27,Component.text(displayName + " | Oblezenia",NamedTextColor.GOLD));
         }
         @Override public @NotNull Inventory getInventory(){return inventory;}
     }
@@ -39,7 +39,7 @@ public final class SiegeMenu implements Listener {
         return item;
     }
     public void open(Player p) {
-        Holder h=new Holder(p);
+        Holder h=new Holder(p, plugin.getDisplayName());
         List<String> description=plugin.getSieges().describe(p);
         h.inventory.setItem(11,item(Material.BOOK,"Status oblezenia",description.toArray(String[]::new)));
         h.inventory.setItem(13,item(Material.IRON_SWORD,"Szturm: automatyczny",

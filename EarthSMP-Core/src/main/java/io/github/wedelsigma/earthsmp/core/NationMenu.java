@@ -99,7 +99,7 @@ public final class NationMenu implements Listener {
                     .findMembership(player.getUniqueId());
             int invitationCount = plugin.getNationDatabase().findInvites(player.getUniqueId()).size();
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.MAIN, 0,
-                    "EarthSMP | Panstwo", List.of(), null);
+                    plugin.getDisplayName() + " | Panstwo", List.of(), null);
             Inventory inventory = holder.getInventory();
             if (membership.isPresent()) {
                 NationDatabase.Membership nation = membership.get();
@@ -132,7 +132,7 @@ public final class NationMenu implements Listener {
                         : item(Material.RED_DYE, "Opusc panstwo", NamedTextColor.RED,
                                 "Wymaga potwierdzenia"));
             }
-            inventory.setItem(22, item(Material.OAK_DOOR, "Powrot do centrum EarthSMP", NamedTextColor.GREEN));
+            inventory.setItem(22, item(Material.OAK_DOOR, "Powrot do centrum " + plugin.getDisplayName(), NamedTextColor.GREEN));
             player.openInventory(inventory);
         } catch (SQLException error) {
             reportError(player, "Opening nation main menu failed", error);
@@ -157,7 +157,7 @@ public final class NationMenu implements Listener {
                 memberIds.add(members.get(i).playerUuid());
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.MEMBERS, page,
-                    "EarthSMP | Czlonkowie " + (page + 1), List.of(), null,
+                    plugin.getDisplayName() + " | Czlonkowie " + (page + 1), List.of(), null,
                     memberIds, null, null);
             Inventory inventory = holder.getInventory();
             for (int i = 0; i < memberIds.size(); i++) {
@@ -194,7 +194,7 @@ public final class NationMenu implements Listener {
 
             NationDatabase.NationMember target = selected.get();
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.MEMBER_DETAILS,
-                    returnPage, "EarthSMP | " + playerName(targetUuid), List.of(), null,
+                    returnPage, plugin.getDisplayName() + " | " + playerName(targetUuid), List.of(), null,
                     List.of(), targetUuid, null);
             Inventory inventory = holder.getInventory();
             inventory.setItem(13, item(Material.PLAYER_HEAD, playerName(targetUuid),
@@ -259,7 +259,7 @@ public final class NationMenu implements Listener {
                 return;
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_MEMBER_ACTION,
-                    returnPage, "EarthSMP | Potwierdzenie", List.of(), null,
+                    returnPage, plugin.getDisplayName() + " | Potwierdzenie", List.of(), null,
                     List.of(), targetUuid, action);
             Inventory inventory = holder.getInventory();
             inventory.setItem(13, item(Material.PLAYER_HEAD, playerName(targetUuid),
@@ -343,7 +343,7 @@ public final class NationMenu implements Listener {
                 pageNames.add(invites.get(i).nationName());
             }
             holder = new MenuHolder(player.getUniqueId(), Screen.INVITES, page,
-                    "EarthSMP | Zaproszenia " + (page + 1), pageNames, null);
+                    plugin.getDisplayName() + " | Zaproszenia " + (page + 1), pageNames, null);
             Inventory inventory = holder.getInventory();
             for (int i = 0; i < pageNames.size(); i++) {
                 inventory.setItem(i, item(Material.PAPER, pageNames.get(i), NamedTextColor.YELLOW,
@@ -370,7 +370,7 @@ public final class NationMenu implements Listener {
                 return;
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_INVITE, 0,
-                    "EarthSMP | " + nationName, List.of(), nationName);
+                    plugin.getDisplayName() + " | " + nationName, List.of(), nationName);
             Inventory inventory = holder.getInventory();
             inventory.setItem(11, item(Material.LIME_WOOL, "Przyjmij", NamedTextColor.GREEN,
                     "Dolaczysz do panstwa: " + nationName));
@@ -476,7 +476,7 @@ public final class NationMenu implements Listener {
             int from = page * PAGE_SIZE;
             List<UUID> pageIds = candidates.subList(from, Math.min(from + PAGE_SIZE, candidates.size()));
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.INVITE_PLAYERS, page,
-                    "EarthSMP | Zapros gracza", List.of(), null, pageIds, null, null);
+                    plugin.getDisplayName() + " | Zapros gracza", List.of(), null, pageIds, null, null);
             Inventory inv = holder.getInventory();
             for (int i = 0; i < pageIds.size(); i++) {
                 inv.setItem(i, item(Material.PLAYER_HEAD, playerName(pageIds.get(i)), NamedTextColor.GREEN,
@@ -501,7 +501,7 @@ public final class NationMenu implements Listener {
                 return;
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_SEND_INVITE,
-                    page, "EarthSMP | Zaproszenie", List.of(), null, List.of(), targetUuid, null);
+                    page, plugin.getDisplayName() + " | Zaproszenie", List.of(), null, List.of(), targetUuid, null);
             holder.getInventory().setItem(13, item(Material.PLAYER_HEAD, playerName(targetUuid), NamedTextColor.GOLD));
             holder.getInventory().setItem(11, item(Material.LIME_WOOL, "Wyslij zaproszenie", NamedTextColor.GREEN,
                     "Wazne 24 godziny"));
@@ -549,7 +549,7 @@ public final class NationMenu implements Listener {
                 pageIds.add(invites.get(i).targetUuid());
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.OUTGOING_INVITES, page,
-                    "EarthSMP | Wyslane zaproszenia", List.of(), null, pageIds, null, null);
+                    plugin.getDisplayName() + " | Wyslane zaproszenia", List.of(), null, pageIds, null, null);
             Inventory inv = holder.getInventory();
             for (int i = 0; i < pageIds.size(); i++) {
                 inv.setItem(i, item(Material.PAPER, playerName(pageIds.get(i)), NamedTextColor.YELLOW,
@@ -565,7 +565,7 @@ public final class NationMenu implements Listener {
 
     private void openWithdrawConfirmation(Player player, UUID targetUuid, int page) {
         MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_WITHDRAW, page,
-                "EarthSMP | Wycofanie zaproszenia", List.of(), null, List.of(), targetUuid, null);
+                plugin.getDisplayName() + " | Wycofanie zaproszenia", List.of(), null, List.of(), targetUuid, null);
         holder.getInventory().setItem(13, item(Material.PAPER, playerName(targetUuid), NamedTextColor.YELLOW));
         holder.getInventory().setItem(11, item(Material.RED_WOOL, "Wycofaj", NamedTextColor.RED));
         holder.getInventory().setItem(15, item(Material.LIME_WOOL, "Anuluj", NamedTextColor.GREEN));
@@ -601,7 +601,7 @@ public final class NationMenu implements Listener {
             long count = plugin.getNationDatabase().allProtectionCores().stream()
                     .filter(c -> c.nationId().equals(m.get().nationId())).count();
             MenuHolder h = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_DISBAND, 0,
-                    "EarthSMP | Rozwiaz panstwo", List.of(), null);
+                    plugin.getDisplayName() + " | Rozwiaz panstwo", List.of(), null);
             h.getInventory().setItem(13, item(Material.BARRIER, "USUN: " + m.get().nationName(),
                     NamedTextColor.RED, "Zniknie " + count + " rdzeni (takze zdobyte)",
                     "Terytoria stana sie neutralne; czlonkowie straca przynaleznosc",
@@ -676,7 +676,7 @@ public final class NationMenu implements Listener {
                 return;
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_LEAVE, 0,
-                    "EarthSMP | Opusc panstwo", List.of(), null);
+                    plugin.getDisplayName() + " | Opusc panstwo", List.of(), null);
             holder.getInventory().setItem(13, item(Material.WHITE_BANNER, membership.get().nationName(), NamedTextColor.GOLD));
             holder.getInventory().setItem(11, item(Material.RED_WOOL, "Tak, opuszczam", NamedTextColor.RED));
             holder.getInventory().setItem(15, item(Material.LIME_WOOL, "Anuluj", NamedTextColor.GREEN));
@@ -712,7 +712,7 @@ public final class NationMenu implements Listener {
                 return;
             }
             MenuHolder holder = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_TRANSFER, returnPage,
-                    "EarthSMP | Nowy lider", List.of(), null, List.of(), targetUuid, null);
+                    plugin.getDisplayName() + " | Nowy lider", List.of(), null, List.of(), targetUuid, null);
             holder.getInventory().setItem(13, item(Material.PLAYER_HEAD, playerName(targetUuid), NamedTextColor.GOLD,
                     "Po zmianie bedziesz zwyklym czlonkiem"));
             holder.getInventory().setItem(11, item(Material.LIME_WOOL, "Przekaz przywodztwo", NamedTextColor.GREEN));

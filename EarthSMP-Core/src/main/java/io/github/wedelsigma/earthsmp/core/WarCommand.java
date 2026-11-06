@@ -67,7 +67,7 @@ public final class WarCommand {
             try {
                 long id=number(args[2]);
                 var result=repo.adminEnd(id,sender instanceof Player p?p.getUniqueId():new UUID(0L,0L));
-                if(result.status()==WarRepository.Status.SUCCESS) broadcast("[EarthSMP] Admin zakonczyl wojne #"+id);
+                if(result.status()==WarRepository.Status.SUCCESS) broadcast("[" + plugin.getDisplayName() + "] Admin zakonczyl wojne #"+id);
                 else report(sender,result.status());
             }catch(SQLException e){error(sender,"War admin end",e);}
             return true;
@@ -132,27 +132,27 @@ public final class WarCommand {
         var o=repo.declare(player.getUniqueId(),defenderId,reason);
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
         var w=repo.find(o.warId()).orElseThrow();
-        broadcast("[EarthSMP] WOJNA #"+w.id()+": "+w.attackerName()+" wypowiada wojne "+w.defenderName()+"!");
-        if(!w.declaration().isBlank()) broadcast("[EarthSMP] Ogłoszenie: "+w.declaration());
-        broadcast("[EarthSMP] Sojusznicy moga dolaczyc przez pierwsze 4 godziny.");
+        broadcast("[" + plugin.getDisplayName() + "] WOJNA #"+w.id()+": "+w.attackerName()+" wypowiada wojne "+w.defenderName()+"!");
+        if(!w.declaration().isBlank()) broadcast("[" + plugin.getDisplayName() + "] Ogłoszenie: "+w.declaration());
+        broadcast("[" + plugin.getDisplayName() + "] Sojusznicy moga dolaczyc przez pierwsze 4 godziny.");
     }
     public void invite(Player player,long warId,String targetId) throws SQLException {
         var o=repo.inviteAlly(player.getUniqueId(),warId,targetId);
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
         String nation=repo.listNations().stream().filter(n->n.id().equals(targetId))
                 .map(WarRepository.NationOption::name).findFirst().orElse(targetId);
-        alertWar(warId,"[EarthSMP] "+player.getName()+" zaprosil panstwo "+nation+" do wojny #"+warId);
+        alertWar(warId,"[" + plugin.getDisplayName() + "] "+player.getName()+" zaprosil panstwo "+nation+" do wojny #"+warId);
         for(Player online:Bukkit.getOnlinePlayers()) {
             var m=plugin.getNationDatabase().findMembership(online.getUniqueId());
             if(m.isPresent() && m.get().nationId().equals(targetId))
-                send(online,"[EarthSMP] Zaproszenie do wojny #"+warId+". Otworz /esmp -> Dyplomacja.",NamedTextColor.GREEN);
+                send(online,"[" + plugin.getDisplayName() + "] Zaproszenie do wojny #"+warId+". Otworz /esmp -> Dyplomacja.",NamedTextColor.GREEN);
         }
     }
     public void answer(Player player,long warId,boolean yes) throws SQLException {
         var o=repo.answerInvite(player.getUniqueId(),warId,yes);
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
         String name=plugin.getNationDatabase().findMembership(player.getUniqueId()).orElseThrow().nationName();
-        alertWar(warId,"[EarthSMP] "+name+(yes?" dolacza do wojny ":" odrzuca zaproszenie do wojny ")+"#"+warId);
+        alertWar(warId,"[" + plugin.getDisplayName() + "] "+name+(yes?" dolacza do wojny ":" odrzuca zaproszenie do wojny ")+"#"+warId);
         send(player,"Zapisano decyzje.",NamedTextColor.GREEN);
     }
     public void leave(Player player,long warId) throws SQLException {
@@ -160,20 +160,20 @@ public final class WarCommand {
                 .orElse(player.getName());
         var o=repo.leaveWar(player.getUniqueId(),warId);
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
-        alertWar(warId,"[EarthSMP] "+name+" opuszcza wojne #"+warId);
+        alertWar(warId,"[" + plugin.getDisplayName() + "] "+name+" opuszcza wojne #"+warId);
         send(player,"Twoj kraj wycofal sie z wojny.",NamedTextColor.GREEN);
     }
     public void peace(Player player,long warId) throws SQLException {
         var o=repo.peace(player.getUniqueId(),warId);
         if(o.status()==WarRepository.Status.PEACE_PROPOSED) {
-            alertWar(warId,"[EarthSMP] Propozycja pokoju w wojnie #"+warId+". Druga glowna strona musi ja zaakceptowac.");
+            alertWar(warId,"[" + plugin.getDisplayName() + "] Propozycja pokoju w wojnie #"+warId+". Druga glowna strona musi ja zaakceptowac.");
         } else if(o.status()==WarRepository.Status.PEACE_ENDED) {
-            broadcast("[EarthSMP] POKOJ! Wojna #"+warId+" zakonczyla sie za zgoda obu glownych panstw.");
+            broadcast("[" + plugin.getDisplayName() + "] POKOJ! Wojna #"+warId+" zakonczyla sie za zgoda obu glownych panstw.");
         } else report(player,o.status());
     }
     public void cancelPeace(Player player,long warId) throws SQLException {
         var o=repo.cancelPeace(player.getUniqueId(),warId);
-        if(o.status()==WarRepository.Status.PEACE_CANCELLED) alertWar(warId,"[EarthSMP] Wycofano propozycje pokoju w wojnie #"+warId);
+        if(o.status()==WarRepository.Status.PEACE_CANCELLED) alertWar(warId,"[" + plugin.getDisplayName() + "] Wycofano propozycje pokoju w wojnie #"+warId);
         else report(player,o.status());
     }
 }

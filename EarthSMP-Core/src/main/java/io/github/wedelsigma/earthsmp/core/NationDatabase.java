@@ -31,6 +31,29 @@ public final class NationDatabase implements AutoCloseable {
     public record Membership(String nationId, String nationName, String role) {}
     public record NationMember(UUID playerUuid, String role) {}
     public record NationInvite(String nationId, String nationName, long expiresAt) {}
+    /** Snapshot of placed, controlled cores (including conquered ones), not core tokens/items. */
+    public record NationRank(String nationId, String name, int members, int placedCores) {}
+
+    /** Recomputed directly from SQLite each time the ranking opens / sidebar refreshes. */
+    public List<NationRank> nationRanking() throws SQLException {
+        List<NationRank> ranking = new ArrayList<>();
+        // Correlated subqueries avoid multiplying cores by members in a JOIN.
+        try (PreparedStatement query = connection.prepareStatement("""
+                SELECT n.id, n.name,
+                       (SELECT COUNT(*) FROM nation_members m WHERE m.nation_id = n.id) AS member_count,
+                       (SELECT COUNT(*) FROM protection_cores c WHERE c.nation_id = n.id) AS placed_count
+                FROM nations n
+                ORDER BY placed_count DESC, n.name COLLATE NOCASE ASC, n.id ASC
+                """);
+             ResultSet rows = query.executeQuery()) {
+            while (rows.next()) {
+                ranking.add(new NationRank(rows.getString(1), rows.getString(2),
+                        rows.getInt(3), rows.getInt(4)));
+            }
+        }
+        return ranking;
+    }
+
 
     public enum InviteResult { SENT, NOT_AUTHORIZED, TARGET_ALREADY_MEMBER, SELF_INVITE }
     public enum AcceptResult { JOINED, ALREADY_MEMBER, NO_ACTIVE_INVITE }

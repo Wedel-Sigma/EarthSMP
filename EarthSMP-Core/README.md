@@ -1,12 +1,15 @@
-**AKTUALNY BUILD TESTOWY: 1.8.5 — edytor chunków WWW, wnioski ADD/REMOVE i administracyjne zatwierdzanie. Migracja SQLite v9 → v10.**
+**AKTUALNY BUILD TESTOWY: 1.8.6 — ranking państw i HUD/scoreboard. SQLite pozostaje na schemacie v10 (bez nowej migracji).**
 
-Szczegóły wdrożenia i testów: `../INSTRUKCJA-1.8.5.md`. Dotychczasowe rozdziały tego README to historia rozwoju i mogą opisywać nieaktualny stan starszych wydań. Aktualny zakres funkcji i zasady: `docs/docs.md` w głównym repozytorium.
+Szczegóły wdrożenia i testów: `../INSTRUKCJA-1.8.6.md`. Dotychczasowe rozdziały tego README to historia rozwoju i mogą opisywać nieaktualny stan starszych wydań. Aktualny zakres funkcji i zasady: `docs/docs.md` w głównym repozytorium.
 
 ---
 
 **Bieżący build testowy: 1.8.4 R2 — jednorazowe powiązanie konta mapy na całą edycję (hasło), trwałe sesje i mapa dostępna także offline. Szczegóły: `../INSTRUKCJA-1.8.4.md`.**
 
 # EarthSMP Core 1.0.0 — rdzenie ochronne (etap testowy)
+
+> **Nazwa dla graczy:** **Kabina Narodów 2.0** (od wydania 1.8.6 R2). Techniczne identyfikatory `EarthSMP`, `/esmp` i nazwa JAR-a pozostają niezmienione. Branding można ustawić w `server.display-name` w `config.yml`.
+
 
 Aktualizacja 0.9.0 → 1.0.0. **Nie kasuj** Gradle Wrappera, bazy SQLite, Polski ani terytoriów.
 
@@ -244,3 +247,12 @@ Dodatkowo hotfix blokuje przerabianie specjalnego kilofa w kowadle, stole kowals
 
 Stan: gotowe źródła **do lokalnego clean build i testów in-game**; brak potwierdzonego builda Gradle/Paper w tym środowisku. Nie nadpisuj jedynej kopii świata ani SQLite.
 - Korekta administracyjna: `/esmp core capital force` patrząc na docelowy rdzeń omija cooldown i zakaz wojenny. Zwykłe `/esmp core capital` nadal przestrzega ograniczeń.
+
+
+## 1.8.6 — Ranking i HUD
+
+- `/esmp tierlist`: GUI 45 państw/stronę; najedź na baner, by zobaczyć liczbę członków oraz liczbę **aktualnie kontrolowanych, postawionych rdzeni**. Zdobyte rdzenie liczą się dla nowego właściciela; rdzenie w ekwipunku nie.
+- `/esmp sidebar`: indywidualne włączanie/wyłączanie standardowego Minecraft scoreboard. Ustawienie (lista UUID) zapamiętywane w `plugins/EarthSMPCore/config.yml`.
+- HUD: dzień edycji, państwo, rdzenie, członkowie online/ogółem, pokój/wojna, pozostałe `/home` (bez limitu w dniach 1–2, od 3 dnia 4 dziennie) i reset o 06:00 czasu Polski.
+- Centrum `/esmp`: slot 22 otwiera ranking, slot 24 przełącza HUD.
+- Bez zmian bazy danych (schemat v10). HUD co 2 sekundy aktualizuje dane na wątku głównym Paper. Jeśli inny plugin przejmie sidebar, EarthSMP nie będzie z nim walczył o scoreboard; ponowne wejście do gry umożliwi kolejną próbę.

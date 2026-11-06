@@ -66,8 +66,8 @@ public final class WarMenu implements Listener {
     public void openMain(Player p){
         try {
             var own=plugin.getNationDatabase().findMembership(p.getUniqueId());
-            Holder h=new Holder(p,Screen.MAIN,0,0,"","EarthSMP | Dyplomacja");
-            h.inv.setItem(4,item(Material.IRON_SWORD,"Dyplomacja EarthSMP",NamedTextColor.GOLD,
+            Holder h=new Holder(p,Screen.MAIN,0,0,"",plugin.getDisplayName() + " | Dyplomacja");
+            h.inv.setItem(4,item(Material.IRON_SWORD,"Dyplomacja " + plugin.getDisplayName(),NamedTextColor.GOLD,
                 "Panstwo: "+own.map(NationDatabase.Membership::nationName).orElse("brak")));
             h.inv.setItem(20,item(Material.MAP,"Aktywne wojny: "+db().activeWars().size(),NamedTextColor.YELLOW,
                 "Zobacz konflikty i szczegoly stron"));
@@ -81,7 +81,7 @@ public final class WarMenu implements Listener {
     private void wars(Player p,int wanted){
         try{
             var wars=db().activeWars();int page=clamp(wanted,wars.size());
-            Holder h=new Holder(p,Screen.WARS,page,0,"","EarthSMP | Aktywne wojny");
+            Holder h=new Holder(p,Screen.WARS,page,0,"",plugin.getDisplayName() + " | Aktywne wojny");
             List<Long> ids=new ArrayList<>();
             for(int i=0;i<PAGE_SIZE && page*PAGE_SIZE+i<wars.size();i++){
                 var w=wars.get(page*PAGE_SIZE+i);ids.add(w.id());
@@ -112,7 +112,7 @@ public final class WarMenu implements Listener {
             drafts.computeIfAbsent(p.getUniqueId(),id->new Draft(targetId,""));
             var d=drafts.get(p.getUniqueId());
             if(!d.targetId().equals(targetId)){d=new Draft(targetId,"");drafts.put(p.getUniqueId(),d);}
-            Holder h=new Holder(p,Screen.DECLARE_CONFIRM,0,0,targetId,"EarthSMP | Wypowiedz wojne");
+            Holder h=new Holder(p,Screen.DECLARE_CONFIRM,0,0,targetId,plugin.getDisplayName() + " | Wypowiedz wojne");
             h.inv.setItem(13,item(Material.RED_BANNER,"Cel: "+target.get().name(),NamedTextColor.RED,
                 "Wojna zacznie sie od razu po zatwierdzeniu"));
             h.inv.setItem(29,item(Material.WRITABLE_BOOK,"Dodaj powod (opcjonalny)",NamedTextColor.YELLOW,
@@ -130,7 +130,7 @@ public final class WarMenu implements Listener {
             var participation=own.isEmpty()?Optional.<WarRepository.Participant>empty():
                     db().participant(warId,own.get().nationId());
             boolean mgr=own.isPresent()&&manager(own.get().role());
-            Holder h=new Holder(p,Screen.WAR_DETAILS,0,warId,"","EarthSMP | Wojna #"+warId);
+            Holder h=new Holder(p,Screen.WAR_DETAILS,0,warId,"",plugin.getDisplayName() + " | Wojna #"+warId);
             h.inv.setItem(4,item(Material.IRON_SWORD,w.attackerName()+" vs "+w.defenderName(),NamedTextColor.GOLD,
                 "Powod: "+(w.declaration().isBlank()?"brak":cut(w.declaration(),65)),
                 "Okno sojusznikow: "+(w.joinWindowOpen(Instant.now().getEpochSecond())?"OTWARTE":"ZAMKNIETE")));
@@ -158,7 +158,7 @@ public final class WarMenu implements Listener {
     private void people(Player p,long warId){
         try{
             var participants=db().participants(warId);
-            Holder h=new Holder(p,Screen.PARTICIPANTS,0,warId,"","EarthSMP | Strony wojny");
+            Holder h=new Holder(p,Screen.PARTICIPANTS,0,warId,"",plugin.getDisplayName() + " | Strony wojny");
             for(int i=0;i<participants.size()&&i<45;i++){
                 var x=participants.get(i);
                 h.inv.setItem(i,item(x.side()==WarRepository.Side.ATTACKER?Material.RED_BANNER:Material.BLUE_BANNER,
@@ -180,7 +180,7 @@ public final class WarMenu implements Listener {
             var joined=db().participants(warId).stream().map(WarRepository.Participant::nationId).toList();
             var choices=db().listNations().stream().filter(n->!joined.contains(n.id())).toList();
             int page=clamp(requestedPage,choices.size());
-            Holder h=new Holder(p,Screen.ALLY_TARGETS,page,warId,"","EarthSMP | Zapros do wojny");
+            Holder h=new Holder(p,Screen.ALLY_TARGETS,page,warId,"",plugin.getDisplayName() + " | Zapros do wojny");
             List<String> ids=new ArrayList<>();
             for(int i=0;i<PAGE_SIZE&&i+page*PAGE_SIZE<choices.size();i++){
                 var n=choices.get(i+page*PAGE_SIZE);ids.add(n.id());
@@ -192,7 +192,7 @@ public final class WarMenu implements Listener {
     private void invites(Player p,int wanted){
         try{
             var list=db().invitationsFor(p.getUniqueId());int page=clamp(wanted,list.size());
-            Holder h=new Holder(p,Screen.INVITES,page,0,"","EarthSMP | Zaproszenia wojenne");
+            Holder h=new Holder(p,Screen.INVITES,page,0,"",plugin.getDisplayName() + " | Zaproszenia wojenne");
             List<Long> ids=new ArrayList<>();
             for(int i=0;i<PAGE_SIZE&&page*PAGE_SIZE+i<list.size();i++){
                 var x=list.get(page*PAGE_SIZE+i);ids.add(x.warId());
@@ -207,7 +207,7 @@ public final class WarMenu implements Listener {
         try {
             boolean invited=db().invitationsFor(p.getUniqueId()).stream().anyMatch(i->i.warId()==warId);
             if(!invited){warn(p,"Zaproszenie wygaslo lub zostalo anulowane.");invites(p,0);return;}
-            Holder h=new Holder(p,Screen.INVITE_DETAILS,0,warId,"","EarthSMP | Decyzja sojuszu");
+            Holder h=new Holder(p,Screen.INVITE_DETAILS,0,warId,"",plugin.getDisplayName() + " | Decyzja sojuszu");
             h.inv.setItem(13,item(Material.PAPER,"Zaproszenie do wojny #"+warId,NamedTextColor.GOLD,
                 "Dolaczenie jest mozliwe tylko w pierwszych 4h"));
             h.inv.setItem(11,confirm("Przyjmij zaproszenie"));
@@ -220,7 +220,7 @@ public final class WarMenu implements Listener {
             var w=db().find(warId);
             if(w.isEmpty()||!w.get().active()){wars(p,0);return;}
             Holder h=new Holder(p,peace?Screen.PEACE_CONFIRM:Screen.LEAVE_CONFIRM,0,warId,"",
-                peace?"EarthSMP | Pokoj":"EarthSMP | Wycofanie");
+                peace?plugin.getDisplayName() + " | Pokoj":plugin.getDisplayName() + " | Wycofanie");
             h.inv.setItem(13,item(Material.BOOK,peace?"Propozycja / przyjecie pokoju":"Wycofaj panstwo",
                 NamedTextColor.YELLOW,"Wojna #"+warId,"Operacja wymaga potwierdzenia"));
             h.inv.setItem(11,confirm(peace?"Potwierdz pokoj":"Potwierdz wyjscie"));

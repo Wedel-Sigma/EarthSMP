@@ -82,7 +82,7 @@ final class SquaremapCoreLayer {
                 if (world.layerRegistry().hasEntry(LAYER_KEY)) {
                     throw new IllegalStateException("EarthSMP core layer already registered; restart Paper instead of /reload");
                 }
-                SimpleLayerProvider candidate = SimpleLayerProvider.builder("Rdzenie EarthSMP")
+                SimpleLayerProvider candidate = SimpleLayerProvider.builder("Rdzenie " + plugin.getDisplayName())
                         .showControls(true).defaultHidden(false).layerPriority(21).zIndex(350).build();
                 world.layerRegistry().register(LAYER_KEY, candidate);
                 // Only unregister the old map layer; if squaremap is the same instance,

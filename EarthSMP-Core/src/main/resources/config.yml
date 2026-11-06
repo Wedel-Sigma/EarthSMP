@@ -1,3 +1,8 @@
+# Public branding only. Internal plugin IDs, commands and filenames remain EarthSMP.
+# Existing config files without this key also use "Kabina Narodów 2.0".
+server:
+  display-name: "Kabina Narodów 2.0"
+
 # Minecraft world folder from server.properties (level-name=Earth)
 world-name: Earth
 # Identifier of Overworld on squaremap (Earth world in Paper is minecraft:overworld)
@@ -16,3 +21,7 @@ map-portal:
   # Optional UUID allowlist for web-admin approval, including when admins are offline.
   # Server operators (OP) have access automatically. Never use player nicknames here.
   admin-uuids: []
+
+# Minecraft sidebar; players can disable individually with /esmp sidebar.
+sidebar:
+  disabled-players: []

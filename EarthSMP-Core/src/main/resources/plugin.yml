@@ -1,14 +1,14 @@
 name: EarthSMPCore
-version: '1.8.5'
+version: '1.8.6'
 main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
 api-version: '26.3'
 authors: [Wedel-Sigma]
 softdepend: [squaremap]
-description: "EarthSMP: nations, GUI, territories, protection cores, diplomacy and siege pickaxes and block provenance."
+description: "Kabina Narodów 2.0: nations, GUI, territories, protection cores, diplomacy and siege pickaxes and block provenance."
 website: https://github.com/Wedel-Sigma/EarthSMP
 commands:
   earthsmp:
-    description: EarthSMP central GUI and admin commands
+    description: Kabina Narodów 2.0 central GUI and admin commands
     usage: /earthsmp menu
     aliases: [esmp]
     permission: earthsmp.use
@@ -18,8 +18,8 @@ commands:
     permission: earthsmp.use
 permissions:
   earthsmp.use:
-    description: Access to EarthSMP player commands
+    description: Access to Kabina Narodów 2.0 player commands
     default: true
   earthsmp.admin:
-    description: Access to EarthSMP administrative test commands
+    description: Access to Kabina Narodów 2.0 administrative test commands
     default: op

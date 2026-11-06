@@ -77,7 +77,7 @@ public final class SiegePickaxe implements Listener {
     private ItemStack signedItem(String id,int remaining) {
         ItemStack item=new ItemStack(Material.DIAMOND_PICKAXE);
         ItemMeta meta=item.getItemMeta();
-        meta.displayName(Component.text("Kilof Oblezniczy EarthSMP",NamedTextColor.GOLD));
+        meta.displayName(Component.text("Kilof Oblezniczy " + plugin.getDisplayName(),NamedTextColor.GOLD));
         meta.lore(List.of(
                 Component.text("Tylko legalny szturm na wroga baze",NamedTextColor.GRAY),
                 Component.text("Tylko bloki postawione przez graczy",NamedTextColor.GRAY),

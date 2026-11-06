@@ -58,7 +58,7 @@ public final class CoreItems implements Listener {
     public ItemStack makeTokenItem(NationDatabase.CoreIssue issued) {
         ItemStack item = new ItemStack(Material.LODESTONE, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Rdzen Ochronny EarthSMP", NamedTextColor.AQUA));
+        meta.displayName(Component.text("Rdzen Ochronny " + plugin.getDisplayName(), NamedTextColor.AQUA));
         meta.lore(List.of(
                 Component.text("Wlasnosc panstwa (ID przypisane w bazie)", NamedTextColor.GRAY),
                 Component.text("Lider/zastepca stawia na swoim terytorium", NamedTextColor.GRAY),

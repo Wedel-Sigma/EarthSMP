@@ -63,7 +63,7 @@ public final class EarthSmpHubMenu implements Listener {
         try {
             Optional<NationDatabase.Membership> membership = plugin.getNationDatabase().findMembership(player.getUniqueId());
             int invites = plugin.getNationDatabase().findInvites(player.getUniqueId()).size();
-            Holder h = new Holder(player, Screen.HUB, 0, 0L, "EarthSMP | Centrum");
+            Holder h = new Holder(player, Screen.HUB, 0, 0L, plugin.getDisplayName() + " | Centrum");
             Inventory inv = h.inventory;
             if (membership.isPresent()) {
                 var own = membership.get();
@@ -79,6 +79,10 @@ public final class EarthSmpHubMenu implements Listener {
                     "Zaznaczanie chunkow i wnioski", "Zatwierdzanie granic przez admina"));
             inv.setItem(16, item(Material.LODESTONE, "Rdzenie", NamedTextColor.YELLOW,
                     "Ochrona 65x65, stan rdzeni", "Darmowy rdzen i przenoszenie"));
+            inv.setItem(22, item(Material.GOLDEN_HELMET, "Ranking panstw", NamedTextColor.GOLD,
+                    "Ranking wedlug postawionych rdzeni", "Wlasne i zdobyczne"));
+            inv.setItem(24, item(Material.COMPASS, "Przelacz panel boczny", NamedTextColor.AQUA,
+                    "Dzien edycji, panstwo i /home", "Pokaz lub ukryj scoreboard"));
             inv.setItem(28, item(Material.PAPER, "Zaproszenia: " + invites, NamedTextColor.GREEN,
                     "Otworz otrzymane zaproszenia"));
             inv.setItem(30, item(Material.IRON_SWORD, "Dyplomacja", NamedTextColor.GOLD,
@@ -89,7 +93,7 @@ public final class EarthSmpHubMenu implements Listener {
                     "Konfiguracja panstwa: jeszcze niedostepna"));
             inv.setItem(49, item(Material.BARRIER, "Zamknij", NamedTextColor.RED));
             player.openInventory(inv);
-        } catch (SQLException e) { error(player, "Opening main EarthSMP hub", e); }
+        } catch (SQLException e) { error(player, "Opening main " + plugin.getDisplayName() + " hub", e); }
     }
 
     private void openTerritory(Player player) {
@@ -98,7 +102,7 @@ public final class EarthSmpHubMenu implements Listener {
             boolean manager = membership.isPresent() && isManager(membership.get().role());
             boolean admin = player.hasPermission("earthsmp.admin");
             var ownRequests = plugin.getNationDatabase().findOwnPendingTerritoryRequests(player.getUniqueId());
-            Holder h = new Holder(player, Screen.TERRITORY, 0, 0L, "EarthSMP | Terytoria");
+            Holder h = new Holder(player, Screen.TERRITORY, 0, 0L, plugin.getDisplayName() + " | Terytoria");
             Inventory inv = h.inventory;
             inv.setItem(10, item(Material.COMPASS, "Sprawdz chunk", NamedTextColor.GREEN,
                     "Pokazuje wlasciciela chunku", "na ktorym aktualnie stoisz"));
@@ -135,7 +139,7 @@ public final class EarthSmpHubMenu implements Listener {
                 return;
             }
             Holder h = new Holder(player, add ? Screen.TERRITORY_CONFIRM_ADD : Screen.TERRITORY_CONFIRM_REMOVE,
-                    0, 0L, "EarthSMP | Potwierdz wniosek");
+                    0, 0L, plugin.getDisplayName() + " | Potwierdz wniosek");
             h.inventory.setItem(13, item(add ? Material.LIME_WOOL : Material.RED_WOOL,
                     add ? "Dolacz zaznaczony teren" : "Oddaj zaznaczony teren", NamedTextColor.YELLOW,
                     "Zaznaczenie musi miec dwa rogi", "Administrator podejmie decyzje"));
@@ -158,7 +162,7 @@ public final class EarthSmpHubMenu implements Listener {
                     : plugin.getNationDatabase().findOwnPendingTerritoryRequests(player.getUniqueId());
             int page = clamp(requestedPage, requests.size());
             Holder h = new Holder(player, admin ? Screen.TERRITORY_ADMIN_REQUESTS : Screen.TERRITORY_OWN_REQUESTS,
-                    page, 0L, admin ? "EarthSMP | Wnioski admin" : "EarthSMP | Moje wnioski");
+                    page, 0L, admin ? plugin.getDisplayName() + " | Wnioski admin" : plugin.getDisplayName() + " | Moje wnioski");
             int offset = page * PAGE_SIZE;
             List<Long> visibleIds = new ArrayList<>();
             for (int i = 0; i < PAGE_SIZE && offset + i < requests.size(); i++) {
@@ -199,7 +203,7 @@ public final class EarthSmpHubMenu implements Listener {
             }
             var r = found.get();
             Holder h = new Holder(player, admin ? Screen.TERRITORY_ADMIN_REVIEW : Screen.TERRITORY_CANCEL,
-                    returnPage, requestId, "EarthSMP | Wniosek #" + requestId);
+                    returnPage, requestId, plugin.getDisplayName() + " | Wniosek #" + requestId);
             h.inventory.setItem(13, item(Material.FILLED_MAP, r.nationName(), NamedTextColor.GOLD,
                     r.action() + " | " + r.size() + " chunkow", "X " + r.minX() + ".." + r.maxX(),
                     "Z " + r.minZ() + ".." + r.maxZ()));
@@ -223,7 +227,7 @@ public final class EarthSmpHubMenu implements Listener {
             var stock = plugin.getNationDatabase().coreStock(player.getUniqueId());
             boolean manager = member.isPresent() && isManager(member.get().role());
             boolean admin = player.hasPermission("earthsmp.admin");
-            Holder h = new Holder(player, Screen.CORES, 0, 0L, "EarthSMP | Rdzenie");
+            Holder h = new Holder(player, Screen.CORES, 0, 0L, plugin.getDisplayName() + " | Rdzenie");
             Inventory inv = h.inventory;
             inv.setItem(10, item(Material.COMPASS, "Czy jestem chroniony?", NamedTextColor.AQUA,
                     "Sprawdz ochrone aktualnej pozycji"));
@@ -280,7 +284,7 @@ public final class EarthSmpHubMenu implements Listener {
                 case CORE_CONFIRM_CAPITAL -> "Zmien stolice na wskazany rdzen";
                 default -> throw new IllegalArgumentException("Invalid core action");
             };
-            Holder h = new Holder(player, action, 0, 0L, "EarthSMP | Potwierdz rdzen");
+            Holder h = new Holder(player, action, 0, 0L, plugin.getDisplayName() + " | Potwierdz rdzen");
             if (action == Screen.CORE_CONFIRM_CAPITAL) {
                 var membership = plugin.getNationDatabase().findMembership(player.getUniqueId());
                 h.inventory.setItem(13, item(Material.LODESTONE, description, NamedTextColor.YELLOW,
@@ -297,7 +301,7 @@ public final class EarthSmpHubMenu implements Listener {
     }
 
     private void openComingSoon(Player player, Screen screen) {
-        Holder h = new Holder(player, screen, 0, 0L, "EarthSMP | W przygotowaniu");
+        Holder h = new Holder(player, screen, 0, 0L, plugin.getDisplayName() + " | W przygotowaniu");
         switch (screen) {
             case DIPLOMACY -> h.inventory.setItem(13, item(Material.IRON_SWORD, "Dyplomacja - jeszcze nieaktywna",
                     NamedTextColor.YELLOW, "Wypowiadanie wojen i sojusze", "Nastepny etap: 1.5.0"));
@@ -334,6 +338,11 @@ public final class EarthSmpHubMenu implements Listener {
             case HUB -> {
                 return switch (slot) {
                     case 12 -> () -> plugin.getNationMenu().openMain(player);
+                    case 22 -> () -> plugin.getTierlist().open(player);
+                    case 24 -> () -> {
+                        plugin.getSidebar().toggle(player);
+                        openMain(player);
+                    };
                     case 28 -> () -> plugin.getNationMenu().openInvitations(player);
                     case 14 -> () -> openTerritory(player);
                     case 16 -> () -> openCores(player);

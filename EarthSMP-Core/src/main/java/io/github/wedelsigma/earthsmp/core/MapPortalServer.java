@@ -52,6 +52,7 @@ final class MapPortalServer implements AutoCloseable {
 
     private final MapPortalAuth auth;
     private final EarthSmpCorePlugin plugin;
+    private final String displayName;
     private final Logger log;
     private final URI origin;
     private final URI squaremap;
@@ -65,6 +66,8 @@ final class MapPortalServer implements AutoCloseable {
                     MapPortalAuth auth, Logger log, EarthSmpCorePlugin plugin) throws IOException {
         this.auth = auth;
         this.plugin = plugin;
+        // Snapshot config on the main thread; HTTP worker threads never access Bukkit config.
+        this.displayName = plugin.getDisplayName();
         this.log = log;
         try {
             this.origin = validateOrigin(publicOrigin);
@@ -356,11 +359,23 @@ final class MapPortalServer implements AutoCloseable {
         }
     }
 
-    private static void resource(HttpExchange ex, String path, String type) throws IOException {
+    private void resource(HttpExchange ex, String path, String type) throws IOException {
         try (InputStream in = MapPortalServer.class.getResourceAsStream(path)) {
             if (in == null) { send(ex, 404, "text/plain", "Missing packaged resource".getBytes(StandardCharsets.UTF_8)); return; }
-            send(ex, 200, type, in.readAllBytes());
+            byte[] bytes = in.readAllBytes();
+            if ("/map-portal/index.html".equals(path)) {
+                String html = new String(bytes, StandardCharsets.UTF_8);
+                html = html.replace("{{SERVER_DISPLAY_NAME}}", escapeHtml(displayName));
+                bytes = html.getBytes(StandardCharsets.UTF_8);
+            }
+            send(ex, 200, type, bytes);
         }
+    }
+
+    private static String escapeHtml(String value) {
+        return value.replace("&", "&amp;").replace("<", "&lt;")
+                .replace(">", "&gt;").replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
     private static void json(HttpExchange ex, int status, String value) throws IOException {

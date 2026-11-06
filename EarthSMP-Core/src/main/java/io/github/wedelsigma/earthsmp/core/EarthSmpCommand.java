@@ -41,6 +41,20 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("menu"))) {
             return showHubMenu(sender);
         }
+        if (args.length == 1 && args[0].equalsIgnoreCase("tierlist")) {
+            Player player = requirePlayer(sender);
+            if (player != null) plugin.getTierlist().open(player);
+            return true;
+        }
+        if (args.length == 1 && args[0].equalsIgnoreCase("sidebar")) {
+            Player player = requirePlayer(sender);
+            if (player != null) {
+                boolean enabled = plugin.getSidebar().toggle(player);
+                send(sender, enabled ? "Wlaczono panel " + plugin.getDisplayName() + "." : "Wylaczono panel " + plugin.getDisplayName() + ".",
+                        enabled ? NamedTextColor.GREEN : NamedTextColor.YELLOW);
+            }
+            return true;
+        }
         if (args.length >= 1 && args[0].equalsIgnoreCase("map")) {
             Player player = requirePlayer(sender);
             if (player == null) return true;
@@ -185,6 +199,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
 
     private static void showHelp(CommandSender sender, String label) {
         send(sender, "/" + label + " (centralne GUI) | nation menu | nation info | members | invites", NamedTextColor.YELLOW);
+        send(sender, "/" + label + " tierlist | sidebar (ranking i HUD)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " territory (granice polityczne)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " war (wojny, sojusznicy i pokoj)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation create <nazwa> | leave | disband | transfer <nick>", NamedTextColor.YELLOW);
@@ -200,7 +215,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     private boolean showStatus(CommandSender sender) {
         String worldName = plugin.getConfig().getString("world-name", "Earth");
         boolean worldLoaded = Bukkit.getWorld(worldName) != null;
-        send(sender, "EarthSMP Core 1.8.5 - plugin dziala.", NamedTextColor.GREEN);
+        send(sender, plugin.getDisplayName() + " | Core " + plugin.getDescription().getVersion() + " - plugin dziala.", NamedTextColor.GREEN);
         send(sender, "Swiat " + worldName + ": " + (worldLoaded ? "zaladowany" : "nie znaleziono"),
                 worldLoaded ? NamedTextColor.GREEN : NamedTextColor.RED);
         try {
@@ -221,7 +236,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
             var clock = plugin.getServerClock();
             if (args.length == 2 && args[1].equalsIgnoreCase("start")) {
                 if (plugin.getNationDatabase().startEdition(clock.now())) {
-                    send(sender, "Edycja EarthSMP rozpoczeta! Dzien 1. Reset dni o 06:00 Europe/Warsaw.",
+                    send(sender, "Edycja " + plugin.getDisplayName() + " rozpoczeta! Dzien 1. Reset dni o 06:00 Europe/Warsaw.",
                             NamedTextColor.GREEN);
                 } else {
                     send(sender, "Edycja zostala juz rozpoczeta. Nie resetuje zegara.", NamedTextColor.YELLOW);
@@ -462,7 +477,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     ) {
         if (args.length == 1) {
             List<String> actions = sender.hasPermission("earthsmp.admin")
-                    ? List.of("status", "clock", "home", "map", "nation", "menu", "territory", "core", "war", "siege") : List.of("home", "map", "nation", "menu", "territory", "core", "war", "siege");
+                    ? List.of("status", "clock", "home", "map", "nation", "menu", "tierlist", "sidebar", "territory", "core", "war", "siege") : List.of("home", "map", "nation", "menu", "tierlist", "sidebar", "territory", "core", "war", "siege");
             return filter(actions, args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("map")) return filter(List.of("code", "revoke", "reset"), args[1]);

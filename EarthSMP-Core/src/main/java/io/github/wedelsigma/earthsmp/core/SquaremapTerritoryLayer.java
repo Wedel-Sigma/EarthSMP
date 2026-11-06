@@ -73,7 +73,7 @@ final class SquaremapTerritoryLayer {
                 plugin.getLogger().warning("squaremap layer key already registered; restart Paper instead of /reload");
                 return false;
             }
-            SimpleLayerProvider newLayer = SimpleLayerProvider.builder("Panstwa EarthSMP")
+            SimpleLayerProvider newLayer = SimpleLayerProvider.builder("Panstwa " + plugin.getDisplayName())
                     .showControls(true).defaultHidden(false).layerPriority(20).zIndex(200).build();
             map.layerRegistry().register(LAYER_KEY, newLayer);
             this.mapWorld = map;

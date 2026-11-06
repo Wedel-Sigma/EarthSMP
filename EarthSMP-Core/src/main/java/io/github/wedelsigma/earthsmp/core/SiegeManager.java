@@ -72,8 +72,8 @@ public final class SiegeManager {
     public SiegeManager(EarthSmpCorePlugin plugin) { this.plugin = plugin; }
     public int activeCount() { return active.size(); }
 
-    private static void say(Player player, String message, NamedTextColor color) {
-        player.sendMessage(Component.text("[EarthSMP] " + message, color));
+    private void say(Player player, String message, NamedTextColor color) {
+        player.sendMessage(Component.text("[" + plugin.getDisplayName() + "] " + message, color));
     }
 
     private int defenderOnlineCount(String nationId) throws SQLException {
@@ -343,7 +343,7 @@ public final class SiegeManager {
         String message = outcome == NationDatabase.CaptureOutcome.CONQUERED
                 ? "Panstwo " + victor + " zdobylo rdzen panstwa " + s.defenderName + "!"
                 : "Panstwo " + s.defenderName + " upadlo po utracie ostatniego rdzenia!";
-        Bukkit.broadcast(Component.text("[EarthSMP] " + message, NamedTextColor.GOLD));
+        Bukkit.broadcast(Component.text("[" + plugin.getDisplayName() + "] " + message, NamedTextColor.GOLD));
         plugin.getLogger().info(message);
         return true;
     }
