@@ -16,6 +16,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,7 +42,7 @@ public final class NationMenu implements Listener {
     private enum Screen {
         MAIN, MEMBERS, MEMBER_DETAILS, CONFIRM_MEMBER_ACTION, INVITES, CONFIRM_INVITE,
         INVITE_PLAYERS, CONFIRM_SEND_INVITE, OUTGOING_INVITES, CONFIRM_WITHDRAW,
-        CONFIRM_LEAVE, CONFIRM_TRANSFER
+        CONFIRM_LEAVE, CONFIRM_TRANSFER, CONFIRM_DISBAND
     }
 
     private static final class MenuHolder implements InventoryHolder {
@@ -76,7 +78,8 @@ public final class NationMenu implements Listener {
                     screen == Screen.MAIN || screen == Screen.CONFIRM_INVITE
                             || screen == Screen.MEMBER_DETAILS || screen == Screen.CONFIRM_MEMBER_ACTION
                             || screen == Screen.CONFIRM_SEND_INVITE || screen == Screen.CONFIRM_WITHDRAW
-                            || screen == Screen.CONFIRM_LEAVE || screen == Screen.CONFIRM_TRANSFER ? 27 : 54,
+                            || screen == Screen.CONFIRM_LEAVE || screen == Screen.CONFIRM_TRANSFER
+                             || screen == Screen.CONFIRM_DISBAND ? 27 : 54,
                     Component.text(title, NamedTextColor.GOLD));
         }
 
@@ -123,8 +126,9 @@ public final class NationMenu implements Listener {
                             NamedTextColor.YELLOW, "Kliknij, by wycofac zaproszenie"));
                 }
                 inventory.setItem(26, "LEADER".equals(role)
-                        ? item(Material.BOOK, "Jestes liderem", NamedTextColor.GRAY,
-                                "Aby odejsc, najpierw przekaz przywodztwo", "Rozwiazanie panstwa dodamy z rdzeniami")
+                        ? item(Material.RED_DYE, "Rozwiaz panstwo", NamedTextColor.RED,
+                                "Tylko podczas pokoju; wymaga potwierdzenia",
+                                "Usuwa wszystkie rdzenie: wlasne i zdobyczne")
                         : item(Material.RED_DYE, "Opusc panstwo", NamedTextColor.RED,
                                 "Wymaga potwierdzenia"));
             }
@@ -583,6 +587,92 @@ public final class NationMenu implements Listener {
         }
     }
 
+    public void openDisbandConfirmation(Player player) {
+        try {
+            Optional<NationDatabase.Membership> m = plugin.getNationDatabase().findMembership(player.getUniqueId());
+            if (m.isEmpty() || !"LEADER".equals(m.get().role())) {
+                player.sendMessage(Component.text("Tylko lider moze rozwiazac panstwo.", NamedTextColor.RED));
+                return;
+            }
+            if (plugin.getNationDatabase().nationAtWar(m.get().nationId())) {
+                player.sendMessage(Component.text("Nie mozna rozwiazac panstwa podczas wojny.", NamedTextColor.RED));
+                return;
+            }
+            long count = plugin.getNationDatabase().allProtectionCores().stream()
+                    .filter(c -> c.nationId().equals(m.get().nationId())).count();
+            MenuHolder h = new MenuHolder(player.getUniqueId(), Screen.CONFIRM_DISBAND, 0,
+                    "EarthSMP | Rozwiaz panstwo", List.of(), null);
+            h.getInventory().setItem(13, item(Material.BARRIER, "USUN: " + m.get().nationName(),
+                    NamedTextColor.RED, "Zniknie " + count + " rdzeni (takze zdobyte)",
+                    "Terytoria stana sie neutralne; czlonkowie straca przynaleznosc",
+                    "Budowle pozostana na miejscu", "NIEODWRACALNE"));
+            h.getInventory().setItem(11, item(Material.RED_WOOL, "Potwierdz rozwiazanie", NamedTextColor.RED));
+            h.getInventory().setItem(15, item(Material.LIME_WOOL, "Anuluj", NamedTextColor.GREEN));
+            player.openInventory(h.getInventory());
+        } catch (SQLException error) { reportError(player, "Opening disband confirmation", error); }
+    }
+
+    private void performDisband(Player player) {
+        try {
+            var member = plugin.getNationDatabase().findMembership(player.getUniqueId());
+            if (member.isEmpty() || !"LEADER".equals(member.get().role())) {
+                player.sendMessage(Component.text("Tylko lider moze rozwiazac panstwo.", NamedTextColor.RED));
+                openMain(player);
+                return;
+            }
+            if (plugin.getNationDatabase().nationAtWar(member.get().nationId())) {
+                player.sendMessage(Component.text("Nie mozna rozwiazac panstwa podczas wojny.", NamedTextColor.RED));
+                openMain(player);
+                return;
+            }
+            List<Block> anchors = new ArrayList<>();
+            for (var core : plugin.getNationDatabase().allProtectionCores()) {
+                if (!core.nationId().equals(member.get().nationId())) continue;
+                World world = Bukkit.getWorld(core.world());
+                if (world == null) {
+                    player.sendMessage(Component.text("Swiat rdzenia nie jest zaladowany. Operacja przerwana.", NamedTextColor.RED));
+                    return;
+                }
+                Block anchor = world.getBlockAt(core.x(), core.y(), core.z());
+                if (anchor.getType() != Material.LODESTONE) {
+                    player.sendMessage(Component.text("Brak fizycznego lodestone rdzenia " + core.id()
+                            + ". Zglos to administratorowi.", NamedTextColor.RED));
+                    return;
+                }
+                anchors.add(anchor);
+            }
+            // World modification cannot join an SQLite transaction. Undo the block changes
+            // on a database failure. A hard crash in this short window still needs backup recovery.
+            try {
+                for (Block anchor : anchors) anchor.setType(Material.AIR, false);
+                var result = plugin.getNationDatabase().disbandNation(player.getUniqueId());
+                if (result != NationDatabase.DisbandResult.DISBANDED) {
+                    for (Block anchor : anchors) anchor.setType(Material.LODESTONE, false);
+                    player.sendMessage(Component.text("Nie mozna rozwiazac panstwa (wojna albo brak uprawnien).",
+                            NamedTextColor.RED));
+                    openMain(player);
+                    return;
+                }
+            } catch (SQLException | RuntimeException failure) {
+                for (Block anchor : anchors) {
+                    try { anchor.setType(Material.LODESTONE, false); }
+                    catch (RuntimeException e) { failure.addSuppressed(e); }
+                }
+                throw failure;
+            }
+            plugin.getCoreProtection().reload();
+            plugin.refreshTerritoryMap();
+            player.sendMessage(Component.text("Panstwo rozwiazane; usunieto " + anchors.size()
+                    + " rdzeni. Zwykle budowle pozostaly.", NamedTextColor.GREEN));
+            openMain(player);
+        } catch (SQLException error) {
+            reportError(player, "Disband nation failed", error);
+        } catch (RuntimeException error) {
+            plugin.getLogger().log(Level.SEVERE, "Disband nation failed", error);
+            player.sendMessage(Component.text("Blad rozwiazania panstwa, sprawdz konsole i backup.", NamedTextColor.RED));
+        }
+    }
+
     private void openLeaveConfirmation(Player player) {
         try {
             Optional<NationDatabase.Membership> membership = plugin.getNationDatabase().findMembership(player.getUniqueId());
@@ -711,7 +801,13 @@ public final class NationMenu implements Listener {
                 case 15 -> () -> openInvites(player, 0);
                 case 18 -> () -> openInvitePlayers(player, 0);
                 case 24 -> () -> openOutgoingInvites(player, 0);
-                case 26 -> () -> openLeaveConfirmation(player);
+                case 26 -> () -> {
+                    try {
+                        var m = plugin.getNationDatabase().findMembership(player.getUniqueId());
+                        if (m.isPresent() && "LEADER".equals(m.get().role())) openDisbandConfirmation(player);
+                        else openLeaveConfirmation(player);
+                    } catch (SQLException e) { reportError(player, "Opening exit GUI", e); }
+                };
                 case 22 -> () -> plugin.getHubMenu().openMain(player);
                 default -> null;
             };
@@ -797,6 +893,11 @@ public final class NationMenu implements Listener {
             };
             case CONFIRM_LEAVE -> switch (slot) {
                 case 11 -> () -> performLeave(player);
+                case 15 -> () -> openMain(player);
+                default -> null;
+            };
+            case CONFIRM_DISBAND -> switch (slot) {
+                case 11 -> () -> performDisband(player);
                 case 15 -> () -> openMain(player);
                 default -> null;
             };
