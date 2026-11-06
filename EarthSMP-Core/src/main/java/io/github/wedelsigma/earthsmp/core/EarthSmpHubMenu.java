@@ -228,7 +228,8 @@ public final class EarthSmpHubMenu implements Listener {
                     "Sprawdz ochrone aktualnej pozycji"));
             inv.setItem(12, item(Material.NETHER_STAR, "Stan rdzeni", NamedTextColor.GREEN,
                     "Darmowy: " + stock.free() + "/1", "Wykonane: " + stock.crafted() + "/2",
-                    "Postawione: " + stock.placed()));
+                    "Postawione: " + stock.placed(),
+                    "Lacznie kontrolowane: " + stock.total()));
             inv.setItem(14, item(manager ? Material.LODESTONE : Material.GRAY_DYE,
                     "Odbierz darmowy rdzen", manager ? NamedTextColor.GREEN : NamedTextColor.GRAY,
                     "Tylko lider lub zastepca", "Jednorazowo na panstwo", "Bezpieczne potwierdzenie"));
