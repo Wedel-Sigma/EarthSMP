@@ -37,12 +37,14 @@ class EditionPersistenceTest {
         }
     }
 
-    @Test void schemaEightUpgradesToNineWithoutClearingEditionData() throws Exception {
+    @Test void schemaEightUpgradesToTenWithoutClearingEditionData() throws Exception {
         Path file = temp.resolve("upgrade.db");
         Instant launch = Instant.parse("2026-11-06T17:00:00Z");
         try (NationDatabase db = new NationDatabase(file)) {
             assertTrue(db.startEdition(launch));
             try (var st = db.diplomacyConnection().createStatement()) {
+                st.execute("DROP TABLE territory_request_chunks");
+                st.execute("ALTER TABLE territory_requests DROP COLUMN selection_mode");
                 st.execute("DROP TABLE map_sessions");
                 st.execute("DROP TABLE map_accounts");
                 st.execute("PRAGMA user_version = 8");
@@ -53,7 +55,7 @@ class EditionPersistenceTest {
             try (var st = db.diplomacyConnection().createStatement();
                  var v = st.executeQuery("PRAGMA user_version")) {
                 assertTrue(v.next());
-                assertEquals(9, v.getInt(1));
+                assertEquals(10, v.getInt(1));
             }
             try (MapPortalAuth auth = new MapPortalAuth(file)) {
                 assertTrue(auth.linkedAccounts().isEmpty());

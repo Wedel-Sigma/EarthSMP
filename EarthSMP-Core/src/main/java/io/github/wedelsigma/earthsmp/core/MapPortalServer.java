@@ -16,6 +16,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import org.bukkit.Bukkit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +51,7 @@ final class MapPortalServer implements AutoCloseable {
     private static final String COOKIE = "ESMP_MAP_SESSION";
 
     private final MapPortalAuth auth;
+    private final EarthSmpCorePlugin plugin;
     private final Logger log;
     private final URI origin;
     private final URI squaremap;
@@ -55,8 +62,9 @@ final class MapPortalServer implements AutoCloseable {
     private volatile MapPortalSnapshot snapshot = MapPortalSnapshot.empty();
 
     MapPortalServer(String bind, int port, String publicOrigin, String squaremapUrl,
-                    MapPortalAuth auth, Logger log) throws IOException {
+                    MapPortalAuth auth, Logger log, EarthSmpCorePlugin plugin) throws IOException {
         this.auth = auth;
+        this.plugin = plugin;
         this.log = log;
         try {
             this.origin = validateOrigin(publicOrigin);
@@ -152,12 +160,106 @@ final class MapPortalServer implements AutoCloseable {
                 json(exchange, viewer.isPresent() ? 200 : 401, viewer.isPresent() ? "{\"authenticated\":true}" : "{\"authenticated\":false}");
                 return;
             }
+            if (path.startsWith("/api/territory/")) {
+                territory(exchange, path, method);
+                return;
+            }
             json(exchange, 404, "{\"error\":\"Not found\"}");
         } catch (Exception error) {
             log.log(Level.WARNING, "Map portal HTTP failure", error);
             try { json(exchange, 500, "{\"error\":\"Blad serwera mapy\"}"); } catch (IOException ignored) { }
         } finally {
             exchange.close();
+        }
+    }
+
+    /** All territory access and mutation is executed on the Bukkit main thread.
+     * HTTP threads only authenticate session cookies and parse untrusted input.
+     */
+    private void territory(HttpExchange ex, String path, String method) throws IOException, SQLException {
+        Optional<UUID> authenticated = auth.authenticate(cookie(ex));
+        if (authenticated.isEmpty()) {
+            json(ex, 401, "{\"error\":\"Zaloguj sie na mapie.\"}");
+            return;
+        }
+        UUID viewer = authenticated.get();
+        if ("POST".equals(method) && !postAllowed(ex)) return;
+        Map<String, String> fields = Map.of();
+        if ("POST".equals(method)) {
+            try { fields = readForm(ex, 80_000); }
+            catch (IllegalArgumentException exception) {
+                json(ex, 400, "{\"error\":" + MapPortalJson.quote(exception.getMessage()) + "}"); return;
+            }
+        }
+        final Map<String, String> form = fields;
+        MapTerritoryWeb.Reply result;
+        if ("GET".equals(method) && "/api/territory/overview".equals(path)) {
+            result = mainThread(() -> new MapTerritoryWeb(plugin).overview(viewer));
+        } else if ("GET".equals(method) && "/api/territory/detail".equals(path)) {
+            long id = requestId(ex.getRequestURI().getRawQuery());
+            result = id > 0 ? mainThread(() -> new MapTerritoryWeb(plugin).detail(viewer, id))
+                    : new MapTerritoryWeb.Reply(400, "{\"error\":\"Nieprawidlowe ID wniosku.\"}");
+        } else if ("POST".equals(method) && "/api/territory/preview".equals(path)) {
+            result = mainThread(() -> new MapTerritoryWeb(plugin).preview(viewer, form.get("chunks")));
+        } else if ("POST".equals(method) && "/api/territory/submit".equals(path)) {
+            result = mainThread(() -> new MapTerritoryWeb(plugin).submit(viewer, form.get("action"), form.get("chunks")));
+        } else if ("POST".equals(method) && "/api/territory/review".equals(path)) {
+            long id = formId(form);
+            if (id < 1 || !("approve".equals(form.get("decision")) || "reject".equals(form.get("decision")))) {
+                result = new MapTerritoryWeb.Reply(400, "{\"error\":\"Nieprawidlowa decyzja.\"}");
+            } else result = mainThread(() -> new MapTerritoryWeb(plugin).review(viewer, id, "approve".equals(form.get("decision"))));
+        } else if ("POST".equals(method) && "/api/territory/cancel".equals(path)) {
+            long id = formId(form);
+            result = id > 0 ? mainThread(() -> new MapTerritoryWeb(plugin).cancel(viewer, id))
+                    : new MapTerritoryWeb.Reply(400, "{\"error\":\"Nieprawidlowe ID.\"}");
+        } else result = new MapTerritoryWeb.Reply(404, "{\"error\":\"Not found\"}");
+        json(ex, result.status(), result.json());
+    }
+
+    private static long formId(Map<String, String> form) { return requestId("id=" + form.get("id")); }
+    private static long requestId(String query) {
+        if (query == null || !query.matches("id=[1-9][0-9]{0,14}")) return -1;
+        try { return Long.parseLong(query.substring(3)); }
+        catch (NumberFormatException error) { return -1; }
+    }
+
+    private static Map<String, String> readForm(HttpExchange ex, int limit) throws IOException {
+        byte[] bytes = ex.getRequestBody().readNBytes(limit + 1);
+        if (bytes.length > limit) throw new IllegalArgumentException("Zbyt duzy formularz.");
+        Map<String, String> result = new java.util.HashMap<>();
+        try {
+            for (String part : new String(bytes, StandardCharsets.UTF_8).split("&", -1)) {
+                int eq = part.indexOf('=');
+                if (eq < 0) throw new IllegalArgumentException("Nieprawidlowy formularz.");
+                String key = URLDecoder.decode(part.substring(0, eq), StandardCharsets.UTF_8);
+                String value = URLDecoder.decode(part.substring(eq + 1), StandardCharsets.UTF_8);
+                if (result.putIfAbsent(key, value) != null) throw new IllegalArgumentException("Powtorzone pole formularza.");
+            }
+        } catch (IllegalArgumentException exception) { throw new IllegalArgumentException("Nieprawidlowy formularz."); }
+        return Map.copyOf(result);
+    }
+
+    private MapTerritoryWeb.Reply mainThread(Callable<MapTerritoryWeb.Reply> work) {
+        if (!plugin.isEnabled()) return new MapTerritoryWeb.Reply(503, "{\"error\":\"Plugin jest wylaczony.\"}");
+        var result = new CompletableFuture<MapTerritoryWeb.Reply>();
+        try {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                try { result.complete(work.call()); }
+                catch (IllegalArgumentException invalid) {
+                    result.complete(new MapTerritoryWeb.Reply(400,
+                            "{\"error\":" + MapPortalJson.quote(invalid.getMessage()) + "}"));
+                } catch (Exception error) { result.completeExceptionally(error); }
+            });
+            return result.get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new MapTerritoryWeb.Reply(503, "{\"error\":\"Serwer zajety.\"}");
+        } catch (TimeoutException error) {
+            // A queued approval may still finish: the user must refresh requests before retrying.
+            return new MapTerritoryWeb.Reply(503, "{\"error\":\"Uplynal czas odpowiedzi. Odswiez liste przed ponowna proba.\"}");
+        } catch (ExecutionException | RuntimeException error) {
+            log.log(Level.SEVERE, "Territory portal operation failed", error);
+            return new MapTerritoryWeb.Reply(500, "{\"error\":\"Wystapil blad SQLite lub serwera.\"}");
         }
     }
 
@@ -236,7 +338,7 @@ final class MapPortalServer implements AutoCloseable {
         String target = squaremap + path;
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(target)).timeout(Duration.ofSeconds(7))
-                    .header("User-Agent", "EarthSMPCore-map-portal/1.8.4").GET().build();
+                    .header("User-Agent", "EarthSMPCore-map-portal/1.8.5").GET().build();
             HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
             if (response.body().length > MAX_PROXY_BYTES) { send(ex, 502, "text/plain", "Map resource too large".getBytes(StandardCharsets.UTF_8)); return; }
             if (path.endsWith(".png")) {

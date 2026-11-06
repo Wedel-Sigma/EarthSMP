@@ -56,6 +56,45 @@
       <p class="note">Widzisz online członków swojego państwa (również gdy sam jesteś offline). Gracze w Netherze i Endzie są ukryci.</p>
       <div id="member-list"></div>
     </section>
+    <section id="territory-section" hidden>
+      <hr>
+      <div class="territory-heading"><strong>Terytoria — edytor chunków</strong><button id="territory-refresh" class="subtle" type="button">Odśwież</button></div>
+      <p class="note">Wnioski nie zmieniają granic od razu. Każdy musi zatwierdzić administrator.</p>
+      <div id="territory-manager" hidden>
+        <button id="edit-territory" type="button" class="form-submit">Włącz zaznaczanie na mapie</button>
+        <div id="territory-tools" hidden>
+          <p class="note">Powiększ mapę, aby zobaczyć siatkę 16×16. Kliknij albo przeciągnij, aby dodać; prawym przyciskiem usuń. Na telefonie użyj przycisków pędzla.</p>
+          <div class="territory-row">
+            <button id="brush-add" class="active" type="button">Zaznaczaj</button>
+            <button id="brush-remove" class="subtle" type="button">Wymazuj</button>
+            <button id="brush-pan" class="subtle" type="button">Przesuwaj mapę</button>
+          </div>
+          <div class="territory-row">
+            <button id="territory-undo" type="button" class="subtle">Cofnij</button>
+            <button id="territory-clear" type="button" class="subtle">Wyczyść</button>
+            <span id="territory-count" class="muted">0 / 1024 chunków</span>
+          </div>
+          <label for="territory-action" class="note">Rodzaj wniosku</label>
+          <select id="territory-action">
+            <option value="ADD">Przyznanie terytorium (ADD)</option>
+            <option value="REMOVE">Oddanie terytorium (REMOVE)</option>
+          </select>
+          <div class="territory-row">
+            <button id="territory-preview" type="button" class="subtle">Sprawdź własność</button>
+            <button id="territory-submit" type="button">Wyślij wniosek</button>
+          </div>
+          <p class="note">Maksymalnie 1024 chunki w jednym wniosku. Możesz wybierać nieregularne obszary.</p>
+        </div>
+      </div>
+      <strong>Moje oczekujące wnioski</strong>
+      <div id="territory-own-requests" class="territory-requests"></div>
+      <div id="territory-admin" hidden>
+        <hr>
+        <strong>Panel administratora — oczekujące wnioski</strong>
+        <div id="territory-admin-requests" class="territory-requests"></div>
+      </div>
+      <p id="territory-status" class="message" aria-live="polite"></p>
+    </section>
     <p id="message" class="message" aria-live="polite"></p>
     <footer>Publiczne rdzenie i granice nie wymagają logowania. Pozycje nigdy nie są publikowane w plikach squaremap.</footer>
   </section>

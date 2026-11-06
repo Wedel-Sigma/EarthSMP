@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 public final class NationDatabase implements AutoCloseable {
 
-    private static final int SCHEMA_VERSION = 9;
+    private static final int SCHEMA_VERSION = 10;
     private static final long CAPITAL_COOLDOWN_SECONDS = 6 * 60 * 60;
     private static final long INVITE_LIFETIME_SECONDS = 24 * 60 * 60;
     private final Connection connection;
@@ -450,6 +450,34 @@ public final class NationDatabase implements AutoCloseable {
                 } finally {
                     connection.setAutoCommit(true);
                 }
+                version = 9;
+            }
+            if (version == 9) {
+                // Exact sparse selections for the WWW editor; legacy rectangular requests
+                // have no rows here and retain their original interpretation.
+                connection.setAutoCommit(false);
+                try {
+                    statement.executeUpdate("""
+                            ALTER TABLE territory_requests
+                              ADD COLUMN selection_mode TEXT NOT NULL DEFAULT 'RECT'
+                              CHECK (selection_mode IN ('RECT', 'CHUNKS'))
+                            """);
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS territory_request_chunks (
+                                request_id INTEGER NOT NULL REFERENCES territory_requests(id) ON DELETE CASCADE,
+                                chunk_x INTEGER NOT NULL,
+                                chunk_z INTEGER NOT NULL,
+                                PRIMARY KEY (request_id, chunk_x, chunk_z)
+                            )
+                            """);
+                    statement.execute("PRAGMA user_version = 10");
+                    connection.commit();
+                } catch (SQLException | RuntimeException error) {
+                    rollbackAfter(connection, error);
+                    throw error;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
             }
         }
     }
@@ -846,9 +874,13 @@ public final class NationDatabase implements AutoCloseable {
     // Territory is strictly political. This layer NEVER modifies blocks or claims WorldGuard regions.
     public record TerritoryOwner(String nationId, String nationName) {}
     public record TerritoryRequest(long id, String nationId, String nationName, String action,
-                                   String world, int minX, int minZ, int maxX, int maxZ, String status) {
-        public long size() { return (long) (maxX - minX + 1) * (maxZ - minZ + 1); }
+                                   String world, int minX, int minZ, int maxX, int maxZ,
+                                   String status, int selectedCount, String mode) {
+        public long size() { return sparse() ? selectedCount : (long) (maxX - minX + 1) * (maxZ - minZ + 1); }
+        public boolean sparse() { return "CHUNKS".equals(mode); }
     }
+    /** Integer chunk coordinates, NOT block coordinates. */
+    public record TerritoryChunk(int x, int z) {}
     public enum TerritoryDecision { APPROVED, REJECTED, CANCELLED, NOT_FOUND, CONFLICT, NOT_AUTHORIZED }
 
     public Optional<TerritoryOwner> findTerritory(String world, int chunkX, int chunkZ) throws SQLException {
@@ -902,11 +934,104 @@ public final class NationDatabase implements AutoCloseable {
         throw new SQLException("SQLite did not return territory request ID");
     }
 
+    /** One proposal with an exact list of 1..1024 distinct chunks (not its bounding rectangle). */
+    public Optional<Long> submitSelectedTerritoryRequest(UUID actor, String world, boolean add,
+                                                          List<TerritoryChunk> requested) throws SQLException {
+        Optional<Membership> membership = findMembership(actor);
+        if (membership.isEmpty() || !isManager(membership.get().role())) return Optional.empty();
+        if (requested == null || requested.isEmpty() || requested.size() > 1024
+                || requested.stream().distinct().count() != requested.size()) {
+            throw new IllegalArgumentException("Wybierz od 1 do 1024 roznych chunkow.");
+        }
+        int minX = requested.stream().mapToInt(TerritoryChunk::x).min().orElseThrow();
+        int maxX = requested.stream().mapToInt(TerritoryChunk::x).max().orElseThrow();
+        int minZ = requested.stream().mapToInt(TerritoryChunk::z).min().orElseThrow();
+        int maxZ = requested.stream().mapToInt(TerritoryChunk::z).max().orElseThrow();
+        connection.setAutoCommit(false);
+        try {
+            long id;
+            try (PreparedStatement insert = connection.prepareStatement("""
+                    INSERT INTO territory_requests
+                      (nation_id, player_uuid, world_name, action, min_x, min_z, max_x, max_z, selection_mode)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'CHUNKS')
+                    """, Statement.RETURN_GENERATED_KEYS)) {
+                insert.setString(1, membership.get().nationId());
+                insert.setString(2, actor.toString());
+                insert.setString(3, world);
+                insert.setString(4, add ? "ADD" : "REMOVE");
+                insert.setInt(5, minX);
+                insert.setInt(6, minZ);
+                insert.setInt(7, maxX);
+                insert.setInt(8, maxZ);
+                insert.executeUpdate();
+                try (ResultSet keys = insert.getGeneratedKeys()) {
+                    if (!keys.next()) throw new SQLException("Missing territory request ID");
+                    id = keys.getLong(1);
+                }
+            }
+            try (PreparedStatement insert = connection.prepareStatement("""
+                    INSERT INTO territory_request_chunks(request_id, chunk_x, chunk_z) VALUES (?,?,?)
+                    """)) {
+                for (TerritoryChunk chunk : requested) {
+                    insert.setLong(1, id);
+                    insert.setInt(2, chunk.x());
+                    insert.setInt(3, chunk.z());
+                    insert.addBatch();
+                }
+                insert.executeBatch();
+            }
+            connection.commit();
+            return Optional.of(id);
+        } catch (SQLException | RuntimeException e) {
+            rollbackAfter(connection, e);
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
+    /** Returns the actual selected chunks, including for legacy rectangle commands. */
+    public List<TerritoryChunk> territoryRequestChunks(long requestId) throws SQLException {
+        List<TerritoryChunk> chunks = new ArrayList<>();
+        try (PreparedStatement query = connection.prepareStatement("""
+                SELECT chunk_x, chunk_z FROM territory_request_chunks WHERE request_id = ?
+                ORDER BY chunk_z, chunk_x
+                """)) {
+            query.setLong(1, requestId);
+            try (ResultSet rows = query.executeQuery()) {
+                while (rows.next()) chunks.add(new TerritoryChunk(rows.getInt(1), rows.getInt(2)));
+            }
+        }
+        if (!chunks.isEmpty()) return chunks;
+        TerritoryRequest request = findTerritoryRequest(requestId).orElse(null);
+        if (request == null || request.size() > 10_000) return List.of();
+        for (int x = request.minX(); x <= request.maxX(); x++)
+            for (int z = request.minZ(); z <= request.maxZ(); z++)
+                chunks.add(new TerritoryChunk(x, z));
+        return chunks;
+    }
+
+    public Optional<TerritoryRequest> findTerritoryRequest(long requestId) throws SQLException {
+        try (PreparedStatement query = connection.prepareStatement("""
+                SELECT r.id, r.nation_id, n.name, r.action, r.world_name, r.min_x, r.min_z,
+                       r.max_x, r.max_z, r.status,
+                       (SELECT COUNT(*) FROM territory_request_chunks c WHERE c.request_id = r.id), r.selection_mode
+                FROM territory_requests AS r JOIN nations AS n ON n.id = r.nation_id
+                WHERE r.id = ?
+                """)) {
+            query.setLong(1, requestId);
+            try (ResultSet rows = query.executeQuery()) {
+                return rows.next() ? Optional.of(readTerritoryRequest(rows)) : Optional.empty();
+            }
+        }
+    }
+
     public List<TerritoryRequest> findPendingTerritoryRequests() throws SQLException {
         List<TerritoryRequest> result = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT r.id, r.nation_id, n.name, r.action, r.world_name, r.min_x, r.min_z,
-                       r.max_x, r.max_z, r.status
+                       r.max_x, r.max_z, r.status,
+                       (SELECT COUNT(*) FROM territory_request_chunks c WHERE c.request_id = r.id), r.selection_mode
                 FROM territory_requests AS r JOIN nations AS n ON n.id = r.nation_id
                 WHERE r.status = 'PENDING' ORDER BY r.id LIMIT 50
                 """)) {
@@ -923,7 +1048,8 @@ public final class NationDatabase implements AutoCloseable {
         List<TerritoryRequest> result = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT r.id, r.nation_id, n.name, r.action, r.world_name, r.min_x, r.min_z,
-                       r.max_x, r.max_z, r.status
+                       r.max_x, r.max_z, r.status,
+                       (SELECT COUNT(*) FROM territory_request_chunks c WHERE c.request_id = r.id), r.selection_mode
                 FROM territory_requests AS r JOIN nations AS n ON n.id = r.nation_id
                 WHERE r.status = 'PENDING' AND r.nation_id = ? ORDER BY r.id LIMIT 50
                 """)) {
@@ -937,7 +1063,8 @@ public final class NationDatabase implements AutoCloseable {
 
     private static TerritoryRequest readTerritoryRequest(ResultSet rows) throws SQLException {
         return new TerritoryRequest(rows.getLong(1), rows.getString(2), rows.getString(3), rows.getString(4),
-                rows.getString(5), rows.getInt(6), rows.getInt(7), rows.getInt(8), rows.getInt(9), rows.getString(10));
+                rows.getString(5), rows.getInt(6), rows.getInt(7), rows.getInt(8), rows.getInt(9),
+                rows.getString(10), rows.getInt(11), rows.getString(12));
     }
 
     /** Decision and claim changes are one atomic SQLite transaction. */
@@ -947,7 +1074,8 @@ public final class NationDatabase implements AutoCloseable {
             TerritoryRequest request;
             try (PreparedStatement statement = connection.prepareStatement("""
                     SELECT r.id, r.nation_id, n.name, r.action, r.world_name, r.min_x, r.min_z,
-                           r.max_x, r.max_z, r.status
+                           r.max_x, r.max_z, r.status,
+                       (SELECT COUNT(*) FROM territory_request_chunks c WHERE c.request_id = r.id), r.selection_mode
                     FROM territory_requests AS r JOIN nations AS n ON n.id = r.nation_id
                     WHERE r.id = ? AND r.status = 'PENDING'
                     """)) {
@@ -958,7 +1086,47 @@ public final class NationDatabase implements AutoCloseable {
                 }
             }
             if (approve) {
-                if ("ADD".equals(request.action())) {
+                if (request.sparse()) {
+                    // Re-check every exact chunk at approval time: nobody can claim a foreign chunk,
+                    // and an old REMOVE request cannot silently remove chunks that changed owner.
+                    List<TerritoryChunk> selected = territoryRequestChunks(request.id());
+                    if (selected.isEmpty() || selected.size() != request.selectedCount()) {
+                        connection.rollback();
+                        return TerritoryDecision.CONFLICT;
+                    }
+                    try (PreparedStatement owner = connection.prepareStatement("""
+                            SELECT nation_id FROM territory_chunks
+                            WHERE world_name=? AND chunk_x=? AND chunk_z=?
+                            """)) {
+                        for (TerritoryChunk chunk : selected) {
+                            owner.setString(1, request.world());
+                            owner.setInt(2, chunk.x());
+                            owner.setInt(3, chunk.z());
+                            String existing = null;
+                            try (ResultSet result = owner.executeQuery()) {
+                                if (result.next()) existing = result.getString(1);
+                            }
+                            if (("ADD".equals(request.action()) && existing != null && !existing.equals(request.nationId()))
+                                    || ("REMOVE".equals(request.action()) && !request.nationId().equals(existing))) {
+                                connection.rollback();
+                                return TerritoryDecision.CONFLICT;
+                            }
+                        }
+                    }
+                    String sql = "ADD".equals(request.action())
+                            ? "INSERT OR IGNORE INTO territory_chunks(world_name,chunk_x,chunk_z,nation_id) VALUES (?,?,?,?)"
+                            : "DELETE FROM territory_chunks WHERE world_name=? AND chunk_x=? AND chunk_z=? AND nation_id=?";
+                    try (PreparedStatement change = connection.prepareStatement(sql)) {
+                        for (TerritoryChunk chunk : selected) {
+                            change.setString(1, request.world());
+                            change.setInt(2, chunk.x());
+                            change.setInt(3, chunk.z());
+                            change.setString(4, request.nationId());
+                            change.addBatch();
+                        }
+                        change.executeBatch();
+                    }
+                } else if ("ADD".equals(request.action())) {
                     if (hasForeignClaims(request.world(), request.minX(), request.minZ(), request.maxX(), request.maxZ(), request.nationId())) {
                         connection.rollback();
                         return TerritoryDecision.CONFLICT;
@@ -1127,6 +1295,26 @@ public final class NationDatabase implements AutoCloseable {
         }
     }
 
+
+    /** Efficient lookup of current owners for a selected set of chunks, server-side. */
+    public java.util.Map<TerritoryChunk, TerritoryOwner> ownersOfSelection(String world,
+                                          List<TerritoryChunk> selected) throws SQLException {
+        java.util.Map<TerritoryChunk, TerritoryOwner> owners = new java.util.HashMap<>();
+        try (PreparedStatement q = connection.prepareStatement("""
+                SELECT n.id,n.name FROM territory_chunks c JOIN nations n ON n.id=c.nation_id
+                WHERE c.world_name=? AND c.chunk_x=? AND c.chunk_z=?
+                """)) {
+            for (TerritoryChunk chunk : selected) {
+                q.setString(1, world);
+                q.setInt(2, chunk.x());
+                q.setInt(3, chunk.z());
+                try (ResultSet rows = q.executeQuery()) {
+                    if (rows.next()) owners.put(chunk, new TerritoryOwner(rows.getString(1), rows.getString(2)));
+                }
+            }
+        }
+        return owners;
+    }
 
     /** Map export: public political claims only. No player coordinates, cores or protected-base locations. */
     public record TerritoryMapChunk(String nationId, String nationName, int chunkX, int chunkZ) {}

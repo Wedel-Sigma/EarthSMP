@@ -13,3 +13,6 @@ map-portal:
   port: 8766
   public-origin: "http://127.0.0.1:8766"
   squaremap-internal-url: "http://127.0.0.1:8080"
+  # Optional UUID allowlist for web-admin approval, including when admins are offline.
+  # Server operators (OP) have access automatically. Never use player nicknames here.
+  admin-uuids: []

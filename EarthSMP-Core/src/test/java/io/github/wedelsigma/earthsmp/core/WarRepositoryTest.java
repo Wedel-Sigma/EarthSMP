@@ -29,7 +29,7 @@ class WarRepositoryTest {
         try(NationDatabase db=new NationDatabase(file)) {
             Connection sql=db.diplomacyConnection();
             try(PreparedStatement q=sql.prepareStatement("PRAGMA user_version");ResultSet r=q.executeQuery()) {
-                assertTrue(r.next());assertEquals(9,r.getInt(1));
+                assertTrue(r.next());assertEquals(10,r.getInt(1));
             }
             register(sql,"a","Alfa",leaderA);
             register(sql,"b","Bravo",leaderB);

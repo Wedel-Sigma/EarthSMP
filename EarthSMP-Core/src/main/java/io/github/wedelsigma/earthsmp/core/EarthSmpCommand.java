@@ -200,7 +200,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     private boolean showStatus(CommandSender sender) {
         String worldName = plugin.getConfig().getString("world-name", "Earth");
         boolean worldLoaded = Bukkit.getWorld(worldName) != null;
-        send(sender, "EarthSMP Core 1.8.4 - plugin dziala.", NamedTextColor.GREEN);
+        send(sender, "EarthSMP Core 1.8.5 - plugin dziala.", NamedTextColor.GREEN);
         send(sender, "Swiat " + worldName + ": " + (worldLoaded ? "zaladowany" : "nie znaleziono"),
                 worldLoaded ? NamedTextColor.GREEN : NamedTextColor.RED);
         try {

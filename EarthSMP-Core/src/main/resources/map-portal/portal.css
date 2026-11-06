@@ -66,3 +66,21 @@ h1{font-size:1.36rem;letter-spacing:.11em;margin:0}h1 span{color:#e5bf66}.subtit
 /* Manual tile refresh control, also useful when squaremap finishes rendering more regions. */
 .tile-refresh{display:inline-flex;align-items:center;gap:5px;margin:5px 0 0;
   padding:5px 9px;font-size:.76rem;color:#e9eef4;background:#34475c}
+
+
+/* 1.8.5: political territory editor and admin queue */
+.territory-heading,.territory-row {display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:9px 0}
+.territory-heading{justify-content:space-between}
+.territory-row button{font-size:.77rem;padding:8px 9px;flex:1}
+.territory-row button.active{background:#e5bf66;color:#10151b}
+.territory-row button.subtle{background:#314154;color:#e9eef4}
+#territory-tools {border:1px solid #435568;border-radius:10px;padding:10px;margin:12px 0}
+#territory-tools label{display:block;margin:10px 0 6px}
+#territory-action{width:100%;color:#e9eef4;background:#223140;border:1px solid #596b7e;padding:9px 6px;border-radius:7px}
+.territory-requests{margin:8px 0 14px}
+.territory-request{background:#1c2b39;border:1px solid #3f5265;border-radius:8px;margin:7px 0;padding:9px}
+.territory-request .meta{font-size:.78rem;line-height:1.55;overflow-wrap:anywhere}
+.territory-request .territory-row{margin:8px 0 0}
+#territory-count{font-size:.72rem;flex:2;text-align:right}
+#territory-section .message{min-height:0}
+.leaflet-pane.esmp-grid-pane{pointer-events:none}

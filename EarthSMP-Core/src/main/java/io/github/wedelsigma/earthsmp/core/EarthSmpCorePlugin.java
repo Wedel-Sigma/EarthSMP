@@ -134,7 +134,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
                 int port = getConfig().getInt("map-portal.port", 8766);
                 String origin = getConfig().getString("map-portal.public-origin", "http://127.0.0.1:8766");
                 String upstream = getConfig().getString("map-portal.squaremap-internal-url", "http://127.0.0.1:8080");
-                mapPortalServer = new MapPortalServer(bind, port, origin, upstream, mapPortalAuth, getLogger());
+                mapPortalServer = new MapPortalServer(bind, port, origin, upstream, mapPortalAuth, getLogger(), this);
                 refreshMapPortalSnapshot();
                 getServer().getScheduler().runTaskTimer(this, this::refreshMapPortalSnapshot, 20L, 20L);
             } catch (IOException | RuntimeException error) {
@@ -146,7 +146,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }
             }
         }
-        getLogger().info("EarthSMP Core 1.8.4 enabled - persistent map accounts");
+        getLogger().info("EarthSMP Core 1.8.5 enabled - web territory requests");
     }
 
     @Override

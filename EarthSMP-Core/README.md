@@ -1,3 +1,9 @@
+**AKTUALNY BUILD TESTOWY: 1.8.5 — edytor chunków WWW, wnioski ADD/REMOVE i administracyjne zatwierdzanie. Migracja SQLite v9 → v10.**
+
+Szczegóły wdrożenia i testów: `../INSTRUKCJA-1.8.5.md`. Dotychczasowe rozdziały tego README to historia rozwoju i mogą opisywać nieaktualny stan starszych wydań. Aktualny zakres funkcji i zasady: `docs/docs.md` w głównym repozytorium.
+
+---
+
 **Bieżący build testowy: 1.8.4 R2 — jednorazowe powiązanie konta mapy na całą edycję (hasło), trwałe sesje i mapa dostępna także offline. Szczegóły: `../INSTRUKCJA-1.8.4.md`.**
 
 # EarthSMP Core 1.0.0 — rdzenie ochronne (etap testowy)
