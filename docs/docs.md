@@ -1,12 +1,12 @@
 ---
-title: "Earth SMP — dokumentacja i specyfikacja v1.1"
-version: "1.1"
+title: "Earth SMP — dokumentacja i specyfikacja v1.2"
+version: "1.2"
 date: "2026-11-06"
 status: "EarthSMP-Core 1.8.0 — zamknięte testy multiplayer; dalsze mechaniki w planie"
 language: "pl"
 ---
 
-# EARTH SMP — DOKUMENTACJA I SPECYFIKACJA v1.1
+# EARTH SMP — DOKUMENTACJA I SPECYFIKACJA v1.2
 
 **Stan ustaleń: 6 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -38,6 +38,8 @@ language: "pl"
 
 ### Dalsze prace / niepotwierdzone w testach
 
+- **Nowe, zatwierdzone założenie interfejsu terytoriów:** claimowanie chunków ma docelowo przypominać **FTB Chunks**, ale odbywać się **na internetowej mapie squaremap**, bez obowiązkowego moda. Gracz zaznacza chunki myszką, a wniosek o zmianę granic wciąż zatwierdza administrator. **W 1.8.0 działa tylko dotychczasowy system komend i wniosków, nie edytor mapowy.**
+- **Mody klienta są opcjonalne**; zamiast obowiązkowego instalatora-wizarda planujemy paczkę modów i krótki tutorial dla chętnych. Czysty klient Minecrafta ma pozostać wystarczający do gry.
 - Prywatne pozycje graczy na mapie (tylko własne państwo; żadnych pozycji wrogów, sojuszników ani w Netherze) — **plan**, nie funkcja 1.8.0.
 - Testy większych koalicji, jednoczesnych wojen i obciążenia serwera, omijania ochrony skrzyń (hoppery, wagoniki), niespodziewanych zdarzeń bloków, exploitów i odporności na awarie.
 - Pełne funkcje PvP pokojowego, timerów respawnu, progresji, limitów ekwipunku, enchantów, barterowych sklepów i pozostałych dodatków z dalszych rozdziałów — **zasady docelowe; bez osobnej weryfikacji nie oznaczamy jako ukończonych**.
@@ -50,7 +52,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 
 ## 0. Skrót kluczowych reguł
 
-- Każdy gracz należy do jednego państwa; nawet jednoosobowego. Granice polityczne to kolorowe, zatwierdzane przez administratora **chunki**, ale same granice nie chronią bloków.
+- Każdy gracz należy do jednego państwa; nawet jednoosobowego. Granice polityczne to kolorowe, zatwierdzane przez administratora **chunki**, ale same granice nie chronią bloków. Docelowe zaznaczanie chunków odbywa się **myszką na internetowej mapie (interakcja w stylu FTB Chunks)**; na dziś 1.8.0 obsługuje wnioski przez komendy.
 - Każde państwo dostaje **1 darmowy rdzeń**, może wykonać **2 dodatkowe**; maksimum **3 rdzenie własne**. Rdzenie zdobyte w wojnach **nie liczą się do limitu**.
 - Każdy rdzeń chroni **65 × 65 bloków**, w całej wysokości Overworldu (**Y −64…319**). Obszary ochronne nie mogą na siebie nachodzić, ale mogą sąsiadować. Nowy rdzeń można postawić tylko na zatwierdzonym własnym terytorium; zdobyty rdzeń jest wyjątkiem od wymogu stawiania.
 - Formalna wojna pozwala na oblężenia między **10:00 a 00:00 Europe/Warsaw**, gdy online jest co najmniej **20% całego składu broniącego państwa** (zaokrąglenie w górę; min. 1). Spadek poniżej progu w trakcie daje **30 minut** na dokończenie; o północy koniec bez wyjątku.
@@ -89,7 +91,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Członkostwo w państwie jest **obowiązkowe regulaminowo**. Dopuszczone państwa jednoosobowe, grupy i organizacje najemnicze. Jeden gracz może należeć do tylko **jednego** państwa.
 - Rangi: **1 przywódca**, do **2 zastępców**, dowolni członkowie. Przywódca i zastępcy mają **identyczne uprawnienia funkcjonalne**, np. zaproszenia, wyrzucanie, dyplomacja i zarządzanie państwem.
 - Państwo można zakładać poprzez system serwera/GUI; otrzymuje jeden darmowy rdzeń.
-- Terytorium polityczne jest zbiorem **chunków** oznaczonych kolorem państwa. Państwo proponuje zmianę granic, jeden z administratorów ją zatwierdza. Nie ma rozbudowanych punktów ekspansji czy sztywnych limitów terytorium. Granice nie powinny nakładać się na inny zatwierdzony obszar bez zgody/rozstrzygnięcia administracji.
+- Terytorium polityczne jest zbiorem **chunków** oznaczonych kolorem państwa. Państwo proponuje zmianę granic, jeden z administratorów ją zatwierdza. **Zatwierdzony docelowy interfejs** to zaznaczanie chunków na mapie przeglądarkowej podobnie jak w FTB Chunks, a nie tylko wskazywanie dwóch punktów w świecie. Nie ma rozbudowanych punktów ekspansji czy sztywnych limitów terytorium. Granice nie powinny nakładać się na inny zatwierdzony obszar bez zgody/rozstrzygnięcia administracji.
 - **Granice polityczne nie chronią bloków** i same w sobie nie blokują wejścia. Ochronę fizyczną dają tylko rdzenie i obszary publiczne.
 - Brak automatycznego wykrywania casus belli i kar za samo wejście na cudze terytorium. Spory o granice są podstawą dyplomacji/RP.
 - **Plan 1.8.1 — rozwiązanie państwa:** decyzję podejmuje lider po potwierdzeniu, tylko gdy państwo **nie uczestniczy w wojnie**. Znikają wszystkie aktualnie należące do państwa rdzenie (również zdobyczne), członkostwa, relacje i jego ochrona, terytorium staje się neutralne. Zwykłe budowle pozostają. **W 1.8.0 ta komenda nie jest jeszcze zaimplementowana.** Administrator może ręcznie interweniować w nietypowych przypadkach.
@@ -311,6 +313,34 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Stan 1.8.0:** polityczne kolory chunków są widoczne przez squaremap; tracker graczy jest wyłączony i **prywatne znaczniki graczy nie są jeszcze wdrożone**. Mapa na `localhost` jest dostępna lokalnie, dopóki nie skonfiguruje się osobnego bezpiecznego dostępu.
 - Używamy **squaremap** do istniejącej warstwy politycznej. Mechanizm autoryzowanych, prywatnych pozycji członków państwa pozostaje do zaprojektowania i wdrożenia.
 
+### 16.1. Edytor terytoriów na mapie — zatwierdzony kierunek, DO WDROŻENIA
+
+**Cel:** interakcja z chunkami **jak w FTB Chunks**, ale na **internetowej mapie squaremap**. To istotne doprecyzowanie pierwotnego pomysłu na „claimowanie” — chodzi o łatwe, wizualne zaznaczanie chunków, **nie o przeniesienie ochrony baz z rdzeni na claimy**.
+
+**Docelowy przebieg dla gracza:**
+
+1. Gracz otwiera mapę WWW i wchodzi w **tryb edycji terytorium** po uwierzytelnieniu kontem Minecraft (proponowana metoda: krótki, jednorazowy kod wydany komendą w grze; szczegóły do dopracowania).
+2. Mapa pokazuje geografię, aktualne kolory państw oraz **siatkę chunków 16×16**. Gracz widzi, które chunki są neutralne, własne lub zajęte przez inne państwa.
+3. **Kliknięciem i przeciąganiem myszki** zaznacza lub odznacza wiele chunków. Przykładowy interfejs: LPM dodaje do zaznaczenia, PPM usuwa; finalne skróty i wygoda na telefonach wymagają dopracowania.
+4. Zmiany są najpierw **podglądem/wnioskiem**, bez natychmiastowego nadawania własności. Gracz przegląda zaznaczenie i wysyła wniosek ADD/REMOVE.
+5. **Administrator zatwierdza albo odrzuca** wniosek, widząc dokładne chunki oraz możliwe konflikty. Dopiero po zatwierdzeniu zmieniają się granice w SQLite oraz publiczna warstwa polityczna.
+6. Serwer sprawdza uprawnienia, własność i konflikty **po stronie backendu**; nie ufamy samemu interfejsowi przeglądarkowemu.
+
+**Ważne ograniczenia i zgodność z istniejącym systemem:**
+
+- Polityczny claim nadal **nie blokuje PvP, kopania, budowania ani wchodzenia na obszar**. Ochronę budowli zapewniają **wyłącznie rdzenie 65×65** oraz obszary administracyjne.
+- **Zachowujemy istniejący proces zatwierdzania przez administrację, bazę SQLite i dane terytoriów.** Zmieniamy przede wszystkim UX wyboru chunków, nie zasady granic.
+- Istniejące `/esmp territory pos1`, `pos2`, `propose` i narzędzia admina pozostają jako **alternatywa/tryb awaryjny**; edytor WWW będzie domyślnym sposobem dla zwykłych graczy.
+- Mapa musi być osiągalna przez graczy **spoza komputera hosta**; sam `localhost` nie wystarczy. Zapewniamy bezpieczny dostęp WWW i autoryzację operacji, nie udostępniamy bez potrzeby prywatnych znaczników i danych.
+- **Stan 1.8.0:** istnieje publiczna warstwa kolorowych terytoriów squaremap oraz komendowe składanie wniosków. **Brak jeszcze klikalnego edytora**, logowania do niego i panelu zatwierdzania w przeglądarce. To prace na **następny etap mapy po stabilizacji 1.8.1**, nie już wydana funkcja.
+
+### 16.2. Instalacja klienta — brak obowiązkowych modów i wizarda
+
+- EarthSMP pozostaje **grywalny na czystym kliencie Minecraft Java**. Do claimowania przez mapę WWW **nie potrzeba moda klienta**.
+- Własny instalator typu **wizard (Windows/C#) nie jest obecnie planowany jako wymagany element wdrożenia**. Rezygnujemy z przymusowej instalacji dodatkowego oprogramowania.
+- Opcjonalnie opublikujemy **paczkę modów graficznych, wydajnościowych i QoL** oraz **krótki poradnik instalacji** dla zainteresowanych.
+- Mody nie mogą być warunkiem udziału w rozgrywce ani dostępu do mechanik państwowych.
+
 ## 17. Administracja i wyjątkowe przypadki
 
 - Administratorzy mają **pełną kontrolę nad wszystkimi państwami, rdzeniami, członkostwem, wojnami, granicami i ochroną**. Błędy lub nietypowe zakończenia konfliktów można ręcznie naprawić.
@@ -327,7 +357,7 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 
 **Etap 3.3 — w trakcie:** istnieje własny plugin **EarthSMP-Core 1.8.0** (Paper, Java 25, Gradle, SQLite) z przetestowanymi systemami państw, terytoriów, mapy politycznej, rdzeni, ochrony, formalnych wojen, kilofa i przejmowania. **Nie potwierdzono jeszcze ukończenia** wszystkich pozostałych mechanik wymienionych w pierwotnym planie: timerów respawnu, PvP terytorialnego, limitów ekwipunku, enchantów, progresji i prywatnych znaczników graczy. Backup wymaga zintegrowania SQLite.
 
-**Kolejne etapy:** pregenerowanie mapy/LOD dla Distant Horizons, modpack QoL/wizualny zgodny z AMD i NVIDIA, własny **instalator Windows w C#** umożliwiający łatwe przygotowanie klienta, docelowy hosting i automatyczne backupy.
+**Kolejne etapy:** po stabilizacji 1.8.1 — **edytor chunków na mapie squaremap w stylu FTB Chunks** (autoryzacja gracza, zaznaczanie myszką, wnioski, panel zatwierdzania), prywatne znaczniki członków państw, bezpieczny publiczny dostęp do mapy; następnie pregenerowanie mapy/LOD dla Distant Horizons, **opcjonalna paczka modów QoL/wizualnych z krótkim tutorialem (bez obowiązkowego instalatora-wizarda)**, docelowy hosting i automatyczne backupy.
 
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
@@ -338,6 +368,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 3. **Odporność systemu ochrony:** pełna lista wyjątków fizyki, tłoków, eksplozji, zastępowania bloków, redstone oraz obrony łóżek i ich podpór.
 4. **Precyzyjna mechanika startu oblężenia:** rozróżnienie obecności wrogiego gracza w chronionej bazie, startu ataku przy progu online i prowadzenia licznika; nie rozszerzać blokad na pokój lub neutralnych.
 5. **Mapa prywatnych pozycji:** system logowania i autoryzacji do współobywateli; aktualizacja „na żywo” bez publikacji ukrytych pozycji klientowi.
-6. **Interfejsy i konkretne pluginy:** wybór narzędzi oraz adminowskie komendy ręcznej korekty; to decyzje implementacyjne.
+6. **Edytor terytoriów WWW (kierunek zatwierdzony):** autoryzacja konta Minecraft, narzędzia zaznaczania wielu chunków (również mobilnie), podgląd wniosków, panel admina i walidacja backendowa. Sam wybór mapy WWW zamiast moda jest już rozstrzygnięty.
+7. **Interfejsy i konkretne pluginy:** wybór narzędzi oraz adminowskie komendy ręcznej korekty; to decyzje implementacyjne.
 
-**Koniec dokumentacji v1.1.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. Starsze fragmenty zachowano jako specyfikację docelową; w razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia.
+**Koniec dokumentacji v1.2.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. Starsze fragmenty zachowano jako specyfikację docelową; w razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia.
