@@ -43,6 +43,8 @@ class CoreConquestTest {
             assertEquals(0, count(c,"SELECT COUNT(*) FROM core_tokens WHERE id='core1'"));
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core1' AND nation_id='a' AND origin='CONQUERED'"));
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='b'"));
+            assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE id='core2' AND nation_id='b' AND is_capital=1"),
+                    "The defender's remaining core must automatically become the new capital");
             assertEquals(NationDatabase.CaptureOutcome.LAST_CORE_DESTROYED,db.captureCore("core2","b","a"));
             assertEquals(1,db.countNations());
             assertEquals(1, count(c,"SELECT COUNT(*) FROM protection_cores WHERE nation_id='a' AND id='core1'"));
