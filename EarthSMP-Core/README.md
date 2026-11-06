@@ -1,3 +1,5 @@
+**Bieżący build testowy: 1.8.4 R2 — jednorazowe powiązanie konta mapy na całą edycję (hasło), trwałe sesje i mapa dostępna także offline. Szczegóły: `../INSTRUKCJA-1.8.4.md`.**
+
 # EarthSMP Core 1.0.0 — rdzenie ochronne (etap testowy)
 
 Aktualizacja 0.9.0 → 1.0.0. **Nie kasuj** Gradle Wrappera, bazy SQLite, Polski ani terytoriów.

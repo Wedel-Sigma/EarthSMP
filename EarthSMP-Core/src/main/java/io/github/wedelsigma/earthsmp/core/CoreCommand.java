@@ -188,6 +188,12 @@ public final class CoreCommand {
             msg(sender, "Ta komenda rdzeni jest dostepna tylko dla admina.", NamedTextColor.RED);
             return true;
         }
+        if (operation.equals("maprefresh")) {
+            msg(sender, plugin.refreshCoreMap() ? "squaremap: odswiezono publiczne rdzenie."
+                    : "squaremap nie jest gotowa; sprawdz konsole i sproboj ponownie.",
+                    NamedTextColor.YELLOW);
+            return true;
+        }
         if (operation.equals("list")) {
             List<NationDatabase.ProtectionCore> cores = plugin.getCoreProtection().all();
             msg(sender, "Rdzenie: " + cores.size() + " (koordynaty tylko dla admina)", NamedTextColor.YELLOW);
@@ -205,13 +211,13 @@ public final class CoreCommand {
             if (operation.equals("place")) place(player, looked); else remove(player, looked);
             return true;
         }
-        msg(sender, "/esmp core here | stock | cooldown | free | pickup | place | remove | capital | zonecheck | list", NamedTextColor.YELLOW);
+        msg(sender, "/esmp core here | stock | cooldown | free | pickup | place | remove | capital | zonecheck | list | maprefresh", NamedTextColor.YELLOW);
         return true;
     }
 
     public List<String> tab(CommandSender sender, String[] args) {
         List<String> opts = sender.hasPermission("earthsmp.admin")
-                ? List.of("here", "stock", "cooldown", "free", "pickup", "place", "remove", "capital", "zonecheck", "list")
+                ? List.of("here", "stock", "cooldown", "free", "pickup", "place", "remove", "capital", "zonecheck", "list", "maprefresh")
                 : List.of("here", "stock", "cooldown", "free", "pickup", "capital");
         String prefix = args.length > 1 ? args[1].toLowerCase(java.util.Locale.ROOT) : "";
         return opts.stream().filter(o -> o.startsWith(prefix)).toList();
@@ -264,6 +270,7 @@ public final class CoreCommand {
                 handedOver = true;
                 looked.setType(Material.AIR, false);
                 plugin.getCoreProtection().reload();
+                plugin.refreshCoreMap();
                 msg(player, "Rdzen spakowany do ekwipunku. Zachowal swoje ID i nie zuzywa nowego limitu.", NamedTextColor.GREEN);
             } catch (SQLException | RuntimeException deliveryError) {
                 plugin.getLogger().log(Level.SEVERE, "Could not complete core pickup; attempting rollback", deliveryError);
@@ -272,6 +279,7 @@ public final class CoreCommand {
                     plugin.getNationDatabase().restorePickedUpCore(original, player.getUniqueId());
                     looked.setType(Material.LODESTONE, false);
                     plugin.getCoreProtection().reload();
+                    plugin.refreshCoreMap();
                     if (handedOver) inventory.setItem(slot, null);
                     msg(player, "Przeniesienie anulowane; rdzen pozostaje na miejscu.", NamedTextColor.RED);
                 } catch (SQLException | RuntimeException restoreError) {
@@ -316,6 +324,7 @@ public final class CoreCommand {
                 case PLACED -> {
                     target.setType(Material.LODESTONE, false);
                     plugin.getCoreProtection().reload();
+                    plugin.refreshCoreMap();
                     msg(player, "Ustawiono pierwszy testowy rdzen. Ochrona 65x65 aktywna.", NamedTextColor.GREEN);
                 }
                 case NO_NATION -> msg(player, "Nie nalezysz do panstwa.", NamedTextColor.YELLOW);
@@ -336,6 +345,7 @@ public final class CoreCommand {
             if (plugin.getNationDatabase().adminRemoveCore(found.get().id())) {
                 looked.setType(Material.AIR, false);
                 plugin.getCoreProtection().reload();
+                plugin.refreshCoreMap();
                 msg(player, "Testowy rdzen usuniety z bazy i swiata.", NamedTextColor.GREEN);
             }
         } catch (SQLException error) { fail(player, "Could not remove core", error); }

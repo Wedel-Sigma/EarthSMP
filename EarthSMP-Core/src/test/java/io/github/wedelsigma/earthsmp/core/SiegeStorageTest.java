@@ -15,7 +15,7 @@ class SiegeStorageTest {
         try(NationDatabase database=new NationDatabase(path)) {
             try(PreparedStatement stmt=database.diplomacyConnection().prepareStatement("PRAGMA user_version");
                 ResultSet rows=stmt.executeQuery()) {
-                assertTrue(rows.next());assertEquals(8,rows.getInt(1));
+                assertTrue(rows.next());assertEquals(9,rows.getInt(1));
             }
             var stored=new SiegeStorage(database);
             assertFalse(stored.isPlayerPlaced("Earth",1,65,2,"STONE"));

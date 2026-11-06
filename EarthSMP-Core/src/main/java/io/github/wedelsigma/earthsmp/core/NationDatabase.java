@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 public final class NationDatabase implements AutoCloseable {
 
-    private static final int SCHEMA_VERSION = 8;
+    private static final int SCHEMA_VERSION = 9;
     private static final long CAPITAL_COOLDOWN_SECONDS = 6 * 60 * 60;
     private static final long INVITE_LIFETIME_SECONDS = 24 * 60 * 60;
     private final Connection connection;
@@ -413,6 +413,36 @@ public final class NationDatabase implements AutoCloseable {
                             )
                             """);
                     statement.execute("PRAGMA user_version = 8");
+                    connection.commit();
+                } catch (SQLException | RuntimeException error) {
+                    rollbackAfter(connection, error);
+                    throw error;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
+                version = 8;
+            }
+            if (version == 8) {
+                connection.setAutoCommit(false);
+                try {
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS map_accounts (
+                                player_uuid TEXT PRIMARY KEY,
+                                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                                password_salt BLOB NOT NULL,
+                                password_hash BLOB NOT NULL,
+                                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                            )
+                            """);
+                    statement.executeUpdate("""
+                            CREATE TABLE IF NOT EXISTS map_sessions (
+                                token_hash TEXT PRIMARY KEY,
+                                player_uuid TEXT NOT NULL REFERENCES map_accounts(player_uuid) ON DELETE CASCADE,
+                                expires_at INTEGER NOT NULL
+                            )
+                            """);
+                    statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_map_sessions_user ON map_sessions(player_uuid)");
+                    statement.execute("PRAGMA user_version = 9");
                     connection.commit();
                 } catch (SQLException | RuntimeException error) {
                     rollbackAfter(connection, error);
@@ -1121,7 +1151,8 @@ public final class NationDatabase implements AutoCloseable {
 
 
     // Protection cores are deliberately stored separately from political territory.
-    // Public squaremap exports MUST NEVER query or expose these coordinates.
+    // Political territory and core locations are separate. Core XYZ is PUBLIC by player vote;
+    // keep player locations private, and never export capital/nation labels on core markers.
     public record ProtectionCore(String id, String nationId, String nationName,
                                  String world, int x, int y, int z, boolean capital) {
         public boolean contains(int blockX, int blockZ) {

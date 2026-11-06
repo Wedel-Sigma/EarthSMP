@@ -2,6 +2,13 @@ package io.github.wedelsigma.earthsmp.core;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.UUID;
+import org.bukkit.World;
+import org.bukkit.Bukkit;
+import xyz.jpenilla.squaremap.api.SquaremapProvider;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -13,12 +20,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class EarthSmpCorePlugin extends JavaPlugin {
 
     private NationDatabase nationDatabase;
+    private MapPortalAuth mapPortalAuth;
+    private MapPortalServer mapPortalServer;
     private ServerClock serverClock;
     private HomeCommand homeCommand;
     private NationMenu nationMenu;
     private EarthSmpHubMenu hubMenu;
     private TerritoryCommand territoryCommand;
     private SquaremapTerritoryLayer squaremapTerritoryLayer;
+    private SquaremapCoreLayer squaremapCoreLayer;
     private CoreProtection coreProtection;
     private CoreCommand coreCommand;
     private CoreItems coreItems;
@@ -98,20 +108,63 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         var mapPlugin = getServer().getPluginManager().getPlugin("squaremap");
         if (mapPlugin != null && mapPlugin.isEnabled()) {
             squaremapTerritoryLayer = new SquaremapTerritoryLayer(this);
+            squaremapCoreLayer = new SquaremapCoreLayer(this);
             getServer().getScheduler().runTaskLater(this, () -> {
                 if (!refreshTerritoryMap()) {
                     getLogger().warning("Political map unavailable; retry /esmp territory maprefresh later");
                 }
+                refreshCoreMap();
             }, 40L);
+            // Recovery polling: helps if squaremap's web world finishes loading later.
+            // This also self-heals public markers after exceptional DB/admin changes.
+            getServer().getScheduler().runTaskTimer(this, this::refreshCoreMap, 20L * 60L, 20L * 60L);
         } else {
             getLogger().warning("squaremap not enabled: territory claims still work, but no public overlay");
         }
-        getLogger().info("EarthSMP Core 1.8.2 enabled - legal sieges, pickaxes, persistent block provenance");
+        if (getConfig().getBoolean("map-portal.enabled", true)) {
+            try {
+                mapPortalAuth = new MapPortalAuth(getDataFolder().toPath().resolve("earthsmp.db"));
+            } catch (SQLException error) {
+                getLogger().log(Level.SEVERE, "Cannot open persistent map accounts", error);
+                mapPortalAuth = null;
+            }
+            if (mapPortalAuth != null) {
+                try {
+                String bind = getConfig().getString("map-portal.bind-address", "127.0.0.1");
+                int port = getConfig().getInt("map-portal.port", 8766);
+                String origin = getConfig().getString("map-portal.public-origin", "http://127.0.0.1:8766");
+                String upstream = getConfig().getString("map-portal.squaremap-internal-url", "http://127.0.0.1:8080");
+                mapPortalServer = new MapPortalServer(bind, port, origin, upstream, mapPortalAuth, getLogger());
+                refreshMapPortalSnapshot();
+                getServer().getScheduler().runTaskTimer(this, this::refreshMapPortalSnapshot, 20L, 20L);
+            } catch (IOException | RuntimeException error) {
+                getLogger().log(Level.SEVERE, "Private map portal disabled: check map-portal config and port", error);
+                mapPortalServer = null;
+                try { mapPortalAuth.close(); }
+                catch (SQLException closeError) { getLogger().log(Level.WARNING, "Could not close map account database", closeError); }
+                mapPortalAuth = null;
+            }
+            }
+        }
+        getLogger().info("EarthSMP Core 1.8.4 enabled - persistent map accounts");
     }
 
     @Override
     public void onDisable() {
+        if (mapPortalServer != null) {
+            mapPortalServer.close();
+            mapPortalServer = null;
+        }
+        if (mapPortalAuth != null) {
+            try { mapPortalAuth.close(); }
+            catch (SQLException error) { getLogger().log(Level.WARNING, "Could not close map account database", error); }
+            mapPortalAuth = null;
+        }
         if (sieges != null) sieges.shutdown();
+        if (squaremapCoreLayer != null) {
+            squaremapCoreLayer.shutdown();
+            squaremapCoreLayer = null;
+        }
         if (squaremapTerritoryLayer != null) {
             squaremapTerritoryLayer.shutdown();
             squaremapTerritoryLayer = null;
@@ -156,6 +209,65 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             return false;
         }
     }
+
+    /** Refresh public XYZ lodestone markers after every committed core operation. */
+    public boolean refreshCoreMap() {
+        if (squaremapCoreLayer == null) return false;
+        try {
+            return squaremapCoreLayer.refresh();
+        } catch (SQLException | RuntimeException error) {
+            getLogger().log(Level.WARNING, "Could not refresh public squaremap core icons", error);
+            return false;
+        }
+    }
+
+    /** Update on the Bukkit main thread; HTTP handlers only read immutable published snapshots. */
+    private void refreshMapPortalSnapshot() {
+        if (mapPortalServer == null || nationDatabase == null) return;
+        Map<UUID, MapPortalSnapshot.Viewer> viewers = new HashMap<>();
+        var visible = new ArrayList<MapPortalSnapshot.Position>();
+        String earthName = getConfig().getString("world-name", "Earth");
+        try {
+            // Defense in depth: squaremap's *public* tracker must not reveal any players.
+            // The private map portal uses Bukkit snapshots and does not depend on that tracker.
+            if (getServer().getPluginManager().isPluginEnabled("squaremap")) {
+                var playerManager = SquaremapProvider.get().playerManager();
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!playerManager.hidden(player.getUniqueId())) playerManager.hide(player.getUniqueId(), false);
+                }
+            }
+            // A registered browser user need not be online in Minecraft.
+            // Rebuild permissions from CURRENT SQLite membership each tick (never cache old nation access).
+            if (mapPortalAuth != null) {
+                for (var entry : mapPortalAuth.linkedAccounts().entrySet()) {
+                    var membership = nationDatabase.findMembership(entry.getKey());
+                    viewers.put(entry.getKey(), new MapPortalSnapshot.Viewer(entry.getValue(),
+                            membership.map(NationDatabase.Membership::nationId).orElse(null),
+                            membership.map(NationDatabase.Membership::nationName).orElse(null)));
+                }
+            }
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                UUID id = player.getUniqueId();
+                var membership = nationDatabase.findMembership(id);
+                String nationId = membership.map(NationDatabase.Membership::nationId).orElse(null);
+                String nationName = membership.map(NationDatabase.Membership::nationName).orElse(null);
+                viewers.put(id, new MapPortalSnapshot.Viewer(player.getName(), nationId, nationName));
+                World world = player.getWorld();
+                if (world.getEnvironment() != World.Environment.NORMAL || !world.getName().equals(earthName)) continue;
+                var loc = player.getLocation();
+                visible.add(new MapPortalSnapshot.Position(id, player.getName(), nationId,
+                        loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+            }
+            mapPortalServer.update(new MapPortalSnapshot(viewers, visible));
+        } catch (SQLException | RuntimeException error) {
+            // Fail closed: stale membership must never allow reading enemy positions.
+            mapPortalServer.update(MapPortalSnapshot.empty());
+            getLogger().log(Level.WARNING, "Private map snapshot failed; positions temporarily hidden", error);
+        }
+    }
+
+    public MapPortalAuth getMapPortalAuth() { return mapPortalAuth; }
+    public String getMapPortalUrl() { return mapPortalServer == null ? null : mapPortalServer.url(); }
 
     public ServerClock getServerClock() {
         return Objects.requireNonNull(serverClock, "Edition clock not initialized");

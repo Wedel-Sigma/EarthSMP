@@ -655,6 +655,7 @@ public final class NationMenu implements Listener {
             }
             plugin.getCoreProtection().reload();
             plugin.refreshTerritoryMap();
+            plugin.refreshCoreMap();
             player.sendMessage(Component.text("Panstwo rozwiazane; usunieto " + anchors.size()
                     + " rdzeni. Zwykle budowle pozostaly.", NamedTextColor.GREEN));
             openMain(player);

@@ -2,3 +2,14 @@
 world-name: Earth
 # Identifier of Overworld on squaremap (Earth world in Paper is minecraft:overworld)
 squaremap-world-id: minecraft:overworld
+
+# Authenticated map portal (SEPARATE from the public squaremap website).
+# Local test: open http://127.0.0.1:8766 on the server computer.
+# For players over Tailscale: bind-address: 0.0.0.0 and public-origin: http://YOUR_TAILSCALE_IP:8766
+# Do NOT expose this HTTP port directly to the public Internet. Use an HTTPS reverse proxy.
+map-portal:
+  enabled: true
+  bind-address: "127.0.0.1"
+  port: 8766
+  public-origin: "http://127.0.0.1:8766"
+  squaremap-internal-url: "http://127.0.0.1:8080"

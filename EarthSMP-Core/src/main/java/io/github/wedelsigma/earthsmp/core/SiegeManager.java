@@ -336,6 +336,7 @@ public final class SiegeManager {
             }
         }
         plugin.getCoreProtection().reload();
+        plugin.refreshCoreMap();
         if (outcome == NationDatabase.CaptureOutcome.LAST_CORE_DESTROYED) {
             plugin.refreshTerritoryMap();
         }

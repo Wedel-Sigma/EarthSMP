@@ -191,6 +191,8 @@ public final class CoreItems implements Listener {
                 return;
             }
             plugin.getCoreProtection().reload();
+            // One tick later avoids refreshing while Bukkit is still processing BlockPlaceEvent.
+            plugin.getServer().getScheduler().runTask(plugin, plugin::refreshCoreMap);
             player.sendMessage(Component.text("Rdzen postawiony. Ochrona 65x65 aktywna!", NamedTextColor.GREEN));
         } catch (SQLException error) {
             event.setCancelled(true);

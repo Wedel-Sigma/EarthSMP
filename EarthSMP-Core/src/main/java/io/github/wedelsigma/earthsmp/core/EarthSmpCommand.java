@@ -41,6 +41,39 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("menu"))) {
             return showHubMenu(sender);
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("map")) {
+            Player player = requirePlayer(sender);
+            if (player == null) return true;
+            MapPortalAuth auth = plugin.getMapPortalAuth();
+            if (auth == null || plugin.getMapPortalUrl() == null) {
+                send(sender, "Portal mapy jest wylaczony. Sprawdz konfiguracje i konsole.", NamedTextColor.RED);
+                return true;
+            }
+            try {
+                if (args.length == 2 && args[1].equalsIgnoreCase("code")) {
+                    var code = auth.issue(player.getUniqueId(), player.getName());
+                    if (code.isEmpty()) {
+                        send(sender, "Konto mapy juz powiazane. Zaloguj sie nickiem i haslem. Zapomniane haslo? /esmp map reset", NamedTextColor.YELLOW);
+                    } else {
+                        send(sender, "JEDNORAZOWY kod powiazania konta (5 min): " + code.get(), NamedTextColor.GREEN);
+                        send(sender, "Wejdz na: " + plugin.getMapPortalUrl() + " i ustaw haslo (min. 12 znakow).", NamedTextColor.YELLOW);
+                        send(sender, "Po powiazaniu mozesz logowac sie z dowolnego urzadzenia bez Minecrafta.", NamedTextColor.GRAY);
+                    }
+                } else if (args.length == 2 && args[1].equalsIgnoreCase("revoke")) {
+                    auth.revoke(player.getUniqueId());
+                    send(sender, "Wszystkie sesje przegladarek zostaly uniewaznione. Konto i haslo pozostaja aktywne.", NamedTextColor.GREEN);
+                } else if (args.length == 2 && args[1].equalsIgnoreCase("reset")) {
+                    auth.reset(player.getUniqueId());
+                    send(sender, "Powiazanie konta usuniete, sesje uniewaznione. Utworz nowe przez /esmp map code.", NamedTextColor.GREEN);
+                } else {
+                    send(sender, "/esmp map code (pierwsze powiazanie) | map revoke (uniewaznij sesje) | map reset (usun konto)", NamedTextColor.YELLOW);
+                }
+            } catch (SQLException error) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Map account operation failed", error);
+                send(sender, "Blad konta mapy. Sprawdz konsole.", NamedTextColor.RED);
+            }
+            return true;
+        }
         if (args.length >= 1 && args[0].equalsIgnoreCase("clock")) {
             if (!requireAdmin(sender)) return true;
             return showClock(sender, args);
@@ -156,6 +189,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         send(sender, "/" + label + " war (wojny, sojusznicy i pokoj)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation create <nazwa> | leave | disband | transfer <nick>", NamedTextColor.YELLOW);
         send(sender, "/home lub /" + label + " home (powrot do stolicy)", NamedTextColor.YELLOW);
+        send(sender, "/" + label + " map code | map revoke | map reset (konto na mapie WWW)", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation invite <nick> | accept <panstwo> | decline <panstwo>", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation promote <nick> | demote <nick> | kick <nick>", NamedTextColor.YELLOW);
         if (sender.hasPermission("earthsmp.admin")) {
@@ -166,7 +200,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     private boolean showStatus(CommandSender sender) {
         String worldName = plugin.getConfig().getString("world-name", "Earth");
         boolean worldLoaded = Bukkit.getWorld(worldName) != null;
-        send(sender, "EarthSMP Core 1.8.2 - plugin dziala.", NamedTextColor.GREEN);
+        send(sender, "EarthSMP Core 1.8.4 - plugin dziala.", NamedTextColor.GREEN);
         send(sender, "Swiat " + worldName + ": " + (worldLoaded ? "zaladowany" : "nie znaleziono"),
                 worldLoaded ? NamedTextColor.GREEN : NamedTextColor.RED);
         try {
@@ -428,9 +462,10 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     ) {
         if (args.length == 1) {
             List<String> actions = sender.hasPermission("earthsmp.admin")
-                    ? List.of("status", "clock", "home", "nation", "menu", "territory", "core", "war", "siege") : List.of("home", "nation", "menu", "territory", "core", "war", "siege");
+                    ? List.of("status", "clock", "home", "map", "nation", "menu", "territory", "core", "war", "siege") : List.of("home", "map", "nation", "menu", "territory", "core", "war", "siege");
             return filter(actions, args[0]);
         }
+        if (args.length == 2 && args[0].equalsIgnoreCase("map")) return filter(List.of("code", "revoke", "reset"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("clock")
                 && sender.hasPermission("earthsmp.admin")) return filter(List.of("start"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("siege")) {
