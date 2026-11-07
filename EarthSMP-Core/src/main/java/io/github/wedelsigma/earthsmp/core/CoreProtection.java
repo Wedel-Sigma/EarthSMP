@@ -86,12 +86,15 @@ public final class CoreProtection implements Listener {
         if(core.isEmpty()) return;
         // Core anchors may NEVER be mined; only the later capture timer transfers them.
         if(core.get().isAnchor(block.getX(),block.getY(),block.getZ())) {
-            event.setCancelled(true);return;
+            event.setCancelled(true);
+            plugin.getSecurityAlerts().record(event.getPlayer(), "CORE_ANCHOR", "Attempted mining protected core anchor", true, true);
+            return;
         }
         if(mayModify(event.getPlayer(),block)) return;
         // Even a legal war cannot tunnel through NATURAL terrain, or use ordinary tools.
         if(!plugin.getSiegePickaxe().mayBreak(event.getPlayer(),block,core.get())) {
             event.setCancelled(true);
+            plugin.getSecurityAlerts().record(event.getPlayer(), "PROTECTED_BREAK", "Denied block mining in core region", true, false);
         }
     }
 
@@ -118,7 +121,10 @@ public final class CoreProtection implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        if(rejectPlacement(event)) event.setCancelled(true);
+        if(rejectPlacement(event)) {
+            event.setCancelled(true);
+            plugin.getSecurityAlerts().record(event.getPlayer(), "PROTECTED_PLACE", "Denied block placement in core region", true, false);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -164,6 +170,7 @@ public final class CoreProtection implements Listener {
                 if (!admin || (member.isPresent() && plugin.getWars().opposed(
                         member.get().nationId(), found.get().nationId()))) {
                     event.setCancelled(true);
+                    plugin.getSecurityAlerts().record(player, "PROTECTED_CONTAINER", "Denied access to protected inventory", true, false);
                     return;
                 }
             }

@@ -1,5 +1,5 @@
 name: EarthSMPCore
-version: '1.8.10'
+version: '1.8.11'
 main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
 api-version: '26.3'
 authors: [Wedel-Sigma]
@@ -22,4 +22,8 @@ permissions:
     default: true
   earthsmp.admin:
     description: Access to Kabina Narodów 2.0 administrative test commands
+    default: op
+
+  earthsmp.security.alerts:
+    description: Receive EarthSMP-specific security alerts in chat
     default: op

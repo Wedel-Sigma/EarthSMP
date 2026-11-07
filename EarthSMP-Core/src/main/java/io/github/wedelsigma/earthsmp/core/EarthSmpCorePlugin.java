@@ -51,6 +51,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     private EditionItemLimitListener editionItemLimits;
     private EditionEnchantListener editionEnchants;
     private EditionDimensionsListener editionDimensions;
+    private SecurityAlerts securityAlerts;
 
     @Override
     public void onEnable() {
@@ -64,6 +65,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             return;
         }
 
+        securityAlerts = new SecurityAlerts(this);
         serverClock = new ServerClock();
         homeCommand = new HomeCommand(this);
         PluginCommand home = Objects.requireNonNull(getCommand("home"), "Missing home command in plugin.yml");
@@ -202,6 +204,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         editionDimensions = null;
+        securityAlerts = null;
         editionEnchants = null;
         editionItemLimits = null;
         if (combatTag != null) { combatTag.shutdown(); combatTag = null; }
@@ -342,6 +345,8 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         value = value.strip().replaceAll("[\\p{Cntrl}]", "");
         return value.length() > 40 ? value.substring(0, 40) : value;
     }
+
+    public SecurityAlerts getSecurityAlerts() { return securityAlerts; }
 
     public MapPortalAuth getMapPortalAuth() { return mapPortalAuth; }
     public String getMapPortalUrl() { return mapPortalServer == null ? null : mapPortalServer.url(); }
