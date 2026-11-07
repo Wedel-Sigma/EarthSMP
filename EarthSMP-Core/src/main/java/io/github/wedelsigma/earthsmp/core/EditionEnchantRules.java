@@ -20,7 +20,9 @@ public final class EditionEnchantRules {
     }
 
     public static int maximum(String key, int day) {
-        if ("mending".equals(key)) return 0;
+        if ("mending".equals(key) || "multishot".equals(key)) return 0;
+        // Crossbow Quick Charge is the only exception to the usual I/II PvP cap.
+        if ("quick_charge".equals(key)) return day >= 10 ? 3 : 2;
         if ("fortune".equals(key)) {
             if (day < 7) return 0;
             return day >= 16 ? 3 : 1;

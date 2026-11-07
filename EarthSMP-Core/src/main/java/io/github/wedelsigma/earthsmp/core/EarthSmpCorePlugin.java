@@ -194,7 +194,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }
             }
         }
-        getLogger().info("EarthSMP Core 1.8.8 enabled - item limits, enchant and dimension progression");
+        getLogger().info("EarthSMP Core 1.8.9 enabled - crossbow enchant fixes, item limits and dimensions");
     }
 
     @Override

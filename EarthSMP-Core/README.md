@@ -1,3 +1,20 @@
+# EarthSMP-Core 1.8.9 — aktualizacja kusz
+
+**Wydanie 1.8.9** bazuje na kodzie 1.8.8 z repozytorium GitHub. Zmiany:
+
+- **Multishot** jest całkowicie zabroniony (również na gotowych kuszach i książkach).
+- **Quick Charge**: poziom II przez dni 0–9, poziom III od dnia 10.
+- **Piercing**: maks. I przez dni 0–9, maks. II od dnia 10 (bez zmian).
+- **Unbreaking III** jest legalny na każdym przedmiocie, w tym kuszy (bez zmian).
+- Wersja Gradle i plugin.yml: 1.8.9; dodane testy reguł.
+
+**Instalacja/testy:** zob. `../INSTRUKCJA-1.8.9.md` po rozpakowaniu paczki. 
+**Aktualna specyfikacja:** `docs/docs.md` w repozytorium GitHub (v1.8.5). 
+Ta paczka **nie zawiera kopii** dokumentacji, aby nie nadpisać nowszej wersji.
+Wymagany Java 25, Paper API 26.3; do wdrożenia użyj wyłącznie shaded JAR po lokalnym buildzie.
+
+---
+
 **AKTUALNY BUILD TESTOWY: 1.8.6 — ranking państw i HUD/scoreboard. SQLite pozostaje na schemacie v10 (bez nowej migracji).**
 
 Szczegóły wdrożenia i testów: `../INSTRUKCJA-1.8.6.md`. Dotychczasowe rozdziały tego README to historia rozwoju i mogą opisywać nieaktualny stan starszych wydań. Aktualny zakres funkcji i zasady: `docs/docs.md` w głównym repozytorium.
