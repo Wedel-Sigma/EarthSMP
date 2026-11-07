@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.8"
-version: "1.8.8"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.13"
+version: "1.8.13"
 date: "2026-11-07"
-status: "main: EarthSMP-Core 1.8.9; podstawowy start w Paper oraz testy limitów ekwipunku/enchantów w EQ i wymiarów potwierdzone przez administratora; handel villagerów, mechaniki PvP i pozostałe scenariusze multiplayer do testów"
+status: "main: EarthSMP-Core 1.8.13, podstawowy build i działanie w grze potwierdzone; rozpoczęty audyt bezpieczeństwa, testy multiplayer oraz odtworzenie backupu wciąż wymagane"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.8
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.13
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -23,11 +23,11 @@ language: "pl"
 - **Wydanie:** `1.8.6 R2` wprowadza nazwy widoczne w interfejsie, a `1.8.6 R3` usuwa błąd kompilacji w `SiegeManager.say(...)`. Nie zmieniają mechanik gry ani schematu SQLite v10. Pełny build R3 po poprawce wymaga jeszcze potwierdzenia przez użytkownika.
 - **Elementy historyczne:** dawniej wydane przedmioty mogą przechowywać starą nazwę w metadanych przedmiotu aż do ponownego uzyskania lub ręcznej aktualizacji — nie są bezpiecznie masowo nadpisywane.
 
-## STATUS IMPLEMENTACJI — aktualizacja 7 listopada 2026 (1.8.8)
+## STATUS IMPLEMENTACJI — aktualizacja 7 listopada 2026 (1.8.13)
 
 > **Zamknięty etap funkcjonalny mapy i GUI, ale nie zakończone testy produkcyjne.** Rozdzielamy potwierdzone działanie przez użytkownika, poprawki w kodzie i funkcje wymagające jeszcze testów wielu graczy.
 
-**Repozytorium:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **`main`: `1.8.8`** (7.11.2026, commit `ee632e49dbf1e79543c5a11564456569cb9122eb`) · **1.8.7 R3:** użytkownik potwierdził start serwera, ale nie testy PvP; **1.8.8:** kod wypchnięty na GitHub, pełny build i testy funkcjonalne jeszcze niepotwierdzone · **środowisko:** Paper 26.3 / Java 25 / SQLite v10 / squaremap.
+**Repozytorium:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **`main`: `1.8.13`** (sprawdzone 7.11.2026; ostatni merge kodu `e0ac475b6290`) · **środowisko:** Paper 26.3 / Java 25 / SQLite v10 / squaremap. **Potwierdzone:** pełny `gradlew clean build` i podstawowe działanie kodu 1.8.13 na serwerze przez użytkownika. Publiczny marker spawnu Makau (sam domek) jest obecny w repozytorium; jego osobny test nie został wyraźnie potwierdzony. **Nadal wymagane:** pełne testy multiplayer, bezpieczeństwo WWW pod HTTPS, graniczne przypadki mechanik oraz odtworzenie backupu świata i SQLite.
 
 ### Historia wydań i stan potwierdzenia
 
@@ -41,13 +41,16 @@ language: "pl"
 | **1.8.6 R2** | Rebranding widoczny dla graczy do **Kabina Narodów 2.0**, konfiguracja `server.display-name`, bez ruszania `/esmp` i nazw technicznych. | Pierwsza próba kompilacji ujawniła błąd statycznego odwołania w `SiegeManager.say(...)`. Nie traktować R2 jako wydania poprawnie zbudowanego. |
 | **1.8.6 R3** | Hotfix: `SiegeManager.say(...)` zmienione ze `static` na metodę instancyjną, ponieważ używa `plugin`. | Kontrolna analiza kodu potwierdza poprawność zmiany; **brak przekazanego wyniku pełnego `./gradlew clean build` i testu R3 na serwerze**. |
 | **1.8.7 R3** | PvP pokojowe/tarcza, wojenny respawn z centralnym Title, combat log 60 s, ochrona przypisanych łóżek. Stan kary i timerów utrwalany w plikach pluginu. | **Użytkownik potwierdził, że serwer się uruchamia**, jednak mechaniki PvP, kary za logout i ochrony łóżek **czekają na zbiorcze testy multiplayer**. |
-| **1.8.8 — kod na `main`** | Limity ekwipunku, zakaz 3 przedmiotów, reguły Mending/Fortune/enchantów oraz Nether/End. Bez migracji SQLite. | **Potwierdzone:** push na GitHub. **Niepotwierdzone:** pełny build i działanie wszystkich reguł w Paper; wymagana osobna sesja testowa. |
+| **1.8.8** | Limity ekwipunku, zakaz 3 przedmiotów, reguły Mending/Fortune/enchantów oraz Nether/End. | Podstawowe zachowania sprawdzone, przypadki graniczne w audycie. |
+| **1.8.9–1.8.11** | Monitor alertów bezpieczeństwa, blokady portalu Host/Origin, WorldBorder, reguły kusz. | Implementacja obecna w `main`, wymagane testy ataków i integracji. |
+| **1.8.12** | `/home` 30 s odliczania przez Title, anulowanie przy ruchu lub otrzymaniu obrażeń. | Podstawowe działanie potwierdzone w grze. |
+| **1.8.13 — aktualny `main`** | Desktop LPM/PPM/ŚPM, mobilne tryby, selektywne Title/ActionBar, odświeżanie ikon rdzeni po zmianie + self-healing co 10 min, marker spawnu Makau jako sam domek. | **Udany build i podstawowy test użytkownika**, testy skrajne jeszcze przed nami. |
 
-**Stan obecny:** systemy państw, rdzeni, wojen, mapa i GUI działają w zakresach potwierdzonych przez użytkownika. **1.8.7 R3** uruchamia się, ale testy multiplayer jeszcze nie były przeprowadzone. **1.8.8** jest już na `main`, lecz bez przekazanego wyniku pełnego buildu Java 25 i testu funkcjonalnego; nie uznajemy etapu za zweryfikowany. Projekt nie jest gotowy produkcyjnie.
+**Stan obecny:** `1.8.13` jest na `main` i przeszedł podstawowy build/test użytkownika. **Rozpoczynamy audyt kodu oraz kontrolowane testy exploitów**, a dopiero później pełną sesję multiplayer. Sam start Paper nie potwierdza poprawności wojny, zdobywania rdzeni, izolacji portalu, odporności na dupe ani backupów.
 
 **Zależność mapy:** portal `127.0.0.1:8766` wciąż pobiera publiczne kafelki i znaczniki z wewnętrznego squaremap `http://127.0.0.1:8080` (`map-portal.squaremap-internal-url`). **Nie wyłączać backendu HTTP 8080**. Oryginalnego GUI squaremap nie trzeba udostępniać graczom; 8080 powinno pozostać prywatne.
 
-**Bezpieczeństwo:** publiczna squaremap nie może publikować współrzędnych graczy; portal wymaga filtrowania po stronie serwera. Przed udostępnieniem poza LAN/Tailscale trzeba skonfigurować HTTPS, poprawić obsługę `Host`/`Origin` i przetestować logowanie, sesje oraz izolację państw.
+**Bezpieczeństwo:** publiczna squaremap nie może publikować współrzędnych graczy; portal wymaga filtrowania po stronie serwera. Kontrole `Host`/`Origin` i sesji **są już w kodzie 1.8.13**. Przed udostępnieniem poza LAN/Tailscale trzeba skonfigurować HTTPS i zweryfikować działanie reverse proxy, logowania, sesji oraz izolacji państw surowym HTTP/API.
 
 ### Historia testów: 1.8.0 i 1.8.1
 
@@ -115,7 +118,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Mapa przycięta w MCA Selector do około **6144 × 6656 bloków**; orientacyjny zachowany zakres X **4608…10752**, Z **−3584…3072**.
 - Worldborder: środek **(7680, −256)**, średnica **5120** bloków (grywalny obszar X 5120…10240 i Z −2816…2304). Teren wykraczający poza border pozostaje jako margines widokowy.
 - **WorldBorder na własnym portalu mapy:** wdrożony w **1.8.10**. Autorski portal WWW rysuje publiczny obrys z bieżącej konfiguracji Paper; można go przełączać w warstwach. Użytkownik potwierdził działanie 1.8.10; sprawdzenie obrysu na różnych zoomach i zmianach konfiguracji pozostaje częścią testów końcowych.
-- **Spawn: Makau (Macao)**. Spawn, działki sklepowe i pozostałe obszary publiczne mają otrzymać ochronę administracyjną.
+- **Spawn: Makau (Macao)**. W kodzie autorskiej mapy WWW (`portal.js`) publiczny znacznik spawnu to **sam domek bez kółka i stałego podpisu**, pozycjonowany na podstawie `details.spawn.x/z` z squaremap. Upewnić się podczas testu, że te współrzędne wskazują rzeczywisty spawn Makau. Fizyczna budowa i ochrona spawnu, działek sklepowych oraz terenów publicznych pozostaje do wykonania.
 - Główne ustawienia: `difficulty=hard`, `enforce-whitelist=true`, `generate-structures=false`, `spawn-protection=0` (ochrona pluginem), `online-mode=true`, whitelist, view-distance około 10; `respawn_radius=0`, `players_sleeping_percentage=50`.
 - Planowanych dwóch administratorów z pełną kontrolą nad państwami, terytoriami, rdzeniami i wyjątkowymi sytuacjami.
 
@@ -124,7 +127,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Aktualny skrypt **`EarthSMP-Backup.ps1`** tworzy backup **offline**: należy zatrzymać Paper (`stop`), następnie uruchomić skrypt z `-ConfirmStopped`. Sprawdza on m.in. port, blokadę świata, obecność `level.dat` oraz **`plugins/EarthSMPCore/earthsmp.db`**. Do ZIP trafiają świat, baza SQLite, dane pluginów (z wyłączeniem dużych odtwarzalnych danych squaremap) i konfiguracja. Nie należy traktować go jako działającego backupu online przez RCON.
 - Historyczny test przywracania wcześniejszej kopii świata: około **427,4 MB**, **14,6 s**. **Nie potwierdza on jeszcze przywracania nowego ZIP z SQLite**; test odtworzenia świata razem z bazą pozostaje do wykonania.
 - Harmonogram backupu co 2 godziny był przetestowany, a potem usunięty na czas testowania; backupy automatyczne i retencja na docelowym hostingu są osobnym zadaniem.
-- **Aktualizacja 2026-11-07:** na GitHub `main` jest **1.8.6**, a użytkownik potwierdził start `1.8.7 R3`. Testy multiplayer PvP, respawnu, combat logu i łóżek są zaplanowane; kod `1.8.8` stanowi **wydanie testowe**, nie wynik testu na Paper. Pozostałe rozdziały zawierają również zasady **planowane**, a nie wdrożone.
+- **Aktualizacja 2026-11-07:** `main` zawiera **1.8.13** (podstawowy build i start zaliczone). PvP, Combat Log, wieloosobowe oblężenia, odtwarzanie SQLite i walidacja antydupe nadal wymagają osobnych testów. Starsze wersje niżej są opisem historycznym, nie bieżącym stanem `main`.
 
 ## 2. Państwa i terytoria
 
@@ -426,11 +429,10 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Reset dokładnie o 06:00 Europe/Warsaw**, przy przeskoku centralnego dnia serwera. To nie jest przesuwające się 24-godzinne okno. Akceptujemy możliwość użycia **4 teleportacji tuż przed 06:00 i 4 tuż po 06:00**.
 - Użycie jest pobierane **dopiero po pomyślnej teleportacji**; nieudane wywołanie nie zużywa limitu. Dane limitów pozostają w SQLite i nie resetują się przy restarcie lub wylogowaniu.
 - Informacja o pozostałych użyciach i następnym resecie powinna być czytelna dla gracza (komunikat i docelowo sidebar). W dniach 1–2 interfejs pokazuje `∞`.
-- **NOWE WYMAGANIE — 30 sekund przygotowania `/home` (TODO do testów; ustalenie 7.11.2026):** po poprawnej weryfikacji możliwości użycia `/home` teleportacja **nie wykonuje się natychmiast**. Uruchamia się 30-sekundowe odliczanie na środku ekranu przez natywny Minecraft **Title (`/title`, Adventure `player.showTitle`)**, analogicznie do odliczania po wojennym respawnie. **Nie używać BossBara ani ActionBara do licznika.** Duża liczba sekund znajduje się w tytule, a informacja o anulowaniu w podtytule, z czytelną informacją: **„Nie ruszaj się i nie otrzymuj obrażeń — inaczej teleportacja zostanie anulowana”**. Pokazywać pozostały czas i wynik (sukces/anulowano), bez zalewania czatu wiadomościami co sekundę.
+- **WDROŻONE — 30 sekund przygotowania `/home` (1.8.12–1.8.13; podstawowy test w grze potwierdzony):** po poprawnej weryfikacji możliwości użycia `/home` teleportacja **nie wykonuje się natychmiast**. Uruchamia się 30-sekundowe odliczanie na środku ekranu przez natywny Minecraft **Title (`/title`, Adventure `player.showTitle`)**, analogicznie do odliczania po wojennym respawnie. **Nie używać BossBara ani ActionBara do licznika.** Duża liczba sekund znajduje się w tytule, a informacja o anulowaniu w podtytule, z czytelną informacją: **„Nie ruszaj się i nie otrzymuj obrażeń — inaczej teleportacja zostanie anulowana”**. Pokazywać pozostały czas i wynik (sukces/anulowano), bez zalewania czatu wiadomościami co sekundę.
 - **Anulowanie przygotowania:** każda rzeczywista zmiana pozycji gracza (współrzędne X/Y/Z; sam obrót kamery bez przemieszczenia nie liczy się jako ruch) albo otrzymanie obrażeń przerywa licznik. Anulowanie ma być natychmiastowe i usuwać ekranowy licznik. Dodatkowo w implementacji bezpiecznie sprzątać oczekiwanie po wylogowaniu, śmierci, zmianie świata, innym teleportowaniu i wyłączeniu pluginu; ponowne `/home` w czasie odliczania nie może tworzyć równoległych zadań.
 - **Limit i walidacja:** anulowane, nieskuteczne i niedokończone przygotowanie **nie zużywa** dziennego użycia. Limit należy rozliczać dopiero po faktycznie udanej teleportacji; w chwili zakończenia odliczania ponownie sprawdzić stan gracza, przynależność do państwa, aktualną stolicę, dostępność bezpiecznej pozycji i limit względem bieżącego dnia serwera (także przy zmianie dnia o 06:00). Czas 30 s dotyczy również dni 1–2 i okresu wojny — **nie zmienia** dotychczasowych uprawnień ani liczby dozwolonych użyć.
-- **Status wdrożenia:** na `main` teleportacja wciąż jest natychmiastowa (`player.teleport(destination)` w `execute()`). Gotowy jest **testowy ZIP 1.8.12 z Title** (nie BossBar), z listenerami ruchu/obrażeń i odliczaniem. **Do wykonania:** build na Java 25 / Paper 26.3 oraz testy w grze; dopiero potem oznaczyć jako zaliczone. Mechanika odliczania po wojennym respawnie pozostaje odrębna i nie powinna zostać zmieniona.
-- **Status:** dotychczasowa mechanika teleportacji i dziennych limitów wdrożona od **1.8.2**, z zapisem limitów w SQLite i resetem o 06:00; nowe 30-sekundowe przygotowanie przez Title jest **gotowe w ZIP 1.8.12, ale nieprzetestowane**. Klasyczny respawn przy łóżku pozostaje niezależny od `/home`.
+- **Status wdrożenia:** na `main` działa 30-sekundowy warmup przez natywny Title z anulowaniem przy rzeczywistym ruchu, obrażeniach, innej teleportacji i wylogowaniu. Stan jest ponownie sprawdzany przed teleportacją; dopiero udana teleportacja pobiera użycie. Potwierdzony build i podstawowe działanie. **Otwarte testy:** granica 06:00, awarie SQLite przy zapisie licznika po teleportacji, teleporter innego pluginu, restart podczas odliczania i odporność na obchodzenie limitu. Respawn wojenny i jego Title nie są zastępowane przez powiadomienia eventowe.
 
 ### 15.3. Zmiana stolicy i cooldown 6 godzin
 
@@ -473,7 +475,7 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - Istniejące `/esmp territory pos1`, `pos2`, `propose` i narzędzia admina pozostają jako **alternatywa/tryb awaryjny**; edytor WWW będzie domyślnym sposobem dla zwykłych graczy.
 - Mapa musi być osiągalna przez graczy **spoza komputera hosta**; sam `localhost` nie wystarczy. Zapewniamy bezpieczny dostęp WWW i autoryzację operacji, nie udostępniamy bez potrzeby prywatnych znaczników i danych.
 - **Stan od 1.8.5:** publiczna mapa polityczna, interaktywny edytor chunków, mapowe wnioski oraz panel admina WWW są zaimplementowane i przeszły test użytkownika z potwierdzeniem efektu w Minecrafcie. Obsługa konfliktujących wniosków wymaga testów z wieloma graczami.
-- **ZATWIERDZONE UX EDYTORA (7.11.2026), kod w testowym ZIP 1.8.13:** na komputerze **LPM = zaznaczanie chunków** (również przeciąganiem), **PPM = wymazywanie zaznaczenia**, **przytrzymana ŚPM = przesuwanie mapy**, kółko = zoom. **Nie przełączać trybu zaznaczania/przesuwania przyciskami na desktopie.** Programowa obsługa środkowego przycisku nie może uruchamiać auto-scrollu przeglądarki ani tworzyć przypadkowych zaznaczeń. Na telefonie / urządzeniu dotykowym **pozostają przyciski trybów** (zaznacz, wymaż, przesuń); pinch zoom bez zmian. Wymaga sprawdzenia w przeglądarce desktopowej i na telefonie.
+- **WDROŻONE UX EDYTORA (7.11.2026), kod na `main` 1.8.13, podstawowy test użytkownika:** na komputerze **LPM = zaznaczanie chunków** (również przeciąganiem), **PPM = wymazywanie zaznaczenia**, **przytrzymana ŚPM = przesuwanie mapy**, kółko = zoom. **Nie przełączać trybu zaznaczania/przesuwania przyciskami na desktopie.** Programowa obsługa środkowego przycisku nie może uruchamiać auto-scrollu przeglądarki ani tworzyć przypadkowych zaznaczeń. Na telefonie / urządzeniu dotykowym **pozostają przyciski trybów** (zaznacz, wymaż, przesuń); pinch zoom bez zmian. Warto jeszcze zweryfikować działanie na telefonie, touchpadzie i różnych przeglądarkach.
 
 ### 16.2. Publiczne znaczniki rdzeni — wdrożone w 1.8.3
 
@@ -484,12 +486,9 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Stan od 1.8.3:** znaczniki są publikowane przez squaremap, użytkownik potwierdził działanie na serwerze testowym. Komenda administracyjna: `/esmp core maprefresh`.
 
 
-**TODO — optymalizacja odświeżania publicznych ikon rdzeni (etap dopieszczeń, PO konfiguracji antycheata i antydupe):** w aktualnym kodzie `EarthSmpCorePlugin` uruchamia `refreshCoreMap()` automatycznie co `20 * 60` ticków (około 60 sekund). W `SquaremapCoreLayer.refresh()` pobierane są wszystkie rdzenie z SQLite, generowane grafiki XYZ, czyszczona i ponownie wypełniana cała warstwa markerów, po czym pojawia się log `squaremap: N public Earth core icons` — również bez jakichkolwiek zmian. **To nie awaria ani blocker**, ale zbędna praca na głównym wątku oraz spam konsoli (do ok. 1440 wpisów na dobę).
+**WDROŻONE w 1.8.13 — optymalizacja ikon rdzeni squaremap:** `SquaremapCoreLayer.refresh()` porównuje fingerprint identyfikatorów oraz współrzędnych XYZ. Przy niezmienionym zestawie i poprawnie istniejącej warstwie pomija generowanie ikon i log INFO. Pełny refresh następuje na początku, po rzeczywistej zmianie rdzeni oraz w razie brakującej warstwy; kontrola samonaprawy działa **co 10 minut** zamiast co minutę. `/esmp core maprefresh` wymusza odświeżenie przez `refreshCoreMap(true)`.
 
-- **Już działa on-demand:** odświeżenie po postawieniu, podniesieniu/usunięciu i zdobyciu rdzenia oraz po rozwiązaniu państwa. Zachować je; nie tworzyć drugiego, niezależnego mechanizmu publikacji.
-- **Docelowo:** pełny refresh na starcie (z ponawianiem, jeżeli squaremap/świat mapy nie jest jeszcze gotowy), natychmiast po zmianie rdzeni oraz lekka kontrola naprawcza co około **5–10 minut** zamiast bezwarunkowej przebudowy co minutę. Porównywać aktualny zestaw identyfikatorów i współrzędnych (wraz z istotnymi danymi ikon); gdy nie ma zmian i warstwa istnieje, **nie generować grafik, nie czyścić markerów, nie logować INFO**.
-- **Odporność:** zachować samonaprawę po późnym starcie squaremap lub utracie warstwy, komendę administratora `/esmp core maprefresh` jako wymuszone odświeżenie oraz poprawne usuwanie nieaktualnych ikon. Po zmianie logować sukces tylko wtedy, gdy rzeczywiście zaktualizowano markery lub odzyskano warstwę; błędy zostawić w logach.
-- **Testy po implementacji:** brak wpisów co minutę przy niezmienionych dwóch rdzeniach, poprawna synchronizacja po każdej operacji na rdzeniu, duża liczba ikon, restart i opóźniona gotowość squaremap, ręczny `maprefresh`, pomiar kosztu odświeżania. **Status: zaplanowane, jeszcze niezaimplementowane; najpierw instalacja i konfiguracja antycheata/antydupe, potem dopieszczenia, następnie giga-testy.**
+- **Stan:** kompilacja i podstawowe działanie 1.8.13 potwierdzone. Należy dodatkowo sprawdzić restart, opóźniony start squaremap, większą liczbę markerów, ich usunięcie po upadku/rozwiązaniu państwa, ręczny force-refresh i koszt aktualizacji SQLite.
 
 ### 16.3. `/esmp tierlist` — ranking państw (końcowy etap GUI)
 
@@ -620,7 +619,8 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Granice, rdzenie i kafelki mapy odświeżają się po zmianach; mapa nie ujawnia stolicy jako specjalnego statusu.
 - [x] **WorldBorder na naszej mapie WWW** wdrożony w 1.8.10 i potwierdzony w podstawowym teście użytkownika; dodatkowe sprawdzenie zoomu i zmian granicy podczas próby generalnej.
 - [ ] Edytor chunków i zatwierdzanie administracyjne działają lub są świadomie wyłączone przed startem, z komendami jako planem awaryjnym.
-- [ ] **30-sekundowe przygotowanie `/home` przez Title** z dużym licznikiem sekund na środku ekranu i podtytułem o anulowaniu przy ruchu/otrzymaniu obrażeń; bez zużywania limitu po anulowaniu, bez pomijania sprawdzeń po 30 s. **Kod w testowym ZIP 1.8.12; wymagany build i testy na serwerze.**
+- [x] **30-sekundowe `/home` przez Title** — implementacja, build i podstawowy test w grze zaliczone.
+- [ ] **Testy brzegowe `/home`:** anulowanie przy obrażeniach/ruchu, restart, brak zapisu po błędzie SQLite, limit 4/4 oraz przekroczenie 06:00 w trakcie odliczania.
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
 - [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
 - [ ] **Monitor prób obejścia zabezpieczeń** zapisuje szczegóły zdarzenia, informuje administrację i przy uzasadnionym podejrzeniu nadużycia wyświetla graczowi komunikat ostrzegawczy. Nie oznacza zwykłych, przypadkowo niedozwolonych transakcji jako oszustwa.
@@ -636,7 +636,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 **1.8.8 — paczka do lokalnego builda i testów:**
 
 - Limity plecak + hotbar + offhand (i wyposażenie gracza): 8 zwykłych złotych jabłek, 3 perły, 16 pajęczyn, 3 totemy; zakaz posiadania zaklętych złotych jabłek, End Crystals i Respawn Anchors. Częściowe pobieranie przedmiotów ma pozostawiać resztę w źródle. Nietypowy nadmiar jest upuszczany na ziemię, nie kasowany.
-- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. **Wyjątki QoL pozostają jak w 1.8.8 z nowym, przedmiotowym wyjątkiem dla kusz (§11.2), do wdrożenia w następnym kodzie.**
+- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. **Wyjątki kusz z §11.2 są już w kodzie 1.8.13**, ale wymagają testów granicznych w grze.
 - End zawsze zamknięty. Nether od **06:00 dnia serwera 10** (`progression.nether-unlock-day: 10`) — **decyzja ostateczna**, zgodna z implementacją.
 - Brak nowego schematu SQLite: nadal **v10**. Nowa logika nie wymaga resetu danych, lecz pełnego backupu i testu ze starymi przedmiotami.
 - **Kryterium akceptacji:** `./gradlew clean build` na Java 25, start pluginu i seria testów: częściowe podnoszenie, shift-click, drag, Creative, `/give`, enderchest, craft, villagery, kowadło, Mending, granice dni 6/7/9/10/15/16 oraz portale End/Nether i próby /tp.
@@ -660,11 +660,11 @@ Poniższa lista to **plan wdrożenia, nie potwierdzenie ukończenia**. Termin st
 9. **Hosting i bezpieczeństwo WWW:** sprawdzić rzeczywiste Paper/Java 25, dostęp do portów, HTTPS, autoryzację mapy oraz brak możliwości pobrania pozycji obcych państw; zabezpieczyć publiczne zasoby squaremap, poprawić obsługę `Host`/`Origin`, sprawdzić sekret historycznie śledzonego `LuckPerms/editor-keystore.json` i ewentualną rotację (usunięcie z bieżącego `main` **nie usuwa sekretu z historii Git**).
 10. **Próba generalna przed otwarciem:** test z większą grupą, profilowanie wydajności/spark, kopia bezpieczeństwa **po wyłączeniu Paper**, sprawdzenie odzyskiwania danych i ustalenie procedury na krytyczne exploity. Dopiero po zaliczeniu tych testów administrator ogłasza termin i uruchamia zegar edycji; w razie błędu blokującego start przesuwamy, zamiast ryzykować utratę świata lub ekonomii.
 
-**Aktualna kolejność prac (7.11.2026):** (1) antycheat GrimAC oraz antydupe Better Anti-Dupe uruchomione i potwierdzone w podstawowych testach; pełna odporność na exploity nadal do weryfikacji; (2) **dopieszczenia** EarthSMP-Core: 30-sekundowe `/home` przez Title potwierdzone przez użytkownika w grze w 1.8.12; przygotowany **testowy ZIP 1.8.13** z nowym sterowaniem mapy, uporządkowanymi komunikatami oraz optymalizacją squaremap opisanymi w §16.1–16.2 i §18.11; (3) po kompilacji i zaliczeniu krótkich testów dopieszczeń **giga-testy multiplayer**; (4) spawn Makau, sklepy administracyjne i hosting. **Nie uznawać patcha 1.8.13 za przetestowany przed raportem z builda i gry.**
+**Aktualna kolejność prac (7.11.2026):** (1) GrimAC, Better Anti-Dupe oraz Shopkeepers działają w testach podstawowych; (2) EarthSMP-Core **1.8.13** przeszedł build i próbę działania, a spawn Makau ma w repo znacznik domku; (3) **audyt kodu i bezpieczeństwa** — weryfikacja scenariuszy poniżej; (4) **giga-testy multiplayer** i test odtwarzania backupu; (5) budowa i ochrona spawnu Makau, sklepy administracyjne oraz hosting z HTTPS. Nie mylić zaliczonego testu podstawowego z certyfikacją bezpieczeństwa.
 
 **Warunki blokujące start:** nieprzetestowane lub niemożliwe do odtworzenia backupy, wykryty działający dupe/obejście ograniczeń bez poprawki, wyciek prywatnych pozycji lub haseł, niepoprawny Combat Log/war PvP, brak działającego serwera i portalu HTTPS, krytyczne problemy wydajnościowe. Kosmetyka spawnu może być skromniejsza, ale nie kosztem ochrony i czytelności.
 
-### 18.10. Powiadomienia o próbach obejścia zabezpieczeń (plan do implementacji)
+### 18.10. Powiadomienia o próbach obejścia zabezpieczeń (moduł wdrożony od 1.8.11; wymagane testy)
 
 System bezpieczeństwa powinien **rejestrować wykryte próby obejścia zabezpieczeń**, w szczególności przy handlu niedozwolonymi przedmiotami, manipulacji limitami ekwipunku, ochroną terytorium i podejrzanych operacjach mogących prowadzić do duplikacji. W razie wykrycia takiego zdarzenia **administracja otrzymuje powiadomienie z informacją o graczu, rodzaju i czasie zdarzenia, jego kontekście oraz wyniku blokady**, a odpowiedni wpis pozostaje w dzienniku bezpieczeństwa.
 
@@ -673,9 +673,9 @@ System bezpieczeństwa powinien **rejestrować wykryte próby obejścia zabezpie
 - **Rozróżnić przypadkową operację od podejrzanego działania:** sam fakt, że naturalna oferta villagera zawiera niedozwolone zaklęcie, nie oznacza winy gracza. Jednorazową, zablokowaną transakcję można jedynie zalogować i objaśnić. Wyraźniejsze ostrzeżenia przewidzieć dla świadomych, ponawianych lub nietypowych prób.
 - **Ograniczyć spam:** powiadomienia grupować i stosować krótkie ograniczenie częstości dla tego samego gracza i rodzaju wykrycia; pełne dane zachować w logach.
 - **Bez automatycznej kary za sam alert:** blokada nielegalnej operacji pozostaje podstawową reakcją; karę nakłada administrator po analizie kontekstu, z uwzględnieniem fałszywych alarmów. W przyszłości można dodać widok administracyjny historii zdarzeń, np. `/esmp security`.
-- **Status:** zatwierdzony kierunek funkcji; **niezaimplementowane w EarthSMP-Core 1.8.9**. Wersja 1.8.9 zawiera zabezpieczenia przed niedozwolonymi enchantami i przedmiotami, ale nie potwierdzono jeszcze opisanego centralnego modułu powiadomień.
+- **Stan 1.8.13:** moduł `SecurityAlerts` jest zaimplementowany, prowadzi zapis zdarzeń i informuje uprawnionych administratorów, a `/esmp security` pozwala obejrzeć historię. Testy jakości alertów i odporności na spam pozostają częścią audytu.
 
-### 18.11. Dopieszczenia komunikatów gracza — zatwierdzone 7.11.2026, testowy kod 1.8.13
+### 18.11. Dopieszczenia komunikatów gracza — wdrożone na `main` 1.8.13, podstawowy test zaliczony
 
 **Zasada nadrzędna: nie zasłaniać ekranu podczas PvP i nie spamować pełnoekranowymi powiadomieniami.** `Title` to krótkie, okazjonalne podkreślenie istotnych wydarzeń, **nie zamiennik całego czatu**. Czatu nie usuwamy dla ważnych ogłoszeń: zachowuje nazwy państw, numery wojny, powody, instrukcje i historię zdarzeń. Krótkie limity/błędy to **ActionBar**, nie Title. Szczegółowe dane administracyjne, kody logowania do WWW, instrukcje komend i błędy SQLite pozostają na czacie/logach.
 
@@ -683,8 +683,22 @@ System bezpieczeństwa powinien **rejestrować wykryte próby obejścia zabezpie
 - **Osobiste / lokalne Title:** założenie i rozwiązanie państwa, zaproszenie do państwa i wojny, dołączenie/wycofanie sojusznika, propozycja pokoju, zmiana rangi/przywództwa, wyznaczenie stolicy oraz postawienie rdzenia. Tylko adresaci, których dotyczy powiadomienie; bez globalnego informowania o zwykłych operacjach w GUI.
 - **ActionBar:** pozostałe użycia Kilofa Oblężniczego, jego wytworzenie, odmowa zakazanego enchantu, blokada Netheru/Endu, limity ekwipunku, stan Combat Tag i tarczy PvP. Nieliczne ważne błędy lub polecenia z większą ilością szczegółów nadal w czacie.
 - **Ochrona ekranu:** nie wyświetlać nowych ogólnych Title graczowi z aktywnym PvP Combat Tagiem (60 sekund), trwającym 30-sekundowym `/home` lub blokadą odrodzenia wojennego (15–50 sekund); nie nadpisywać ich liczników. Bez kolejki zaległych pełnoekranowych powiadomień. Jeśli Title zostało pominięte, **ważne wydarzenie nadal jest na czacie**. W testowym kodzie czas zwykłego Title to około 2 s i maks. jedno takie Title co 6 s na gracza. Nie generować powiadomień co sekundę.
-- **Znaleziony nieaktualny komunikat:** po utworzeniu państwa kod wypisywał „Darmowy rdzen otrzymasz po wdrozeniu systemu rdzeni.”; zamienić na instrukcję `/esmp core free` (w testowym patchu 1.8.13).
-- **Status:** wymagania zatwierdzone; poprawki przygotowane jako **ZIP do nałożenia na działający projekt 1.8.12**, **jeszcze niezatwierdzone w testach**. Dodatkowo 1.8.13 obejmuje fingerprint ikon rdzeni squaremap (brak pełnej przebudowy przy niezmienionym stanie), kontrolę naprawczą co 10 min i wymuszoną przebudowę przez `/esmp core maprefresh`. Zmiany kodu nie są automatycznie wrzucane na `main` przed potwierdzeniem.
+- **Poprawiony komunikat:** po utworzeniu państwa kod podaje instrukcję `/esmp core free` zamiast nieaktualnej zapowiedzi wdrożenia rdzeni.
+- **Stan:** zmiany już są na `main` 1.8.13; użytkownik potwierdził poprawny build i podstawowe działanie. `EventTitles` ogranicza zwykłe powiadomienia do jednego na 6 sekund i blokuje je podczas Combat Taga, `/home` i wojennego respawnu. Osobne przypadki wojenne sprawdzimy w audycie/giga-testach.
+
+### 18.12. AUDYT EarthSMP-Core 1.8.13 — rozpoczęty 7.11.2026
+
+**Zakres wstępnego przeglądu statycznego:** `MapPortalServer`, `MapPortalAuth`, `MapPortalSecurity`, `MapPortalPublicMarkers`, `MapTerritoryWeb`, `CoreProtection`, `CoreItems`, `SiegePickaxe`, `WarRepository`, `NationDatabase`, `HomeCommand`, `CombatTagListener`, `EventTitles` i `SquaremapCoreLayer`. To **nie jest pełny audyt penetracyjny ani wynik testów na żywym serwerze**.
+
+- **Potwierdzone w kodzie:** HTTP `Origin`/`Host` kontrolowany dla mutacji, HttpOnly/SameSite dla sesji, hasła z PBKDF2, ograniczenie prób loginu, autoryzacja terytoriów po stronie Paper i transakcyjne zatwierdzanie w SQLite, filtrowanie publicznych warstw squaremap, brak wrażliwych pozycji w publicznych markerach. Sprawdzić to jeszcze aktywnie przez surowe API, konta z różnych państw i bez sesji.
+- **Priorytet 1 (integracja ochrony):** `CoreItems.onPlace` zatwierdza zmianę w SQLite już w obsłudze zdarzenia `BlockPlaceEvent` na priorytecie HIGHEST; trzeba przetestować, czy WorldGuard/inny plugin może anulować ustawienie bloku po zapisaniu rdzenia, tworząc niespójność między bazą a światem. To **ryzyko integracyjne do odtworzenia**, a nie potwierdzony exploit.
+- **Priorytet 2 (spójność `/home`):** `HomeCommand.complete` teleportuje gracza przed `recordHomeUse(...)`; przy wyjątkowej awarii zapisu SQLite teleportacja może być udana, ale bez pobrania limitu. Sprawdzić zachowanie i logi w kontrolowanym teście awarii; nie zmieniać zasady „opłata tylko po udanym teleportowaniu” bez osobnego projektu transakcji.
+- **Priorytet 3 (magazyny i antydupe):** próby otwierania podwójnych skrzyń przez granicę rdzenia, hoppery/hopper minecarty, podnoszenie przedmiotów, inne GUI pluginów, transakcje Shopkeepers, klonowanie tokenu rdzenia i kilofa oraz przerwanie serwera między aktualizacją stanu świata i SQLite. Obecność handlerów w kodzie nie jest dowodem odporności na wszystkie obejścia.
+- **Priorytet 4 (wojna):** obrona 20% online, czas 10:00–00:00 Europe/Warsaw, utrata ostatniego rdzenia, warstwy chronione podczas aktywnego szturmu, lista stron wojny po wycofaniu sojuszników, reset postępu po restarcie, opóźniony respawn i kara za Combat Log.
+- **Priorytet 5 (publiczny portal):** niezalogowany użytkownik, członek innego państwa i administrator; sprawdzić `/api/positions`, `/api/territory/*`, ograniczenia liczby prób, reset sesji, właściwe `Host`/`Origin`, HTTPS reverse proxy i brak bezpośredniego dostępu do squaremap :8080. Test spawnu: sam domek w Makau, bez podpisu i bez wpływu na zaznaczanie chunków.
+- **Priorytet 6 (operacyjny):** backup offline i pełne odtworzenie `world` + SQLite, uprawnienia plików, brak ujawnienia sekretów, test startu po restarcie, `gradlew clean build`, obserwacja TPS oraz test GrimAC/Better Anti-Dupe bez fałszywych blokad.
+
+**Status audytu:** rozpoczęty od analizy `main`, bez potwierdzonych krytycznych exploitów na tym etapie. Wynik pozytywny dopiero po sprawdzeniu testów w grze i naprawieniu rzeczywistych usterek. Kodu nie zmieniamy w ramach samego aktualizowania dokumentacji.
 
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
