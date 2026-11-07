@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.5"
-version: "1.8.5"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.6"
+version: "1.8.6"
 date: "2026-11-07"
 status: "main: EarthSMP-Core 1.8.8; mechaniki kuszy Multishot/Quick Charge zatwierdzone regulaminowo, kod do zmiany w następnym etapie; Unbreaking III zawsze na wszystkich przedmiotach; 1.8.7-1.8.8 czekają na pełne testy"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.5
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.6
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -114,6 +114,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Mapa **Earth Diamond Edition — No Caves / No Structures**, skala około **1:1500**, z zachowanymi naturalnymi złożami, biomami i spawnami mobów; brak rozbudowanych jaskiń, mogą występować geody i małe naturalne pustki.
 - Mapa przycięta w MCA Selector do około **6144 × 6656 bloków**; orientacyjny zachowany zakres X **4608…10752**, Z **−3584…3072**.
 - Worldborder: środek **(7680, −256)**, średnica **5120** bloków (grywalny obszar X 5120…10240 i Z −2816…2304). Teren wykraczający poza border pozostaje jako margines widokowy.
+- **TODO — wizualizacja WorldBorder na własnym portalu mapy:** granica świata jest widoczna w oryginalnym squaremap pod `localhost:8080`, lecz **nie jest rysowana na naszej autorskiej mapie WWW**. Dodać widoczną warstwę/obrys WorldBorder na portalu EarthSMP, korzystając z rzeczywistej konfiguracji świata, tak aby granica była spójna z vanilla/Paper i nie ukrywała marginesu terenu poza obszarem gry. Status: **niezaimplementowane; do wykonania w kolejnym etapie prac nad mapą**.
 - **Spawn: Makau (Macao)**. Spawn, działki sklepowe i pozostałe obszary publiczne mają otrzymać ochronę administracyjną.
 - Główne ustawienia: `difficulty=hard`, `enforce-whitelist=true`, `generate-structures=false`, `spawn-protection=0` (ochrona pluginem), `online-mode=true`, whitelist, view-distance około 10; `respawn_radius=0`, `players_sleeping_percentage=50`.
 - Planowanych dwóch administratorów z pełną kontrolą nad państwami, terytoriami, rdzeniami i wyjątkowymi sytuacjami.
@@ -605,6 +606,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Jednorazowe powiązanie konta, logowanie z innego urządzenia, trwałość sesji po restarcie, revoke i reset — sprawdzone.
 - [ ] Bez zalogowania i z konta obcego państwa **nie da się pobrać cudzych współrzędnych**; weryfikacja zarówno GUI, jak i surowego HTTP/API.
 - [ ] Granice, rdzenie i kafelki mapy odświeżają się po zmianach; mapa nie ujawnia stolicy jako specjalnego statusu.
+- [ ] **WorldBorder widoczny na naszej mapie WWW** jako wyraźny obrys granicy świata (aktualnie widoczny tylko w oryginalnym squaremap na `localhost:8080`); sprawdzić zgodność współrzędnych i zachowanie przy zoomie.
 - [ ] Edytor chunków i zatwierdzanie administracyjne działają lub są świadomie wyłączone przed startem, z komendami jako planem awaryjnym.
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
 - [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
@@ -640,8 +642,9 @@ Poniższa lista to **plan wdrożenia, nie potwierdzenie ukończenia**. Termin st
 5. **Antydupe (kandydat: Better Anti-Dupe):** sprawdzić aktualną wersję, kompatybilność i zakres ochrony; przetestować metody związane z przenoszeniem przedmiotów, hopperami, tłokami, kontenerami, logowaniem/wylogowaniem, restartami, transakcjami Shopkeepers, wybuchem oraz sytuacjami przy przeciążeniu serwera. **Żaden plugin nie gwarantuje wyeliminowania wszystkich dupe** — wymagane logi, kopie i możliwość reakcji administracji. Testy tylko na osobnej kopii świata/bazy.
 6. **Sklepy Shopkeepers:** sprawdzić wersję i znane poprawki, model skrzynia za ścianą + NPC z przodu (zasięg i powiązanie skrzyni), barter bez waluty, uprawnienia gracza, zapasy, ochrona przed kradzieżą i sytuacje dwóch kupujących naraz. Zweryfikować sklepy administracyjne z nielimitowanymi **podstawowymi** surowcami. Sklepy graczy nie muszą znajdować się na spawnie; właściciel może umieścić je na swoim terenie zgodnie z zasadami ochrony.
 7. **Spawn Makau:** zbudować reprezentacyjny i czytelny spawn, oznaczyć zasady i ważne punkty, przygotować podstawowe sklepy administracyjne oraz ochronę WorldGuard/EarthSMP; zrobić spacer testowy z graczem bez uprawnień operatora.
-8. **Hosting i bezpieczeństwo WWW:** sprawdzić rzeczywiste Paper/Java 25, dostęp do portów, HTTPS, autoryzację mapy oraz brak możliwości pobrania pozycji obcych państw; zabezpieczyć publiczne zasoby squaremap, poprawić obsługę `Host`/`Origin`, sprawdzić sekret historycznie śledzonego `LuckPerms/editor-keystore.json` i ewentualną rotację (usunięcie z bieżącego `main` **nie usuwa sekretu z historii Git**).
-9. **Próba generalna przed otwarciem:** test z większą grupą, profilowanie wydajności/spark, kopia bezpieczeństwa **po wyłączeniu Paper**, sprawdzenie odzyskiwania danych i ustalenie procedury na krytyczne exploity. Dopiero po zaliczeniu tych testów administrator ogłasza termin i uruchamia zegar edycji; w razie błędu blokującego start przesuwamy, zamiast ryzykować utratę świata lub ekonomii.
+8. **Mapa WWW i WorldBorder:** dodać obrys granicy świata do autorskiego portalu EarthSMP. Oryginalna squaremap (`localhost:8080`) pokazuje go już poprawnie; nasza nakładka/portal go nie renderuje. Przetestować pozycję linii na różnych poziomach powiększenia i nie blokować widoku istniejącego marginesu poza borderem.
+9. **Hosting i bezpieczeństwo WWW:** sprawdzić rzeczywiste Paper/Java 25, dostęp do portów, HTTPS, autoryzację mapy oraz brak możliwości pobrania pozycji obcych państw; zabezpieczyć publiczne zasoby squaremap, poprawić obsługę `Host`/`Origin`, sprawdzić sekret historycznie śledzonego `LuckPerms/editor-keystore.json` i ewentualną rotację (usunięcie z bieżącego `main` **nie usuwa sekretu z historii Git**).
+10. **Próba generalna przed otwarciem:** test z większą grupą, profilowanie wydajności/spark, kopia bezpieczeństwa **po wyłączeniu Paper**, sprawdzenie odzyskiwania danych i ustalenie procedury na krytyczne exploity. Dopiero po zaliczeniu tych testów administrator ogłasza termin i uruchamia zegar edycji; w razie błędu blokującego start przesuwamy, zamiast ryzykować utratę świata lub ekonomii.
 
 **Warunki blokujące start:** nieprzetestowane lub niemożliwe do odtworzenia backupy, wykryty działający dupe/obejście ograniczeń bez poprawki, wyciek prywatnych pozycji lub haseł, niepoprawny Combat Log/war PvP, brak działającego serwera i portalu HTTPS, krytyczne problemy wydajnościowe. Kosmetyka spawnu może być skromniejsza, ale nie kosztem ochrony i czytelności.
 
@@ -659,7 +662,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.5.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
+**Koniec dokumentacji v1.8.6.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
@@ -675,3 +678,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 <!-- Aktualizacja v1.8.4: zbiorcza tabela limitów enchantów (§11.3), trzy momenty zmian: dni 7/10/16; bez zmian w kodzie Javy. -->
 
 <!-- Aktualizacja v1.8.5: potwierdzony plan sklepów Shopkeepers i spawnu Makau, dobór antycheat/antydupe do weryfikacji, kolejność testów przed warunkowym startem; bez zmian w kodzie. -->
+
+<!-- Aktualizacja v1.8.6: TODO obrys WorldBorder na autorskiej mapie WWW; granica widoczna w squaremap :8080, lecz brak jej na naszym portalu. Bez zmian w kodzie. -->
