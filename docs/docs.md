@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.7"
-version: "1.8.7"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.8"
+version: "1.8.8"
 date: "2026-11-07"
 status: "main: EarthSMP-Core 1.8.9; podstawowy start w Paper oraz testy limitów ekwipunku/enchantów w EQ i wymiarów potwierdzone przez administratora; handel villagerów, mechaniki PvP i pozostałe scenariusze multiplayer do testów"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.7
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.8
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -610,6 +610,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Edytor chunków i zatwierdzanie administracyjne działają lub są świadomie wyłączone przed startem, z komendami jako planem awaryjnym.
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
 - [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
+- [ ] **Monitor prób obejścia zabezpieczeń** zapisuje szczegóły zdarzenia, informuje administrację i przy uzasadnionym podejrzeniu nadużycia wyświetla graczowi komunikat ostrzegawczy. Nie oznacza zwykłych, przypadkowo niedozwolonych transakcji jako oszustwa.
 - [ ] **Shopkeepers**: wersja i poprawki sprawdzone; działa barter ze sklepu gracza (skrzynia wewnątrz bazy, NPC na zewnątrz), brak kradzieży z magazynu i błędów przy jednoczesnych zakupach; działają podstawowe sklepy administracyjne.
 - [ ] **Spawn Makau** przygotowany i chroniony; działają informacyjne tablice/zasady, sklepiki administracyjne, strefy ruchu graczy i zabezpieczenia przed griefingiem.
 - [ ] Istnieje działający **backup i przetestowane odtworzenie** świata + SQLite; zapas dyskowy potwierdzony.
@@ -648,6 +649,17 @@ Poniższa lista to **plan wdrożenia, nie potwierdzenie ukończenia**. Termin st
 
 **Warunki blokujące start:** nieprzetestowane lub niemożliwe do odtworzenia backupy, wykryty działający dupe/obejście ograniczeń bez poprawki, wyciek prywatnych pozycji lub haseł, niepoprawny Combat Log/war PvP, brak działającego serwera i portalu HTTPS, krytyczne problemy wydajnościowe. Kosmetyka spawnu może być skromniejsza, ale nie kosztem ochrony i czytelności.
 
+### 18.10. Powiadomienia o próbach obejścia zabezpieczeń (plan do implementacji)
+
+System bezpieczeństwa powinien **rejestrować wykryte próby obejścia zabezpieczeń**, w szczególności przy handlu niedozwolonymi przedmiotami, manipulacji limitami ekwipunku, ochroną terytorium i podejrzanych operacjach mogących prowadzić do duplikacji. W razie wykrycia takiego zdarzenia **administracja otrzymuje powiadomienie z informacją o graczu, rodzaju i czasie zdarzenia, jego kontekście oraz wyniku blokady**, a odpowiedni wpis pozostaje w dzienniku bezpieczeństwa.
+
+**Gracz może otrzymać czytelny komunikat ekranowy informujący o wykryciu próby oszukiwania lub obejścia zasad serwera.** Forma i treść komunikatu są elementem interfejsu, ustalanym na etapie implementacji; nie wymagają osobnego opisu w regulaminie.
+
+- **Rozróżnić przypadkową operację od podejrzanego działania:** sam fakt, że naturalna oferta villagera zawiera niedozwolone zaklęcie, nie oznacza winy gracza. Jednorazową, zablokowaną transakcję można jedynie zalogować i objaśnić. Wyraźniejsze ostrzeżenia przewidzieć dla świadomych, ponawianych lub nietypowych prób.
+- **Ograniczyć spam:** powiadomienia grupować i stosować krótkie ograniczenie częstości dla tego samego gracza i rodzaju wykrycia; pełne dane zachować w logach.
+- **Bez automatycznej kary za sam alert:** blokada nielegalnej operacji pozostaje podstawową reakcją; karę nakłada administrator po analizie kontekstu, z uwzględnieniem fałszywych alarmów. W przyszłości można dodać widok administracyjny historii zdarzeń, np. `/esmp security`.
+- **Status:** zatwierdzony kierunek funkcji; **niezaimplementowane w EarthSMP-Core 1.8.9**. Wersja 1.8.9 zawiera zabezpieczenia przed niedozwolonymi enchantami i przedmiotami, ale nie potwierdzono jeszcze opisanego centralnego modułu powiadomień.
+
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
 Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasadami”; to techniczne wyjątki wymagające rozpisania implementacji:
@@ -662,7 +674,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.7.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
+**Koniec dokumentacji v1.8.8.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
@@ -682,3 +694,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 <!-- Aktualizacja v1.8.6: TODO obrys WorldBorder na autorskiej mapie WWW; granica widoczna w squaremap :8080, lecz brak jej na naszym portalu. Bez zmian w kodzie. -->
 
 <!-- Korekta v1.8.7: villagery z leczenia to konsekwencja mapy bez wiosek, nie ograniczenie regulaminowe/kodowe; main ma 1.8.9, potwierdzono lokalnie start, limity EQ, enchanty w ekwipunku i wymiary; test ofert villagerów w toku. -->
+
+<!-- Aktualizacja v1.8.8: monitor podejrzanych prób obejścia zabezpieczeń, alerty admina i komunikaty dla gracza; bez zmian w kodzie. -->
