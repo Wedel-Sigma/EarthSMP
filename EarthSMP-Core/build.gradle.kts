@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "1.8.9"
+version = "1.8.10"
 
 repositories {
     mavenCentral()
@@ -14,6 +14,8 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:26.3.build.230-stable")
     implementation("org.xerial:sqlite-jdbc:3.54.1.0")
+    // Stable JSON parser: only publish explicitly approved squaremap marker layers.
+    implementation("com.google.code.gson:gson:2.13.2")
     compileOnly("xyz.jpenilla:squaremap-api:1.4.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testImplementation("org.yaml:snakeyaml:2.4")
@@ -45,6 +47,7 @@ tasks.shadowJar {
     archiveBaseName.set("EarthSMP-Core")
     archiveClassifier.set("")
     mergeServiceFiles()
+    relocate("com.google.gson", "io.github.wedelsigma.earthsmp.libs.gson")
 }
 
 tasks.build {

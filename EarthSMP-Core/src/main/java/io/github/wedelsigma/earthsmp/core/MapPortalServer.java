@@ -58,19 +58,22 @@ final class MapPortalServer implements AutoCloseable {
     private final URI squaremap;
     private final HttpClient client;
     private final boolean secureCookies;
+    private final String trustedProxyAddress;
     private final HttpServer http;
     private final ExecutorService workers;
     private volatile MapPortalSnapshot snapshot = MapPortalSnapshot.empty();
+    private volatile MapWorldBorder worldBorder;
 
     MapPortalServer(String bind, int port, String publicOrigin, String squaremapUrl,
-                    MapPortalAuth auth, Logger log, EarthSmpCorePlugin plugin) throws IOException {
+                    MapPortalAuth auth, Logger log, EarthSmpCorePlugin plugin, String trustedProxyAddress) throws IOException {
         this.auth = auth;
         this.plugin = plugin;
         // Snapshot config on the main thread; HTTP worker threads never access Bukkit config.
         this.displayName = plugin.getDisplayName();
         this.log = log;
+        this.trustedProxyAddress = trustedProxyAddress == null ? "" : trustedProxyAddress.trim();
         try {
-            this.origin = validateOrigin(publicOrigin);
+            this.origin = MapPortalSecurity.validateOrigin(publicOrigin);
             this.squaremap = validateSquaremap(squaremapUrl);
         } catch (IllegalArgumentException error) { throw new IOException("Invalid map-portal configuration: " + error.getMessage(), error); }
         if (port < 1024 || port > 65535) throw new IOException("Map portal port must be 1024..65535");
@@ -90,6 +93,7 @@ final class MapPortalServer implements AutoCloseable {
     }
 
     void update(MapPortalSnapshot value) { this.snapshot = value; }
+    void updateWorldBorder(MapWorldBorder border) { this.worldBorder = border; }
     String url() { return origin.toString(); }
 
     @Override public void close() {
@@ -98,21 +102,11 @@ final class MapPortalServer implements AutoCloseable {
         // Session database belongs to the plugin lifecycle and closes separately.
     }
 
-    private static URI validateOrigin(String input) {
-        URI u = URI.create(input);
-        if (!("http".equals(u.getScheme()) || "https".equals(u.getScheme())) || u.getHost() == null
-                || u.getPort() <= 0 || u.getPort() > 65535 || u.getUserInfo() != null
-                || (u.getRawPath() != null && !u.getRawPath().isEmpty() && !"/".equals(u.getRawPath()))
-                || u.getRawQuery() != null || u.getRawFragment() != null) {
-            throw new IllegalArgumentException("public-origin must be e.g. http://127.0.0.1:8766 (without a path)");
-        }
-        return URI.create(u.getScheme() + "://" + u.getRawAuthority());
-    }
-
     private static URI validateSquaremap(String input) {
-        URI u = validateOrigin(input);
+        URI u = MapPortalSecurity.validateOrigin(input);
         // No SSRF: the proxy only talks to a loopback address, never arbitrary configured Internet hosts.
-        if (!"http".equals(u.getScheme()) || !("127.0.0.1".equals(u.getHost()) || "localhost".equalsIgnoreCase(u.getHost()))) {
+        if (!"http".equals(u.getScheme()) || u.getPort() == -1
+                || !("127.0.0.1".equals(u.getHost()) || "localhost".equalsIgnoreCase(u.getHost()))) {
             throw new IllegalArgumentException("squaremap-internal-url must use http://127.0.0.1:PORT");
         }
         return u;
@@ -121,6 +115,10 @@ final class MapPortalServer implements AutoCloseable {
     private void serve(HttpExchange exchange) throws IOException {
         try {
             headers(exchange);
+            if (secureCookies) exchange.getResponseHeaders().set("Strict-Transport-Security", "max-age=31536000");
+            if (exchange.getRequestHeaders().getOrDefault("Host", java.util.List.of()).size() != 1) {
+                send(exchange, 400, "text/plain", "Invalid Host".getBytes(StandardCharsets.UTF_8)); return;
+            }
             if (!hostAllowed(exchange)) { send(exchange, 403, "text/plain", "Forbidden host".getBytes(StandardCharsets.UTF_8)); return; }
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod();
@@ -149,6 +147,12 @@ final class MapPortalServer implements AutoCloseable {
                 auth.logout(cookie(exchange));
                 exchange.getResponseHeaders().add("Set-Cookie", expireCookie());
                 json(exchange, 200, "{\"ok\":true}"); return;
+            }
+            if ("GET".equals(method) && "/api/worldborder".equals(path)) {
+                MapWorldBorder border = worldBorder;
+                json(exchange, border == null ? 503 : 200, border == null
+                        ? "{\"error\":\"WorldBorder unavailable\"}" : border.json());
+                return;
             }
             if ("GET".equals(method) && "/api/positions".equals(path)) {
                 Optional<UUID> viewer = auth.authenticate(cookie(exchange));
@@ -267,14 +271,15 @@ final class MapPortalServer implements AutoCloseable {
     }
 
     private boolean hostAllowed(HttpExchange ex) {
-        String wanted = origin.getRawAuthority();
-        String host = ex.getRequestHeaders().getFirst("Host");
-        return host != null && host.equalsIgnoreCase(wanted);
+        return MapPortalSecurity.hostAllowed(origin, ex.getRequestHeaders().getFirst("Host"));
     }
 
     private boolean postAllowed(HttpExchange ex) throws IOException {
+        if (ex.getRequestHeaders().getOrDefault("Origin", java.util.List.of()).size() != 1) {
+            json(ex, 403, "{\"error\":\"Invalid Origin\"}"); return false;
+        }
         String got = ex.getRequestHeaders().getFirst("Origin");
-        if (!origin.toString().equals(got)) {
+        if (!MapPortalSecurity.originAllowed(origin, got)) {
             json(ex, 403, "{\"error\":\"Invalid Origin\"}"); return false;
         }
         String contentType = ex.getRequestHeaders().getFirst("Content-Type");
@@ -302,7 +307,9 @@ final class MapPortalServer implements AutoCloseable {
         } catch (IllegalArgumentException ignored) {
             json(ex, 400, "{\"error\":\"Invalid form\"}"); return;
         }
-        String address = ex.getRemoteAddress().getAddress().getHostAddress();
+        String address = MapPortalSecurity.clientAddress(
+                ex.getRemoteAddress().getAddress().getHostAddress(), trustedProxyAddress,
+                ex.getRequestHeaders().getFirst("X-Real-IP"));
         Optional<MapPortalAuth.SessionToken> result;
         if (firstPairing) {
             String password = fields.get("password");
@@ -349,6 +356,13 @@ final class MapPortalServer implements AutoCloseable {
                 if (tile != null) { send(ex, 200, "image/png", tile); return; }
             }
             if (response.statusCode() != 200) { send(ex, 502, "text/plain", "squaremap not ready".getBytes(StandardCharsets.UTF_8)); return; }
+            if (path.endsWith("/markers.json")) {
+                // The web client needs ONLY our public political and core layers. Other squaremap
+                // layers must never be served even when a visitor requests the raw JSON directly.
+                send(ex, 200, "application/json; charset=utf-8",
+                        MapPortalPublicMarkers.onlyFirstPartyPublicLayers(response.body()));
+                return;
+            }
             send(ex, 200, path.endsWith(".png") ? "image/png" : "application/json; charset=utf-8", response.body());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

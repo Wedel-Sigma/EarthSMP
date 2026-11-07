@@ -182,7 +182,9 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
                 int port = getConfig().getInt("map-portal.port", 8766);
                 String origin = getConfig().getString("map-portal.public-origin", "http://127.0.0.1:8766");
                 String upstream = getConfig().getString("map-portal.squaremap-internal-url", "http://127.0.0.1:8080");
-                mapPortalServer = new MapPortalServer(bind, port, origin, upstream, mapPortalAuth, getLogger(), this);
+                String trustedProxyIp = getConfig().getString("map-portal.trusted-proxy-address", "");
+                mapPortalServer = new MapPortalServer(bind, port, origin, upstream, mapPortalAuth,
+                        getLogger(), this, trustedProxyIp);
                 refreshMapPortalSnapshot();
                 getServer().getScheduler().runTaskTimer(this, this::refreshMapPortalSnapshot, 20L, 20L);
             } catch (IOException | RuntimeException error) {
@@ -194,7 +196,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }
             }
         }
-        getLogger().info("EarthSMP Core 1.8.9 enabled - crossbow enchant fixes, item limits and dimensions");
+        getLogger().info("EarthSMP Core 1.8.10 enabled - map portal security and WorldBorder overlay");
     }
 
     @Override
@@ -314,10 +316,20 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
                 visible.add(new MapPortalSnapshot.Position(id, player.getName(), nationId,
                         loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
             }
+            // WorldBorder is public and never contains player positions. Read on Paper thread only.
+            World earth = Bukkit.getWorld(earthName);
+            if (earth == null) mapPortalServer.updateWorldBorder(null);
+            else {
+                var worldBorder = earth.getWorldBorder();
+                var center = worldBorder.getCenter();
+                mapPortalServer.updateWorldBorder(new MapWorldBorder(
+                        center.getX(), center.getZ(), worldBorder.getSize()));
+            }
             mapPortalServer.update(new MapPortalSnapshot(viewers, visible));
         } catch (SQLException | RuntimeException error) {
             // Fail closed: stale membership must never allow reading enemy positions.
             mapPortalServer.update(MapPortalSnapshot.empty());
+            mapPortalServer.updateWorldBorder(null);
             getLogger().log(Level.WARNING, "Private map snapshot failed; positions temporarily hidden", error);
         }
     }

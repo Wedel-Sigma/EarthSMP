@@ -12,12 +12,17 @@ squaremap-world-id: minecraft:overworld
 # Local test: open http://127.0.0.1:8766 on the server computer.
 # For players over Tailscale: bind-address: 0.0.0.0 and public-origin: http://YOUR_TAILSCALE_IP:8766
 # Do NOT expose this HTTP port directly to the public Internet. Use an HTTPS reverse proxy.
+# Production public-origin may be https://map.example.com WITHOUT an explicit :443 port.
 map-portal:
   enabled: true
   bind-address: "127.0.0.1"
   port: 8766
   public-origin: "http://127.0.0.1:8766"
   squaremap-internal-url: "http://127.0.0.1:8080"
+  # Optional: exact IP address of the trusted reverse proxy (leave empty for local/Tailscale).
+  # When set, its X-Real-IP header is used for login rate limiting, but ONLY from this IP.
+  # The proxy MUST overwrite X-Real-IP with the real client IP, never pass through its value.
+  trusted-proxy-address: ""
   # Optional UUID allowlist for web-admin approval, including when admins are offline.
   # Server operators (OP) have access automatically. Never use player nicknames here.
   admin-uuids: []
@@ -28,6 +33,6 @@ sidebar:
 
 # Progresja wymiarow: 10 oznacza dostep od dnia serwera 10 o 06:00 PL.
 # W starych zapisach wystepuje tez "po dziesieciu pelnych dniach" (czyli 11).
-# Ustalic ostateczny prog przed startem edycji; mozna zmienic na 11 bez przebudowy.
+# Ustalony prog: dzien 10 o 06:00 czasu Europe/Warsaw.
 progression:
   nether-unlock-day: 10

@@ -1,3 +1,16 @@
+# EarthSMP-Core 1.8.10 — bezpieczeństwo portalu WWW i WorldBorder
+
+**Wydanie 1.8.10** bazuje na 1.8.9 i obejmuje: publiczny obrys WorldBorder na autorskiej mapie,
+obsługę normalnego `https://domena.pl` bez `:443`, kontrolę `Host` i `Origin`, opcjonalne
+zaufane reverse proxy dla limiterów logowania oraz **serwerowe odfiltrowanie niepublicznych
+warstw squaremap**. Nie zmienia zasad PvP, progresji enchantów ani bazy SQLite.
+
+**Instalacja i testy:** `../INSTRUKCJA-1.8.10.md` w paczce. Projekt wymaga JDK 25 oraz
+`./gradlew.bat clean build`. **Gradle Wrapper pozostaw w istniejącym folderze repozytorium.**
+Dokumentacja zasad: [docs/docs.md](https://github.com/Wedel-Sigma/EarthSMP/blob/main/docs/docs.md).
+
+---
+
 # EarthSMP-Core 1.8.9 — aktualizacja kusz
 
 **Wydanie 1.8.9** bazuje na kodzie 1.8.8 z repozytorium GitHub. Zmiany:

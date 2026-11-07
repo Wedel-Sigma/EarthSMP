@@ -4,7 +4,7 @@
 const el = id => document.getElementById(id);
 const status = message => { el("map-status").textContent = message; };
 const say = message => { el("message").textContent = message; };
-const layers = { countries: null, cores: null, players: null };
+const layers = { countries: null, cores: null, players: null, worldborder: null };
 let map, tileLayer, worldName, scale, loggedIn = false, ready = false;
 const playerMarkers = new Map();
 
@@ -81,6 +81,23 @@ async function updatePublic() {
   } catch (error) { status("Mapowe znaczniki: oczekiwanie na squaremap…"); }
 }
 
+// WorldBorder is a public server-side snapshot (not a hardcoded rectangle or squaremap marker).
+async function updateWorldBorder() {
+  if (!ready) return;
+  try {
+    const border = await json("/api/worldborder");
+    const {centerX:x, centerZ:z, size} = border;
+    if (![x,z,size].every(Number.isFinite) || size <= 0) throw new Error("Nieprawidłowa granica świata");
+    const r = size / 2;
+    const layer = L.rectangle([toLatLng(x-r,z+r),toLatLng(x+r,z-r)], {
+      color:"#ef4444",weight:3,opacity:.95,fill:false,dashArray:"10 6",interactive:false
+    });
+    if (layers.worldborder) layers.worldborder.removeFrom(map);
+    layers.worldborder=layer;
+    toggleLayer("worldborder",el("show-worldborder"));
+  } catch (error) { console.warn("WorldBorder unavailable",error); }
+}
+
 async function initMap() {
   if (typeof L === "undefined") { status("Nie udało się pobrać Leaflet. Sprawdź połączenie z Internetem."); return; }
   try {
@@ -100,8 +117,9 @@ async function initMap() {
     toggleLayer("players",el("show-players"));
     ready = true;
     status(`Mapa: ${world.display_name || world.name}`);
-    await updatePublic();
+    await Promise.allSettled([updatePublic(), updateWorldBorder()]);
     setInterval(updatePublic,8000);
+    setInterval(updateWorldBorder,8000);
     setInterval(() => { if (tileLayer && document.visibilityState === "visible") tileLayer.redraw(); }, 120000);
   } catch (error) { status(`Mapa niedostępna: ${error.message}. Sprawdź port squaremap.`); }
 }
@@ -480,7 +498,7 @@ function setupTerritoryUI(){
 }
 
 async function init() {
-  for (const [name,id] of [["countries","show-countries"],["cores","show-cores"],["players","show-players"]]) {
+  for (const [name,id] of [["countries","show-countries"],["cores","show-cores"],["players","show-players"],["worldborder","show-worldborder"]]) {
     el(id).addEventListener("change",()=>toggleLayer(name,el(id)));
   }
   el("login-form").addEventListener("submit",login);
