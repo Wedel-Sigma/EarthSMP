@@ -624,6 +624,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [x] **PvP/Combat Log:** osiem podstawowych scenariuszy zaliczonych w teście z 2 graczami 7.11.2026 (szczegóły §18.13).
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
 - [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
+- [ ] **Anti-Xray i Baritone:** na Earth włączyć i przetestować wbudowany Paper Anti-Xray (zalecany tryb 2 po kontroli FPS/TPS), skonfigurować osobno Nether pod ancient debris, zweryfikować mod/resource pack X-ray i automatyczne kopanie Baritone. Sam GrimAC nie gwarantuje rozpoznania wszystkich działań Baritone.
 - [ ] **Monitor prób obejścia zabezpieczeń** zapisuje szczegóły zdarzenia, informuje administrację i przy uzasadnionym podejrzeniu nadużycia wyświetla graczowi komunikat ostrzegawczy. Nie oznacza zwykłych, przypadkowo niedozwolonych transakcji jako oszustwa.
 - [x] **Shopkeepers:** użytkownik potwierdził działanie i testy systemu handlu. Pozostaje ustawienie sklepów administracyjnych na spawnie i ich asortymentu; próby odporności na dupe i przeciążenie będą częścią końcowych testów bezpieczeństwa.
 - [ ] **Spawn Makau** przygotowany i chroniony; działają informacyjne tablice/zasady, sklepiki administracyjne, strefy ruchu graczy i zabezpieczenia przed griefingiem.
@@ -700,6 +701,16 @@ System bezpieczeństwa powinien **rejestrować wykryte próby obejścia zabezpie
 - **Priorytet 6 (operacyjny):** backup offline i pełne odtworzenie `world` + SQLite, uprawnienia plików, brak ujawnienia sekretów, test startu po restarcie, `gradlew clean build`, obserwacja TPS oraz test GrimAC/Better Anti-Dupe bez fałszywych blokad.
 
 **Status audytu:** rozpoczęty od analizy `main`, bez potwierdzonych krytycznych exploitów na tym etapie. Wynik pozytywny dopiero po sprawdzeniu testów w grze i naprawieniu rzeczywistych usterek. Kodu nie zmieniamy w ramach samego aktualizowania dokumentacji.
+
+### 18.14. Anti-Xray i Baritone — otwarte zadanie przed startem (7.11.2026)
+
+**Status: do wdrożenia i przetestowania — jeszcze NIE potwierdzone.** X-ray w modzie i resource packu zdradza lokalizacje rud, a Baritone automatyzuje chodzenie i kopanie. Instalacja GrimAC ani Better Anti-Dupe nie zastępuje obfuskacji danych bloków wysyłanych do klienta.
+
+- **Paper 26.3:** ma wbudowany Anti-Xray. W `config/paper-world-defaults.yml` (lub override `paper-world.yml` dla Earth) ustawić `anticheat.anti-xray.enabled: true` i rozważyć `engine-mode: 2`. Zachować poprawne `hidden-blocks` i `replacement-blocks`, dopasować `max-block-height` do faktycznej wysokości złóż w customowej mapie Earth. Wariant z `air` w `hidden-blocks` może obniżyć FPS klienta, więc testować przed użyciem produkcyjnym.
+- **Nether:** osobna konfiguracja maskowania zwłaszcza `ancient_debris`, `nether_gold_ore` i `nether_quartz_ore`; End jest zamknięty regulaminowo.
+- **Baritone:** Anti-Xray może odebrać wiedzę o ukrytych rudach, ale nie uniemożliwia automatycznego legalnego ruchu/kopania. GrimAC nie może być uznany za stuprocentowy detektor. Ewentualne alerty do ręcznej weryfikacji, bez automatycznych kar za same regularne działania.
+- **Test z osobnym klientem bez OP:** uruchomić X-ray resource pack i mod po pełnym restarcie Paper; sprawdzić ukryte i odsłonięte rudy oraz zakres wysokości; w Netherze ancient debris; zweryfikować FPS/TPS i zachowanie Baritone. Sprawdzić, czy publiczny seed lub znane współrzędne mapy nie osłabiają ochrony.
+- **Brak zmiany źródeł EarthSMP-Core:** konfiguracja Paper i testy serwera są osobnym działaniem.
 
 ### 18.13. Raport z testów multiplayer PvP / Combat Log — 7.11.2026
 
