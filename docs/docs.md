@@ -621,6 +621,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Edytor chunków i zatwierdzanie administracyjne działają lub są świadomie wyłączone przed startem, z komendami jako planem awaryjnym.
 - [x] **30-sekundowe `/home` przez Title** — implementacja, build i podstawowy test w grze zaliczone.
 - [ ] **Testy brzegowe `/home`:** anulowanie przy obrażeniach/ruchu, restart, brak zapisu po błędzie SQLite, limit 4/4 oraz przekroczenie 06:00 w trakcie odliczania.
+- [x] **PvP/Combat Log:** osiem podstawowych scenariuszy zaliczonych w teście z 2 graczami 7.11.2026 (szczegóły §18.13).
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
 - [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
 - [ ] **Monitor prób obejścia zabezpieczeń** zapisuje szczegóły zdarzenia, informuje administrację i przy uzasadnionym podejrzeniu nadużycia wyświetla graczowi komunikat ostrzegawczy. Nie oznacza zwykłych, przypadkowo niedozwolonych transakcji jako oszustwa.
@@ -699,6 +700,21 @@ System bezpieczeństwa powinien **rejestrować wykryte próby obejścia zabezpie
 - **Priorytet 6 (operacyjny):** backup offline i pełne odtworzenie `world` + SQLite, uprawnienia plików, brak ujawnienia sekretów, test startu po restarcie, `gradlew clean build`, obserwacja TPS oraz test GrimAC/Better Anti-Dupe bez fałszywych blokad.
 
 **Status audytu:** rozpoczęty od analizy `main`, bez potwierdzonych krytycznych exploitów na tym etapie. Wynik pozytywny dopiero po sprawdzeniu testów w grze i naprawieniu rzeczywistych usterek. Kodu nie zmieniamy w ramach samego aktualizowania dokumentacji.
+
+### 18.13. Raport z testów multiplayer PvP / Combat Log — 7.11.2026
+
+**Wersja: EarthSMP-Core 1.8.13. Testerzy: 2 osoby, dwa państwa. Źródło: raport administratora z gry. Wynik: 8/8 OK, bez zgłoszonych uwag.**
+
+1. PvP podczas pokoju — **OK** (brak uwag).
+2. Wypowiedzenie wojny — **OK** (brak uwag).
+3. Combat Tag 60 sekund — **OK** (brak uwag).
+4. Combat Log: wyjście podczas walki — **OK** (brak uwag).
+5. Combat Log: ponowne wejście — **OK** (brak uwag).
+6. Bezpieczne wyjście po wygaśnięciu Combat Taga — **OK** (brak uwag).
+7. Wojenny respawn przy 1–2 osobach online — **OK** (brak uwag).
+8. Zawarcie pokoju i przywrócenie reguł PvP — **OK** (brak uwag).
+
+**Zakres potwierdzenia:** podstawowa ścieżka PvP oraz Combat Log. To nie oznacza jeszcze zaliczenia testów granicznych (awarie, przeciążenie, ponad dwie osoby, restart w środku walki) ani pełnego audytu bezpieczeństwa. **Następny test: legalne oblężenie, spór o strefę 9×9, wymuszanie blokad stawiania bloków, loot dopiero po zdobyciu i przejęcie/rozpad państwa. Testy niszczące świat lub bazę wykonać na kopii.**
 
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
