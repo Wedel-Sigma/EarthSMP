@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.3"
-version: "1.8.3"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.4"
+version: "1.8.4"
 date: "2026-11-07"
 status: "main: EarthSMP-Core 1.8.8; mechaniki kuszy Multishot/Quick Charge zatwierdzone regulaminowo, kod do zmiany w następnym etapie; Unbreaking III zawsze na wszystkich przedmiotach; 1.8.7-1.8.8 czekają na pełne testy"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.3
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.4
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -292,12 +292,12 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 
 | Moment edycji | Zmiana |
 |---|---|
-| Dni 0–6 | Fortune niedostępny; PvP enchanty maks. I |
-| Dni 7–9 | Fortune I; PvP enchanty maks. I |
-| Od 10. dnia | PvP enchanty maks. II |
+| Dni 0–6 | Fortune niedostępny; standardowe enchanty maks. I; Quick Charge II; wyjątki QoL według §11.3 |
+| Dni 7–9 | Fortune I; standardowe enchanty maks. I; Quick Charge II |
+| Od 10. dnia, 06:00 PL | Standardowe enchanty maks. II; Quick Charge III |
 | Dzień 10, godz. 06:00 PL | **Otwarcie Netheru** |
 | Dni 10–15 | Fortune I |
-| Od 16. dnia | Fortune I albo III; II niedostępny |
+| Od 16. dnia, 06:00 PL | Fortune I albo III; Fortune II niedostępny |
 | Cała edycja | Mending zakazany; End zamknięty |
 
 ### 11.2. Kusze — wyjątki zatwierdzone 7 listopada 2026 (implementacja do wykonania)
@@ -316,6 +316,60 @@ Reguły w tej sekcji dotyczą **zaklęć na kuszy**. **Unbreaking III pozostaje 
 - **Unbreaking III jest dozwolony zawsze i na każdym przedmiocie, również na kuszy**; odstępstwo wyłącznie po nowym, jednoznacznym ustaleniu administracyjnym.
 - Zasada obejmuje **gotowe kusze** zdobyte przez handel z villagerami, loot, komendy, kowadło i przedmioty wcześniej pozyskane, nie tylko samo enchantowanie. Nie wolno zachować nielegalnego poziomu przez zdobycie gotowego przedmiotu.
 - **Status techniczny:** powyższe zasady są **zatwierdzoną specyfikacją**, ale **nie są jeszcze zaimplementowane w 1.8.8**. Obecny `EditionEnchantRules` nie rozróżnia rodzaju przedmiotu, pozwala na Multishot I i Quick Charge I/II. **Unbreaking III na kuszy jest już prawidłowo dozwolony** i nie wymaga zmiany. **Następna sesja programistyczna:** dodać walidację zależną od typu przedmiotu i testy obejść z użyciem gotowych kusz, w tym ofert villagerów; nie oznaczać funkcji jako przetestowanej przed buildem na Paper.
+
+### 11.3. Pełna tabela limitów zaklęć — stan ustaleń na 7 listopada 2026
+
+**Pierwszy próg** to dni **0–9** (przed dniem 10), a **drugi próg** zaczyna się **od 06:00 dnia 10** (`Europe/Warsaw`). Wartości to **maksymalny dozwolony poziom na gotowym przedmiocie**, nie poziom gwarantowany przez enchanting/handel. Naturalny maksymalny poziom w Minecraft zawsze obowiązuje, nawet jeżeli w tabeli widnieje „II” dla enchantu mającego tylko poziom I. **Fortune ma dodatkowe, niezależne progi dnia 7 i 16.**
+
+| Enchant | Pierwszy próg (dni 0–9) | Drugi próg (od dnia 10) |
+|---|---|---|
+| **Mending** | **Zakazany** | **Zakazany** |
+| **Multishot (kusza)** | **Zakazany** | **Zakazany** |
+| **Fortune** | Dni 0–6: **zakaz**; dni 7–9: **I** | Dni 10–15: **I**; od dnia 16: **I lub III** (**II zakazane zawsze**) |
+| **Quick Charge (kusza)** | **II** | **III** |
+| **Piercing (kusza)** | **I** | **II** |
+| **Unbreaking (wszystkie przedmioty, w tym kusza)** | **III** | **III** |
+| Efficiency | **V** | **V** |
+| Looting | **III** | **III** |
+| Silk Touch | **I** | **I** |
+| Aqua Affinity | **I** | **I** |
+| Respiration | **III** | **III** |
+| Protection | **I** | **II** |
+| Fire Protection | **I** | **II** |
+| Blast Protection | **I** | **II** |
+| Projectile Protection | **I** | **II** |
+| Feather Falling | **I** | **II** |
+| Thorns | **I** | **II** |
+| Depth Strider | **I** | **II** |
+| Frost Walker | **I** | **II** |
+| Soul Speed | **I** | **II** |
+| Swift Sneak | **I** | **II** |
+| Sharpness | **I** | **II** |
+| Smite | **I** | **II** |
+| Bane of Arthropods | **I** | **II** |
+| Knockback | **I** | **II** |
+| Fire Aspect | **I** | **II** |
+| Sweeping Edge | **I** | **II** |
+| Power | **I** | **II** |
+| Punch | **I** | **II** |
+| Flame | **I** (naturalny maks.) | **I** (naturalny maks.) |
+| Infinity | **I** (naturalny maks.) | **I** (naturalny maks.) |
+| Impaling | **I** | **II** |
+| Loyalty | **I** | **II** |
+| Riptide | **I** | **II** |
+| Channeling | **I** (naturalny maks.) | **I** (naturalny maks.) |
+| Luck of the Sea | **I** | **II** |
+| Lure | **I** | **II** |
+| Density | **I** | **II** |
+| Breach | **I** | **II** |
+| Wind Burst | **I** | **II** |
+| Curse of Binding | **I** (naturalny maks.) | **I** (naturalny maks.) |
+| Curse of Vanishing | **I** (naturalny maks.) | **I** (naturalny maks.) |
+| **Pozostałe/nowe enchanty bez osobnej reguły** | **I** (nie wyżej niż naturalny maks.) | **II** (nie wyżej niż naturalny maks.) |
+
+**Zasady odczytu tabeli:** zakaz i wyjątki (`Mending`, `Multishot`, `Fortune`, `Quick Charge`, `Unbreaking` i wymienione QoL) mają pierwszeństwo przed zasadą I/II; wszystkie pozostałe enchanty ograniczane są standardowym limitem I/II. Zaklęcia nie mogą trafić na przedmioty, na których są normalnie niedozwolone. Ograniczenia dotyczą również przedmiotów z ofert villagerów (także gotowej zbroi z Protection IV), książek, kowadła, łupów i przedmiotów wprowadzonych komendami.
+
+**Status kodu:** tabela opisuje **zatwierdzone zasady**, a nie potwierdzenie ich pełnego działania. W `1.8.8` nadal **brakuje blokady Multishot i wyjątkowego limitu Quick Charge II/III**; te dwie zmiany kodu i testy na Paper są zaplanowane na kolejną sesję. Pozostałe wpisy odzwierciedlają reguły z `EditionEnchantRules` (naturalny maksymalny poziom uwzględnia dodatkowo `EditionEnchantListener`).
 
 ## 12. Nether, End, eksplozje
 
@@ -585,7 +639,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.3.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
+**Koniec dokumentacji v1.8.4.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
@@ -597,3 +651,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 
 <!-- Aktualizacja v1.8.2: wyjątki dla kuszy (Multishot zakaz, Quick Charge II/III, Piercing I/II); zmiany w kodzie odłożone na następną sesję. -->
 <!-- Korekta v1.8.3: Unbreaking III zawsze i na wszystkich przedmiotach, również kuszach; kod 1.8.8 już spełnia tę regułę. -->
+
+<!-- Aktualizacja v1.8.4: zbiorcza tabela limitów enchantów (§11.3), trzy momenty zmian: dni 7/10/16; bez zmian w kodzie Javy. -->
