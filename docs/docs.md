@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.4"
-version: "1.8.4"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.5"
+version: "1.8.5"
 date: "2026-11-07"
 status: "main: EarthSMP-Core 1.8.8; mechaniki kuszy Multishot/Quick Charge zatwierdzone regulaminowo, kod do zmiany w następnym etapie; Unbreaking III zawsze na wszystkich przedmiotach; 1.8.7-1.8.8 czekają na pełne testy"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.4
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.5
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -384,11 +384,12 @@ Reguły w tej sekcji dotyczą **zaklęć na kuszy**. **Unbreaking III pozostaje 
 ## 13. Gospodarka i handel
 
 - **Wyłącznie barter** — wymiana przedmiot za przedmiot, **bez wirtualnej waluty, kont i banków**.
-- Gracze tworzą sklepy na bazie **gotowego pluginu skrzynkowego (Chest Shops)**. Towar przechowywany jest fizycznie; sprzedawany w zamian za inne przedmioty, a sprzedaż kończy się po wyczerpaniu zasobów.
-- **Makau / spawn:** administrowane, chronione działki handlowe dla sklepów graczy; ochrona przed nieuprawnioną kradzieżą i niszczeniem.
+- **Shopkeepers** jest już używany na serwerze testowym jako system handlu barterowego; nie tworzymy własnego pluginu sklepowego. Sklep gracza działa na rzeczywistym towarze w przypisanej skrzyni lub magazynie; sprzedaż kończy się po wyczerpaniu zapasów. Obowiązkowy test: barter przedmiot za przedmiot, bez waluty.
+- **Makau / spawn:** przed startem trzeba zbudować czytelny i estetyczny punkt startowy z placem, informacjami, zasadami i sklepami administracyjnymi. Administracja może również udostępniać chronione działki handlowe, ale **sklepy graczy mogą stać w dowolnym legalnym miejscu**, także we własnych miastach i bazach. Ochronę spawnu, NPC i magazynów trzeba przetestować z WorldGuard/EarthSMP.
 - Sklepy administracyjne mają **nieskończone zapasy** i realizują wyłącznie podstawowe wymiany materiałów budowlanych, np. **1 cobblestone ↔ 1 cobbled deepslate**, obustronnie 1:1.
 - Admin nie sprzedaje w nieskończoność zasobów strategicznych typu diamenty czy netherite. Szczegółową listę wymian ustala administracja w trakcie edycji.
-- Konkretny kompatybilny plugin (barter + nieskończone sklepy admina) wybierzemy w etapie 3.2, nie piszemy własnego sklepu bez potrzeby.
+- **Sklepy w stylu Rust — zatwierdzony kierunek:** gracz może trzymać skrzynię z towarem **wewnątrz chronionej bazy**, a obsługującego ją NPC Shopkeepers (np. villager) wystawić **na zewnątrz**, żeby inni mogli handlować bez dostępu do skrzyni. Historyczna lokalna konfiguracja Shopkeepers zawierała `max-container-distance: 15`, `max-shops-per-player: -1`, `max-containers-per-player-shop: 9`; **wartości aktualnej konfiguracji i możliwość powiązania przez ścianę trzeba sprawdzić w grze**. Nie mylić NPC Shopkeepers z naturalnym villagerem używanym do handlu enchantami.
+- **Przed startem:** sprawdzić obecną wersję Shopkeepers i poprawki bezpieczeństwa (szczególnie potencjalne duplikacje w transakcjach), ochronę skrzyni przed obcym otwarciem/zniszczeniem, zachowanie NPC przy oblężeniu, brak dostępu do zapasów z zewnątrz oraz równoczesne zakupy. Sklepy administracyjne muszą realizować planowany **barter z nieskończonymi podstawowymi materiałami** — potwierdzić obsługę tej funkcji przez aktualny plugin/konfigurację przed wydaniem.
 
 ## 14. Zasady społeczne i regulamin odziedziczony
 
@@ -524,8 +525,8 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 ### 18.1. Etapy prac nad pluginem — stan obecny
 
 - **3.1 — specyfikacja zasad:** ukończona i aktualizowana po większych zmianach.
-- **3.2 — dobór pluginów uzupełniających:** LuckPerms, WorldGuard/WorldEdit, CoreProtect, ewentualne Chest Shops, voice chat — ostateczny zestaw i wersje wymagają osobnej kontroli.
-- **3.3 — EarthSMP-Core:** na GitHub `main` jest `1.8.6` (zweryfikowane 7.11.2026). **1.8.5 przeszła test edytora i synchronizacji granic**, **1.8.6 przeszła podstawowy test GUI/HUD**, **1.8.7 R3 wystartowała na serwerze**, a **1.8.8 jest paczką do testów**. Pełne testy multiplayer pozostają do wykonania.
+- **3.2 — pluginy uzupełniające:** istnieją już m.in. LuckPerms, WorldGuard/WorldEdit, Shopkeepers, voice chat i squaremap; trzeba potwierdzić ich aktualne wersje i zgodność z Paper 26.3. **Nowe zadania przed startem:** antycheat oraz przeciwdziałanie duplikacji, test kompatybilności między pluginami i kontrola logów. CoreProtect pozostaje kandydatem do instalacji, jeśli nie jest już dostępny.
+- **3.3 — EarthSMP-Core:** na GitHub `main` jest już **1.8.8** (zweryfikowane 7.11.2026). **1.8.5** przeszła podstawowy test edytora i synchronizacji granic; **1.8.6** test GUI/HUD; **1.8.7 R3** wystartowała na Paper, lecz mechaniki multiplayer wciąż czekają na testy; **1.8.8** zawiera reguły ekwipunku/enchantów/wymiarów, wymagające potwierdzenia buildu i funkcji na serwerze. Poprawka wyjątków kusz (Multishot i Quick Charge) pozostaje do wdrożenia.
 - **3.4 — zakończony test podstawowy 1.8.5:** interaktywny edytor chunków, wnioski WWW, panel admina i poprawna synchronizacja granic z Minecraftem. Testy wieloosobowe i konkurencyjne wnioski pozostają do wykonania.
 - **3.5 — interfejs i branding 1.8.6:** ranking `/esmp tierlist` i sidebar potwierdzone w podstawowym teście; nazwa graczy „Kabina Narodów 2.0” w R2/R3. Weryfikacja ostatecznej paczki R3 oraz pełnych scenariuszy multiplayer pozostaje otwarta.
 - **3.6 — najbliższa sesja testowa:** 1.8.7 R3 (dwa państwa, PvP, combat log, respawn i łóżka) oraz 1.8.8 (limity wyposażenia, enchanty, wymiary). Dopiero po wynikach zamkniemy te etapy.
@@ -606,6 +607,9 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Granice, rdzenie i kafelki mapy odświeżają się po zmianach; mapa nie ujawnia stolicy jako specjalnego statusu.
 - [ ] Edytor chunków i zatwierdzanie administracyjne działają lub są świadomie wyłączone przed startem, z komendami jako planem awaryjnym.
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
+- [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
+- [ ] **Shopkeepers**: wersja i poprawki sprawdzone; działa barter ze sklepu gracza (skrzynia wewnątrz bazy, NPC na zewnątrz), brak kradzieży z magazynu i błędów przy jednoczesnych zakupach; działają podstawowe sklepy administracyjne.
+- [ ] **Spawn Makau** przygotowany i chroniony; działają informacyjne tablice/zasady, sklepiki administracyjne, strefy ruchu graczy i zabezpieczenia przed griefingiem.
 - [ ] Istnieje działający **backup i przetestowane odtworzenie** świata + SQLite; zapas dyskowy potwierdzony.
 - [ ] Regulamin, sposób zgłaszania błędów, link do mapy i koszt utrzymania zostały podane graczom.
 
@@ -623,7 +627,23 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 
 **Przed sesją testową — kolejna zmiana kodu:** wdrożyć zaakceptowane zasady kusz z §11.2 (Multishot 0, Quick Charge II/III, Piercing I/II; Unbreaking III bez zmian także na kuszy), weryfikując gotowe przedmioty i handel. Następnie pełny build i testy Paper.
 
-**Po sesji testowej:** poprawki, aktualizacja stanu dokumentacji, audyt publicznego portalu, instalacja na hostingu z HTTPS, test backupu i obciążenia; gospodarka barterowa / Chest Shops to osobny etap. Nie planujemy obecnie rozszerzać specyfikacji o kolejne nieuzgodnione mechaniki.
+**Po sesji testowej:** poprawki, aktualizacja stanu dokumentacji, audyt publicznego portalu, instalacja na hostingu z HTTPS, test backupu i obciążenia. **Gospodarka opiera się już na Shopkeepers**, wymaga jednak konfiguracji i testów; spawn Makau należy przygotować przed rozpoczęciem edycji. Nie planujemy pisać nowego pluginu sklepowego.
+
+### 18.9. Najbliższe etapy do startu — antycheat, antydupe, sklepy i spawn (plan 7.11.2026)
+
+Poniższa lista to **plan wdrożenia, nie potwierdzenie ukończenia**. Termin startu (rozważana niedziela o 18:00) pozostaje **warunkowy**, bez oficjalnej deklaracji, dopóki nie przejdą testy bezpieczeństwa, gry i hostingu.
+
+1. **Poprawka kodu EarthSMP-Core:** blokada Multishot na kuszy i wyjątek Quick Charge II w pierwszej fazie / III od dnia 10, zgodnie z §11.2–11.3. **Unbreaking III jest dozwolony na wszystkich przedmiotach**, w tym kuszach. Pełny `gradlew clean build` Java 25, testy na Paper, walidacja zakupionych gotowych kusz i zbroi z nielegalnymi enchantami.
+2. **Testy solo 1.8.8:** limity ekwipunku i nadwyżki, magazyny, handel z villagerami, kowadło, enchanting, losowe łupy, mechaniki Mending/Fortune, portale i teleportacje Nether/End; odblokowanie progów dni 7/10/16.
+3. **Zbiorcze testy multiplayer 1.8.7–1.8.8:** minimum dwa państwa, PvP pokojowe i wojenne, tarcze, Combat Log 60 sekund i Alt+F4, opóźniony respawn, ochrona łóżek, oblężenia, przejmowanie rdzeni; oddzielnie kontrola widoczności pozycji graczy na portalu i obsługi jednoczesnych wniosków terytorialnych.
+4. **Antycheat (kandydat: GrimAC):** potwierdzić aktualną zgodność wersji z **Paper 26.3 / Java 25** i warunki pobrania ze źródła projektu. Najpierw alerty, logowanie i ręczna ocena (bez automatycznego bana po pojedynczej detekcji); testować prawdziwy ruch, ping/lagi, elytry, perły, walkę, teleportacje `/home` i interakcje z pluginem. Ustawić sensowny poziom egzekwowania dopiero po sprawdzeniu fałszywych alarmów.
+5. **Antydupe (kandydat: Better Anti-Dupe):** sprawdzić aktualną wersję, kompatybilność i zakres ochrony; przetestować metody związane z przenoszeniem przedmiotów, hopperami, tłokami, kontenerami, logowaniem/wylogowaniem, restartami, transakcjami Shopkeepers, wybuchem oraz sytuacjami przy przeciążeniu serwera. **Żaden plugin nie gwarantuje wyeliminowania wszystkich dupe** — wymagane logi, kopie i możliwość reakcji administracji. Testy tylko na osobnej kopii świata/bazy.
+6. **Sklepy Shopkeepers:** sprawdzić wersję i znane poprawki, model skrzynia za ścianą + NPC z przodu (zasięg i powiązanie skrzyni), barter bez waluty, uprawnienia gracza, zapasy, ochrona przed kradzieżą i sytuacje dwóch kupujących naraz. Zweryfikować sklepy administracyjne z nielimitowanymi **podstawowymi** surowcami. Sklepy graczy nie muszą znajdować się na spawnie; właściciel może umieścić je na swoim terenie zgodnie z zasadami ochrony.
+7. **Spawn Makau:** zbudować reprezentacyjny i czytelny spawn, oznaczyć zasady i ważne punkty, przygotować podstawowe sklepy administracyjne oraz ochronę WorldGuard/EarthSMP; zrobić spacer testowy z graczem bez uprawnień operatora.
+8. **Hosting i bezpieczeństwo WWW:** sprawdzić rzeczywiste Paper/Java 25, dostęp do portów, HTTPS, autoryzację mapy oraz brak możliwości pobrania pozycji obcych państw; zabezpieczyć publiczne zasoby squaremap, poprawić obsługę `Host`/`Origin`, sprawdzić sekret historycznie śledzonego `LuckPerms/editor-keystore.json` i ewentualną rotację (usunięcie z bieżącego `main` **nie usuwa sekretu z historii Git**).
+9. **Próba generalna przed otwarciem:** test z większą grupą, profilowanie wydajności/spark, kopia bezpieczeństwa **po wyłączeniu Paper**, sprawdzenie odzyskiwania danych i ustalenie procedury na krytyczne exploity. Dopiero po zaliczeniu tych testów administrator ogłasza termin i uruchamia zegar edycji; w razie błędu blokującego start przesuwamy, zamiast ryzykować utratę świata lub ekonomii.
+
+**Warunki blokujące start:** nieprzetestowane lub niemożliwe do odtworzenia backupy, wykryty działający dupe/obejście ograniczeń bez poprawki, wyciek prywatnych pozycji lub haseł, niepoprawny Combat Log/war PvP, brak działającego serwera i portalu HTTPS, krytyczne problemy wydajnościowe. Kosmetyka spawnu może być skromniejsza, ale nie kosztem ochrony i czytelności.
 
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
@@ -639,7 +659,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.4.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
+**Koniec dokumentacji v1.8.5.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
@@ -653,3 +673,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 <!-- Korekta v1.8.3: Unbreaking III zawsze i na wszystkich przedmiotach, również kuszach; kod 1.8.8 już spełnia tę regułę. -->
 
 <!-- Aktualizacja v1.8.4: zbiorcza tabela limitów enchantów (§11.3), trzy momenty zmian: dni 7/10/16; bez zmian w kodzie Javy. -->
+
+<!-- Aktualizacja v1.8.5: potwierdzony plan sklepów Shopkeepers i spawnu Makau, dobór antycheat/antydupe do weryfikacji, kolejność testów przed warunkowym startem; bez zmian w kodzie. -->
