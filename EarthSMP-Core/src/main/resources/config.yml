@@ -36,3 +36,11 @@ sidebar:
 # Ustalony prog: dzien 10 o 06:00 czasu Europe/Warsaw.
 progression:
   nether-unlock-day: 10
+
+# EarthSMP-specific audit events; vendor anti-cheat/anti-dupe are configured separately.
+security:
+  enabled: true
+  # Four similar denied operations in a rolling 60-second window notify online admins.
+  alert-threshold: 4
+  alert-cooldown-seconds: 60
+  warn-player-on-repeat: true
