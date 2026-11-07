@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.1"
-version: "1.8.1"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.2"
+version: "1.8.2"
 date: "2026-11-07"
-status: "main: EarthSMP-Core 1.8.8; 1.8.7 R3 uruchamia się w testach; 1.8.8 oczekuje na potwierdzenie pełnego buildu i testów Paper/multiplayer"
+status: "main: EarthSMP-Core 1.8.8; mechaniki kuszy Multishot/Quick Charge/Unbreaking zatwierdzone regulaminowo, kod do zmiany w następnym etapie; 1.8.7-1.8.8 czekają na pełne testy"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.1
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.2
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -284,8 +284,8 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 - **Implementacja 1.8.8:** blokuje niedozwolone wyniki kowadła i craftingu, nowe nielegalne oferty villagerów, niedozwolone enchanty przy enchantowaniu oraz efekt Mending. Istniejące przedmioty z niedozwolonymi enchantami są automatycznie **normalizowane** (enchant usuwany lub obniżany; przedmiot pozostaje). Dopuszczona lista wyjątków QoL jest ścisła: Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I, Respiration III. **Wszystkie inne enchanty pozostają ograniczone tak, jak w kodzie 1.8.8** (w tym mobilność), bez dodatkowych wyjątków. Testy handlu i kowadła nadal do wykonania.
 - **Fortune II** — zabroniony przez całą edycję, nawet gdy Fortune I i III są dopuszczone.
 - **Fortune I** — dostępny od 7. dnia; **Fortune III** — od 16. dnia; przed dniem 7 Fortune niedostępny.
-- **Enchantmenty dające przewagę w PvP** (np. Protection, Sharpness, Power, Knockback, Fire Aspect, Thorns, Piercing, Quick Charge oraz analogiczne) — maksymalnie **poziom I przez pierwsze 9 dni edycji**, a **poziom II od 10. dnia do końca** (zaklęcia o naturalnym maks. I pozostają na I).
-- **Zatwierdzone wyjątki QoL:** Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I i Respiration III. **Pozostałe enchanty**, również wpływające na mobilność, podlegają poziomowi wynikającemu z 1.8.8; nie dodajemy dalszych wyjątków.
+- **Enchantmenty dające przewagę w PvP** (np. Protection, Sharpness, Power, Knockback, Fire Aspect, Thorns, Piercing oraz analogiczne) — maksymalnie **poziom I przez pierwsze 9 dni edycji**, a **poziom II od 10. dnia do końca** (zaklęcia o naturalnym maks. I pozostają na I). **Wyjątki dla kuszy** (Multishot, Quick Charge oraz Unbreaking na kuszy) określa §11.2.
+- **Zatwierdzone wyjątki QoL:** Unbreaking III **na przedmiotach innych niż kusza**, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I i Respiration III. **Na kuszy Unbreaking podlega limitowi I/II** (§11.2). Pozostałe enchanty, również wpływające na mobilność, podlegają dotychczasowym limitom; nie dodajemy innych wyjątków.
 - Nie ma mechaniki stopniowego odblokowywania wszystkich enchantów lub płatnego adminowskiego sklepu; jedyne fazy to zatwierdzone limity PvP i harmonogram Fortune.
 
 ### 11.1. Oś czasu
@@ -299,6 +299,23 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 | Dni 10–15 | Fortune I |
 | Od 16. dnia | Fortune I albo III; II niedostępny |
 | Cała edycja | Mending zakazany; End zamknięty |
+
+### 11.2. Kusze — wyjątki zatwierdzone 7 listopada 2026 (implementacja do wykonania)
+
+Reguły w tej sekcji dotyczą **zaklęć na kuszy** i mają pierwszeństwo przed ogólnymi wyjątkami QoL (§11), gdy zachodzi kolizja. Rozróżnienie faz następuje według centralnego zegara edycji (zmiana dnia o 06:00 `Europe/Warsaw`).
+
+| Zaklęcie na kuszy | Faza limitu I (dni 0–9) | Faza limitu II (od dnia 10) |
+| --- | --- | --- |
+| **Multishot** | **Zabroniony** | **Zabroniony** |
+| **Quick Charge** | Maks. **II** | Maks. **III** |
+| **Piercing** | Maks. **I** | Maks. **II** |
+| **Unbreaking na kuszy** | Maks. **I** | Maks. **II** |
+| **Inne zaklęcia na kuszy**, jeżeli przedmiot może je legalnie posiadać | Maks. **I** | Maks. **II** |
+
+- **Mending pozostaje zabroniony** na wszystkich przedmiotach, w tym na kuszach.
+- Ogólny wyjątek **Unbreaking III** nie obejmuje kuszy; na innych przedmiotach nadal obowiązuje zgodnie z §11.
+- Zasada obejmuje **gotowe kusze** zdobyte przez handel z villagerami, loot, komendy, kowadło i przedmioty wcześniej pozyskane, nie tylko samo enchantowanie. Nie wolno zachować nielegalnego poziomu przez zdobycie gotowego przedmiotu.
+- **Status techniczny:** powyższe zasady są **zatwierdzoną specyfikacją**, ale **nie są jeszcze zaimplementowane w 1.8.8**. Obecny `EditionEnchantRules` nie rozróżnia materiału przedmiotu, pozwala na Multishot I, Quick Charge I/II i Unbreaking III na kuszy. **Następna sesja programistyczna:** dodać walidację zależną od typu przedmiotu i testy obejść z użyciem gotowych kusz, w tym ofert villagerów; nie oznaczać funkcji jako przetestowanej przed buildem na Paper.
 
 ## 12. Nether, End, eksplozje
 
@@ -545,10 +562,12 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 **1.8.8 — paczka do lokalnego builda i testów:**
 
 - Limity plecak + hotbar + offhand (i wyposażenie gracza): 8 zwykłych złotych jabłek, 3 perły, 16 pajęczyn, 3 totemy; zakaz posiadania zaklętych złotych jabłek, End Crystals i Respawn Anchors. Częściowe pobieranie przedmiotów ma pozostawiać resztę w źródle. Nietypowy nadmiar jest upuszczany na ziemię, nie kasowany.
-- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. **Wyjątki QoL pozostają dokładnie takie, jak w 1.8.8; nie dodajemy kolejnych, również dla mobilności.**
+- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. **Wyjątki QoL pozostają jak w 1.8.8 z nowym, przedmiotowym wyjątkiem dla kusz (§11.2), do wdrożenia w następnym kodzie.**
 - End zawsze zamknięty. Nether od **06:00 dnia serwera 10** (`progression.nether-unlock-day: 10`) — **decyzja ostateczna**, zgodna z implementacją.
 - Brak nowego schematu SQLite: nadal **v10**. Nowa logika nie wymaga resetu danych, lecz pełnego backupu i testu ze starymi przedmiotami.
 - **Kryterium akceptacji:** `./gradlew clean build` na Java 25, start pluginu i seria testów: częściowe podnoszenie, shift-click, drag, Creative, `/give`, enderchest, craft, villagery, kowadło, Mending, granice dni 6/7/9/10/15/16 oraz portale End/Nether i próby /tp.
+
+**Przed sesją testową — kolejna zmiana kodu:** wdrożyć zaakceptowane zasady kusz z §11.2 (Multishot 0, Quick Charge II/III, Piercing I/II, Unbreaking I/II na kuszy), weryfikując gotowe przedmioty i handel. Następnie pełny build i testy Paper.
 
 **Po sesji testowej:** poprawki, aktualizacja stanu dokumentacji, audyt publicznego portalu, instalacja na hostingu z HTTPS, test backupu i obciążenia; gospodarka barterowa / Chest Shops to osobny etap. Nie planujemy obecnie rozszerzać specyfikacji o kolejne nieuzgodnione mechaniki.
 
@@ -566,7 +585,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.1.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
+**Koniec dokumentacji v1.8.2.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
@@ -575,3 +594,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 
 
 <!-- Aktualizacja v1.8.1: potwierdzone 06:00 dnia 10, enchanty bez zmian względem 1.8.8, pierwsza para villagerów z leczenia (później rozmnażanie), main 1.8.8 oraz procedura porządkowania repo. -->
+
+<!-- Aktualizacja v1.8.2: wyjątki dla kuszy (Multishot zakaz, Quick Charge II/III, Piercing i Unbreaking na kuszy I/II); zmiany w kodzie odłożone na następną sesję. -->
