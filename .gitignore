@@ -1,15 +1,26 @@
-
-# Minecraft worlds
+# Kabina Narodow / EarthSMP — version only source code, docs and scripts.
+# Server runtime belongs in private backups, never in Git.
+# World data
 /Earth/
 /world/
 /world_nether/
 /world_the_end/
-
-# Backups
-/backups/
-/backup/
-*.zip
-
+# Server-generated files, configs, plugin data, and possible secrets
+/plugins/
+/config/
+/bukkit.yml
+/commands.yml
+/spigot.yml
+/wepif.yml
+/eula.txt
+/mcrcon.exe
+/server.properties
+/ops.json
+/whitelist.json
+/banned-players.json
+/banned-ips.json
+/usercache.json
+/usernamecache.json
 # Paper runtime
 /paper.jar
 /libraries/
@@ -18,57 +29,26 @@
 /logs/
 /crash-reports/
 /.paper/
-
-# Runtime data
-/usercache.json
-/usernamecache.json
-/banned-players.json
-/banned-ips.json
-/ops.json
-/whitelist.json
+# Backups and database state
+/backups/
+/backup/
+*.zip
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
 *.sqlite
 *.sqlite3
-
-# Secrets
-/server.properties
-*.env
-
-# Plugin binaries
-/plugins/*.jar
-
-/plugins/squaremap/web/
-/plugins/EarthSMPCore/
-
-# Java build
-/build/
-/target/
-/.gradle/
-/.idea/
-*.class
-**/build/
-**/.gradle/
-/plugins/EarthSMPCore/
-/plugins/squaremap/web/
-/plugins/squaremap/data/
-
-
-**/build/
-**/.gradle/
-/plugins/EarthSMPCore/
-/plugins/squaremap/web/
-/plugins/squaremap/data/
-
-# Java / Gradle subprojects
-**/build/
-**/.gradle/
-**/target/
-**/.idea/
-*.iml
-
-# SQLite temporary files
-*.db-journal
 *.sqlite-journal
 *.sqlite3-journal
+# Local credentials and environment
+*.env
+.env.*
+# Build outputs and editor state
+**/build/
+**/target/
+**/.gradle/
+**/.idea/
+*.iml
+*.class
+# Keep EarthSMP-Backup.ps1 and start.bat in Git (they are scripts, not runtime state).

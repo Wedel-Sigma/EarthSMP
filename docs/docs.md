@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8"
-version: "1.8"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.1"
+version: "1.8.1"
 date: "2026-11-07"
-status: "main: EarthSMP-Core 1.8.6; 1.8.7 R3 uruchamia się w testach; 1.8.8 przygotowana do builda i testów; multiplayer oraz audyt produkcyjny w planie"
+status: "main: EarthSMP-Core 1.8.8; 1.8.7 R3 uruchamia się w testach; 1.8.8 oczekuje na potwierdzenie pełnego buildu i testów Paper/multiplayer"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.1
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -27,7 +27,7 @@ language: "pl"
 
 > **Zamknięty etap funkcjonalny mapy i GUI, ale nie zakończone testy produkcyjne.** Rozdzielamy potwierdzone działanie przez użytkownika, poprawki w kodzie i funkcje wymagające jeszcze testów wielu graczy.
 
-**Repozytorium:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **`main`: `1.8.6`** (sprawdzone 7.11.2026, commit `4840e7f800196e3cd7f0d666129121e8eddefc75`) · **ostatnia uruchamiana lokalnie paczka:** `1.8.7 R3` (użytkownik potwierdził start serwera, *nie* testy PvP z wieloma graczami) · **przygotowana paczka do testów:** `1.8.8` (limity, enchanty, wymiary) · **środowisko docelowe:** Paper 26.3 / Java 25 / SQLite v10 / squaremap.
+**Repozytorium:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **`main`: `1.8.8`** (7.11.2026, commit `ee632e49dbf1e79543c5a11564456569cb9122eb`) · **1.8.7 R3:** użytkownik potwierdził start serwera, ale nie testy PvP; **1.8.8:** kod wypchnięty na GitHub, pełny build i testy funkcjonalne jeszcze niepotwierdzone · **środowisko:** Paper 26.3 / Java 25 / SQLite v10 / squaremap.
 
 ### Historia wydań i stan potwierdzenia
 
@@ -41,9 +41,9 @@ language: "pl"
 | **1.8.6 R2** | Rebranding widoczny dla graczy do **Kabina Narodów 2.0**, konfiguracja `server.display-name`, bez ruszania `/esmp` i nazw technicznych. | Pierwsza próba kompilacji ujawniła błąd statycznego odwołania w `SiegeManager.say(...)`. Nie traktować R2 jako wydania poprawnie zbudowanego. |
 | **1.8.6 R3** | Hotfix: `SiegeManager.say(...)` zmienione ze `static` na metodę instancyjną, ponieważ używa `plugin`. | Kontrolna analiza kodu potwierdza poprawność zmiany; **brak przekazanego wyniku pełnego `./gradlew clean build` i testu R3 na serwerze**. |
 | **1.8.7 R3** | PvP pokojowe/tarcza, wojenny respawn z centralnym Title, combat log 60 s, ochrona przypisanych łóżek. Stan kary i timerów utrwalany w plikach pluginu. | **Użytkownik potwierdził, że serwer się uruchamia**, jednak mechaniki PvP, kary za logout i ochrony łóżek **czekają na zbiorcze testy multiplayer**. |
-| **1.8.8 — nowy ZIP** | Limity całego noszonego ekwipunku, zakaz 3 przedmiotów, reguły Mending/Fortune/PvP enchantów oraz dostęp do Netheru/Endu. Bez zmiany SQLite; domyślny Nether od dnia serwera 10, próg konfigurowalny. | Reguły i nowe listenery przeszły **kontrolną kompilację na atrapach API**, samodzielne testy logiczne. **Brak pełnego buildu Gradle z JDK 25 i prób na Paper**. Nie uznawać tego etapu za zaliczony. |
+| **1.8.8 — kod na `main`** | Limity ekwipunku, zakaz 3 przedmiotów, reguły Mending/Fortune/enchantów oraz Nether/End. Bez migracji SQLite. | **Potwierdzone:** push na GitHub. **Niepotwierdzone:** pełny build i działanie wszystkich reguł w Paper; wymagana osobna sesja testowa. |
 
-**Stan obecny:** systemy państw, rdzeni, wojen, mapa i GUI działają w zakresach potwierdzonych przez użytkownika. **1.8.7 R3 uruchamia się, ale testy kilku graczy pozostają niewykonane. 1.8.8 ma nowy kod i testy jednostkowe, lecz nie przeszła jeszcze pełnego Gradle ani uruchomienia na Paper.** Projekt nie jest gotowy produkcyjnie.
+**Stan obecny:** systemy państw, rdzeni, wojen, mapa i GUI działają w zakresach potwierdzonych przez użytkownika. **1.8.7 R3** uruchamia się, ale testy multiplayer jeszcze nie były przeprowadzone. **1.8.8** jest już na `main`, lecz bez przekazanego wyniku pełnego buildu Java 25 i testu funkcjonalnego; nie uznajemy etapu za zweryfikowany. Projekt nie jest gotowy produkcyjnie.
 
 **Zależność mapy:** portal `127.0.0.1:8766` wciąż pobiera publiczne kafelki i znaczniki z wewnętrznego squaremap `http://127.0.0.1:8080` (`map-portal.squaremap-internal-url`). **Nie wyłączać backendu HTTP 8080**. Oryginalnego GUI squaremap nie trzeba udostępniać graczom; 8080 powinno pozostać prywatne.
 
@@ -99,7 +99,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - W czasie pokoju ochrona PvP we własnej bazie; na własnym terytorium politycznym po pierwszej próbie ataku **8 s obronnej nietykalności, cooldown 5 min**, pierwszy cios anulowany. W wojnie PvP działa normalnie; neutralne państwa zachowują pokojowe zabezpieczenia.
 - Podczas wojny po kliknięciu **Respawn** rozpoczyna się widoczne **na ekranie (nie na czacie)** odliczanie zależne od członków **własnego państwa online**: 1–2 = 15 s; 3–5 = 20 s; 6–10 = 30 s; 11–15 = 40 s; 16+ = 50 s. Przez ten czas gracz nie może się poruszać, z niczym wchodzić w interakcje ani zostać zabity. Po zakończeniu odliczania natychmiast wraca zwykła rozgrywka, w tym możliwość zaatakowania go przez wrogów. W pokoju brak dodatkowego timera.
 - Limity w **całym ekwipunku przez cały czas**: zwykłe złote jabłka 8; perły Endu 3; pajęczyny 16; totemy 3. Zaklęte złote jabłka, End Crystals i Respawn Anchors — całkowicie wyłączone. Po śmierci **cały ekwipunek wypada**.
-- **Nether** dostępny po 10 dniach; **End** wyłączony na stałe. Zaklęcia przez handel z villagerami uzyskanymi przez leczenie zombie villagerów; Mending zakazany. Fortune: brak do dnia 6, I od dnia 7, III od dnia 16, Fortune II nigdy. Enchanty wpływające na PvP: maks. I przez pierwsze 9 dni, następnie maks. II.
+- **Nether** dostępny od **06:00 (Europe/Warsaw) dnia serwera 10**; **End** wyłączony na stałe. Pierwszych **dwóch villagerów** do rozpoczęcia hodowli trzeba zdobyć przez leczenie zombie villagerów; późniejsze rozmnażanie jest dozwolone. Zasada pochodzenia villagerów jest na razie **regulaminowa, nieegzekwowana automatycznie przez plugin**. Mending zakazany. Fortune: brak do dnia 6, I od dnia 7, III od dnia 16, Fortune II nigdy. Pozostałe enchanty dokładnie według reguł w 1.8.8, bez rozszerzania wyjątków QoL.
 - Barter **przedmiot za przedmiot**, bez wirtualnej waluty. Gracze: sklepy skrzynkowe. Admin: nieskończone wymiany podstawowych materiałów (np. cobblestone ↔ cobbled deepslate 1:1). Docelowa mapa przeglądarkowa koloruje chunki państw, pokazuje **graczy tylko członkom tego samego państwa**, a **wszystkie postawione rdzenie publicznie** z ikoną lodestone i współrzędnymi.
 - **Zegar edycji:** centralny numer dnia zmienia się codziennie o **06:00 czasu polskiego**. Docelowe `/home` działa także podczas wojny: dni 1–2 bez limitu, od dnia 3 maksymalnie **4 razy dziennie na gracza** (reset 06:00). Ręczna zmiana stolicy: **6 godzin cooldownu na państwo** (plan).
 - **Interfejs 1.8.6:** `/esmp tierlist` — państwa sortowane według kontrolowanych postawionych rdzeni (w tym zdobycznych); indywidualny panel boczny serwera/państwa. Podstawowe działanie obu funkcji zostało potwierdzone w grze.
@@ -278,14 +278,14 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 
 ## 11. Zaklęcia (enchanty) i progresja
 
-- Zwykłe villagery zdobywa się **wyłącznie przez leczenie zombie villagerów**, a zaklęcia pozyskuje się przez **handel z tak uzyskanymi villagerami**. Nie ma adminowskiego sklepu z enchantami.
+- Pierwszych **dwóch villagerów** pozyskuje się **przez leczenie zombie villagerów**. Po zdobyciu tej pary można **normalnie rozmnażać villagerów**. Nie ma adminowskiego sklepu z enchantami. **Uwaga implementacyjna:** plugin 1.8.8 sprawdza legalność ofert enchantów, lecz nie weryfikuje pochodzenia pierwszej pary — obecnie jest to zasada regulaminowa.
 - Ograniczenia obowiązują **na gotowym przedmiocie** i muszą obejmować łączenie książek w kowadle, oferty handlowe oraz inne potencjalne źródła. Nie wolno obejść progów przez łączenie.
 - **Mending** — zabroniony przez całą edycję.
-- **Implementacja 1.8.8:** blokuje niedozwolone wyniki kowadła i craftingu, nowe nielegalne oferty villagerów, niedozwolone enchanty przy enchantowaniu oraz efekt Mending. Istniejące przedmioty z niedozwolonymi enchantami są automatycznie **normalizowane** (enchant usuwany lub obniżany; przedmiot pozostaje). Dopuszczona lista wyjątków QoL jest ścisła: Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I, Respiration III. Pozostałe enchanty podlegają ostrożnie limitowi I/II do czasu ustalenia wyjątków mobilności. Niezależny test handlu i kowadła pozostaje do wykonania.
+- **Implementacja 1.8.8:** blokuje niedozwolone wyniki kowadła i craftingu, nowe nielegalne oferty villagerów, niedozwolone enchanty przy enchantowaniu oraz efekt Mending. Istniejące przedmioty z niedozwolonymi enchantami są automatycznie **normalizowane** (enchant usuwany lub obniżany; przedmiot pozostaje). Dopuszczona lista wyjątków QoL jest ścisła: Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I, Respiration III. **Wszystkie inne enchanty pozostają ograniczone tak, jak w kodzie 1.8.8** (w tym mobilność), bez dodatkowych wyjątków. Testy handlu i kowadła nadal do wykonania.
 - **Fortune II** — zabroniony przez całą edycję, nawet gdy Fortune I i III są dopuszczone.
 - **Fortune I** — dostępny od 7. dnia; **Fortune III** — od 16. dnia; przed dniem 7 Fortune niedostępny.
 - **Enchantmenty dające przewagę w PvP** (np. Protection, Sharpness, Power, Knockback, Fire Aspect, Thorns, Piercing, Quick Charge oraz analogiczne) — maksymalnie **poziom I przez pierwsze 9 dni edycji**, a **poziom II od 10. dnia do końca** (zaklęcia o naturalnym maks. I pozostają na I).
-- **Wyjątki dostępne na normalnych poziomach**: **Unbreaking III**, **Efficiency V**, **Looting III**, **Silk Touch I** oraz naprawdę użytkowe zaklęcia na buty/hełm, które nie zapewniają istotnej przewagi w PvP (np. Aqua Affinity I, Respiration III). Dla zaklęć wpływających na mobilność lub przetrwanie w walce nie wolno automatycznie przyjmować pełnego poziomu jako „QoL”; szczegółowa lista wyjątków jest jednym z drobnych punktów technicznego doprecyzowania.
+- **Zatwierdzone wyjątki QoL:** Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I i Respiration III. **Pozostałe enchanty**, również wpływające na mobilność, podlegają poziomowi wynikającemu z 1.8.8; nie dodajemy dalszych wyjątków.
 - Nie ma mechaniki stopniowego odblokowywania wszystkich enchantów lub płatnego adminowskiego sklepu; jedyne fazy to zatwierdzone limity PvP i harmonogram Fortune.
 
 ### 11.1. Oś czasu
@@ -295,16 +295,16 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 | Dni 0–6 | Fortune niedostępny; PvP enchanty maks. I |
 | Dni 7–9 | Fortune I; PvP enchanty maks. I |
 | Od 10. dnia | PvP enchanty maks. II |
-| Po 10 dniach od startu | **Otwarcie Netheru** |
+| Dzień 10, godz. 06:00 PL | **Otwarcie Netheru** |
 | Dni 10–15 | Fortune I |
 | Od 16. dnia | Fortune I albo III; II niedostępny |
 | Cała edycja | Mending zakazany; End zamknięty |
 
 ## 12. Nether, End, eksplozje
 
-- **Nether jest zablokowany przez pierwszych 10 dni** i otwierany po upływie 10 dni od startu edycji.
+- **Nether pozostaje zablokowany do godziny 05:59:59 dnia 10; otwiera się o 06:00 (Europe/Warsaw) dnia serwera 10**. To ostateczna decyzja administracyjna, nadrzędna wobec dawnych sformułowań „po 10 pełnych dniach”.
 - **End jest na stałe wyłączony**. W konsekwencji brak naturalnego dostępu do shulkerów/Shulker Boxów.
-- **Implementacja testowa 1.8.8:** blokuje portale/teleportacje, przekierowuje respawn i wejście gracza z niedostępnego wymiaru na Overworld. `progression.nether-unlock-day: 10` oznacza domyślnie od **dnia serwera 10 po 06:00**; można zmienić na `11` bez przebudowy. Zapisy historyczne „po dziesięciu pełnych dniach” znaczą dzień 11, dlatego **przed startem edycji administrator musi ostatecznie potwierdzić 10 vs 11**, a nie polegać na domyśle.
+- **Implementacja testowa 1.8.8:** blokuje portale i teleportacje, przekierowuje respawn oraz wejście gracza z niedostępnego wymiaru na Overworld. Parametr `progression.nether-unlock-day: 10` jest **zatwierdzony**; nie zmieniamy go na 11. Pełny test granicznej godziny nadal do przeprowadzenia.
 - W Netherze **można wysadzać łóżka w celu wydobywania ancient debris**. **Nie wolno używać eksplozji łóżek do PvP.** Jest to **zasada pisemna**, nie osobna blokada kodowa.
 - **TNT Minecart PvP** jest zakazane **regulaminowo**, w tym pułapki z wagonikami TNT. Zwykłe TNT może służyć do prac budowlanych/górnictwa, ale nie wolno nim obchodzić ochrony baz.
 - **Portal trapping** (celowe blokowanie gracza w przejściu przy zmianie wymiaru) jest zabroniony regulaminowo, także podczas wojny. Normalne zasadzki w pobliżu portali nie są tym samym.
@@ -545,8 +545,8 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 **1.8.8 — paczka do lokalnego builda i testów:**
 
 - Limity plecak + hotbar + offhand (i wyposażenie gracza): 8 zwykłych złotych jabłek, 3 perły, 16 pajęczyn, 3 totemy; zakaz posiadania zaklętych złotych jabłek, End Crystals i Respawn Anchors. Częściowe pobieranie przedmiotów ma pozostawiać resztę w źródle. Nietypowy nadmiar jest upuszczany na ziemię, nie kasowany.
-- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. Jawna lista wyłączonych z tych ograniczeń enchantów QoL; **nieustalone wyjątki mobilności ograniczane ostrożnie**, bez uznawania ich za zatwierdzone.
-- End zawsze zamknięty. Nether blokowany przed numerem dnia podanym w `progression.nether-unlock-day` (domyślnie **10**, o 06:00 PL). **Próg wymaga potwierdzenia** ze względu na dawną sprzeczność w specyfikacji.
+- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. **Wyjątki QoL pozostają dokładnie takie, jak w 1.8.8; nie dodajemy kolejnych, również dla mobilności.**
+- End zawsze zamknięty. Nether od **06:00 dnia serwera 10** (`progression.nether-unlock-day: 10`) — **decyzja ostateczna**, zgodna z implementacją.
 - Brak nowego schematu SQLite: nadal **v10**. Nowa logika nie wymaga resetu danych, lecz pełnego backupu i testu ze starymi przedmiotami.
 - **Kryterium akceptacji:** `./gradlew clean build` na Java 25, start pluginu i seria testów: częściowe podnoszenie, shift-click, drag, Creative, `/give`, enderchest, craft, villagery, kowadło, Mending, granice dni 6/7/9/10/15/16 oraz portale End/Nether i próby /tp.
 
@@ -557,18 +557,21 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasadami”; to techniczne wyjątki wymagające rozpisania implementacji:
 
 1. **Techniczny wygląd blokady respawnu (reguły rozstrzygnięte):** wybrać ekranowy sposób prezentacji 15–50 s, zabezpieczyć pełny brak ruchu i interakcji oraz nietykalność *podczas* odliczania. Po odliczaniu brak ochrony. „Zbrojownia” nie jest specjalną strefą.
-2. **Dokładna lista zaklęć QoL:** pełne wyjątki dla butów/hełmu, zwłaszcza enchanty jednocześnie poprawiające mobilność w PvP. Pozostałe zaklęcia podlegają ogólnemu limitowi I/II.
+2. **Wyjątki enchantów — rozstrzygnięte:** obowiązuje lista i poziomy z 1.8.8. Nie dodawać dalszych wyjątków dla mobilności lub przeżywalności bez nowej decyzji.
 3. **Odporność systemu ochrony:** pełna lista wyjątków fizyki, tłoków, eksplozji, zastępowania bloków, redstone oraz obrony łóżek i ich podpór.
 4. **Precyzyjna mechanika startu oblężenia:** rozróżnienie obecności wrogiego gracza w chronionej bazie, startu ataku przy progu online i prowadzenia licznika; nie rozszerzać blokad na pokój lub neutralnych.
 5. **Mapa prywatnych pozycji i jawnych rdzeni:** od 1.8.4 istnieje uwierzytelnienie do pozycji współobywateli i filtrowanie po stronie serwera; potrzebne są testy wielu państw oraz audyt publicznych endpointów. **Pozycje wszystkich rdzeni są publiczne, ale pozycje graczy pozostają prywatne.**
 6. **Edytor terytoriów WWW (kierunek zatwierdzony):** autoryzacja konta Minecraft, narzędzia zaznaczania wielu chunków (również mobilnie), podgląd wniosków, panel admina i walidacja backendowa. Sam wybór mapy WWW zamiast moda jest już rozstrzygnięty.
 7. **Zegar i `/home`:** wdrożone od 1.8.2; nadal przetestować strefę `Europe/Warsaw`, zmianę czasu, restarty i czytelność komunikatów. Zachować ustalone 06:00, dni 1–2 bez limitu i 4 użycia od dnia 3.
-8. **Istniejące zapisy „od dnia 10” a „po 10 dniach”:** w 1.8.8 próg jest **parametrem konfiguracyjnym**, z roboczym `10` (06:00 na początku dnia serwera 10); przed startem edycji wybrać ostatecznie `10` albo `11` w dyskusji administracyjnej.
+8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. W razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia (w szczególności §15–16 dotyczące `/home`, zegara i mapy).
+**Koniec dokumentacji v1.8.1.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
 
 <!-- Aktualizacja v1.8: 1.8.7 R3 start bez testów PvP; 1.8.8 przygotowana do builda; limity/enchanty/wymiary, próg Netheru do potwierdzenia; audyt dzienny w osobnym pliku. -->
+
+
+<!-- Aktualizacja v1.8.1: potwierdzone 06:00 dnia 10, enchanty bez zmian względem 1.8.8, pierwsza para villagerów z leczenia (później rozmnażanie), main 1.8.8 oraz procedura porządkowania repo. -->
