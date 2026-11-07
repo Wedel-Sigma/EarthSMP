@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.wedelsigma.earthsmp"
-version = "1.8.11"
+version = "1.8.13"
 
 repositories {
     mavenCentral()

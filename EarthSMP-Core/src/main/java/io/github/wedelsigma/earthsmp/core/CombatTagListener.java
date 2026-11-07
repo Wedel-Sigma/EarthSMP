@@ -36,6 +36,12 @@ public final class CombatTagListener implements Listener {
     private final Path pendingFile;
     private final Map<UUID, Long> tagged = new HashMap<>();
     private final Set<UUID> pendingDeaths = new HashSet<>();
+    
+    /** Includes the full 60-second combat tag, not only the instant damage event. */
+    public boolean isTagged(Player player) {
+        Long expiry = tagged.get(player.getUniqueId());
+        return expiry != null && CombatTagRules.isTagged(System.currentTimeMillis(), expiry);
+    }
 
     CombatTagListener(EarthSmpCorePlugin plugin) throws IOException {
         this.plugin = plugin;

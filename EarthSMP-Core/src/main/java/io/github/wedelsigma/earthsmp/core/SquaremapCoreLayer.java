@@ -34,10 +34,13 @@ final class SquaremapCoreLayer {
     private MapWorld mapWorld;
     private Squaremap squaremap;
     private final Set<Key> ownedImages = new HashSet<>();
+    private String lastSnapshot;
 
     SquaremapCoreLayer(EarthSmpCorePlugin plugin) { this.plugin = plugin; }
 
-    boolean refresh() throws SQLException {
+    boolean refresh() throws SQLException { return refresh(false); }
+    
+    boolean refresh(boolean force) throws SQLException {
         World earth = plugin.getServer().getWorld(plugin.getConfig().getString("world-name", "Earth"));
         if (earth == null) return false;
         Squaremap api = SquaremapProvider.get();
@@ -48,6 +51,16 @@ final class SquaremapCoreLayer {
         List<NationDatabase.ProtectionCore> cores = plugin.getNationDatabase().allProtectionCores().stream()
                 .filter(core -> earth.getName().equals(core.world())).toList();
 
+        // Fingerprint only public marker data (ID and XYZ), never owner or capital status.
+        String snapshot = String.join("|", cores.stream()
+                .map(c -> c.id() + ":" + c.x() + ":" + c.y() + ":" + c.z())
+                .sorted().toList());
+        if (!force && snapshot.equals(lastSnapshot) && mapWorld == world && squaremap == api
+                && layer != null && world.layerRegistry().hasEntry(LAYER_KEY)
+                && ownedImages.stream().allMatch(api.iconRegistry()::hasEntry)) return true;
+        // Ensure a failed or partially completed refresh is attempted again.
+        lastSnapshot = null;
+        
         Map<Key, Marker> markers = new LinkedHashMap<>();
         Map<Key, BufferedImage> images = new LinkedHashMap<>();
         for (var core : cores) {
@@ -111,7 +124,8 @@ final class SquaremapCoreLayer {
             }
             ownedImages.clear();
             ownedImages.addAll(images.keySet());
-            plugin.getLogger().info("squaremap: " + markers.size() + " public Earth core icons");
+            lastSnapshot = snapshot;
+            plugin.getLogger().info("squaremap: " + markers.size() + " public Earth core icons (updated)");
             return true;
         } catch (RuntimeException e) {
             for (Key key : freshlyRegistered) {
@@ -126,8 +140,9 @@ final class SquaremapCoreLayer {
         layer = null;
         mapWorld = null;
         squaremap = null;
+        lastSnapshot = null;
     }
-
+    
     private void cleanupPrevious() {
         if (mapWorld != null && layer != null && mapWorld.layerRegistry().hasEntry(LAYER_KEY)) {
             mapWorld.layerRegistry().unregister(LAYER_KEY);

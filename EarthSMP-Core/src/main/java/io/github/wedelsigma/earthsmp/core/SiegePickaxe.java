@@ -260,7 +260,7 @@ public final class SiegePickaxe implements Listener {
             inventory.setResult(null);
             player.setItemOnCursor(result);
             player.updateInventory();
-            player.sendMessage(Component.text("Wykonano Kilof Oblezniczy: 15 legalnych zniszczen.",NamedTextColor.GREEN));
+            player.sendActionBar(Component.text("Wykonano Kilof Oblężniczy: 15 użyć", NamedTextColor.GREEN));
         } catch(SQLException | RuntimeException error) {
             plugin.getLogger().log(Level.SEVERE,"Siege pickaxe crafting failed",error);
             if(id!=null) try { plugin.getSiegeStorage().revokePickaxe(id); }
@@ -316,7 +316,7 @@ public final class SiegePickaxe implements Listener {
                 player.sendMessage(Component.text("Kilof Oblezniczy zuzyl 15. blok i rozpadl sie!",NamedTextColor.GOLD));
             } else {
                 player.getInventory().setItemInMainHand(signedItem(id,after));
-                player.sendMessage(Component.text("Kilof Oblezniczy: pozostalo "+after+"/15.",NamedTextColor.YELLOW));
+                player.sendActionBar(Component.text("Kilof Oblężniczy: pozostało " + after + "/15", NamedTextColor.YELLOW));
             }
         } catch(SQLException error) {
             plugin.getLogger().log(Level.SEVERE,"Cannot debit siege pickaxe after block break",error);

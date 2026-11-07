@@ -142,6 +142,7 @@ public final class SiegeManager {
             Session s = new Session(core.get(), own.get().nationId(), warId, now);
             active.put(s.coreId, s);
             alert(s, "Rozpoczeto legalny szturm przeciwko " + s.defenderName + " w wojnie #" + s.warId + ".");
+            plugin.getEventTitles().warParticipants(s.warId, "OBLĘŻENIE!", "Szturm na bazę: " + s.defenderName, NamedTextColor.RED);
             return Result.STARTED;
         } catch (SQLException error) {
             plugin.getLogger().log(Level.SEVERE, "Failed to evaluate siege start", error);
@@ -346,6 +347,11 @@ public final class SiegeManager {
                 ? "Panstwo " + victor + " zdobylo rdzen panstwa " + s.defenderName + "!"
                 : "Panstwo " + s.defenderName + " upadlo po utracie ostatniego rdzenia!";
         Bukkit.broadcast(Component.text("[" + plugin.getDisplayName() + "] " + message, NamedTextColor.GOLD));
+        if (outcome == NationDatabase.CaptureOutcome.CONQUERED) {
+            plugin.getEventTitles().everyone("RDZEŃ ZDOBYTY!", victor + " przejmuje rdzeń", NamedTextColor.GREEN);
+        } else {
+            plugin.getEventTitles().everyone("UPADEK PAŃSTWA!", s.defenderName, NamedTextColor.RED);
+        }
         plugin.getLogger().info(message);
         return true;
     }
@@ -377,6 +383,7 @@ public final class SiegeManager {
                         } else if (s.missingSince == null) {
                             s.missingSince = now;
                             alert(s, "Obroncow za malo — 30 minut na dokonczenie.");
+                            plugin.getEventTitles().warParticipants(s.warId, "30 MINUT", "Zbyt mało obrońców online", NamedTextColor.GOLD);
                         } else if (SiegeRules.graceExpired(s.missingSince, now)) {
                             ended = "Minelo 30 minut bez wymaganej liczby obroncow.";
                         }
@@ -420,7 +427,10 @@ public final class SiegeManager {
             if (captured || ended != null) {
                 hideBossbar(s);
                 it.remove();
-                if (!captured) alert(s, "Szturm przeciwko " + s.defenderName + " zakonczony: " + ended);
+                if (!captured) {
+                    alert(s, "Szturm przeciwko " + s.defenderName + " zakonczony: " + ended);
+                    plugin.getEventTitles().warParticipants(s.warId, "KONIEC OBLĘŻENIA", "Szturm na " + s.defenderName + " zakończony", NamedTextColor.GOLD);
+                }
             }
         }
 

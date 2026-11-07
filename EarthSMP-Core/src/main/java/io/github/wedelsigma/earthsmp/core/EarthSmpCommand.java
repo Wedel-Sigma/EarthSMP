@@ -369,6 +369,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
                             .findMembership(actor.getUniqueId()).orElseThrow();
                     send(sender, "Wyslano zaproszenie do " + target.getName() + " (wazne 24h).", NamedTextColor.GREEN);
                     send(target, "Zaproszenie do panstwa " + nation.nationName() + " od " + actor.getName(), NamedTextColor.GREEN);
+                    plugin.getEventTitles().show(target, "ZAPROSZENIE!", nation.nationName(), NamedTextColor.GOLD);
                     send(target, "Akceptuj: /earthsmp nation accept " + nation.nationName(), NamedTextColor.YELLOW);
                 }
                 case NOT_AUTHORIZED -> send(sender, "Zapraszac moga tylko lider i zastepcy.", NamedTextColor.RED);
@@ -469,6 +470,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
                     };
                     send(sender, target.getName() + " zostal " + description + ".", NamedTextColor.GREEN);
                     send(target, "Zostales " + description + " przez " + actor.getName() + ".", NamedTextColor.YELLOW);
+                    plugin.getEventTitles().show(target, "ZMIANA RANGI", description, NamedTextColor.GOLD);
                 }
                 case NOT_AUTHORIZED -> send(sender, "Zarzadzac czlonkami moga tylko lider i zastepcy.", NamedTextColor.RED);
                 case NOT_IN_SAME_NATION -> send(sender, "Gracz nie nalezy do twojego panstwa.", NamedTextColor.YELLOW);

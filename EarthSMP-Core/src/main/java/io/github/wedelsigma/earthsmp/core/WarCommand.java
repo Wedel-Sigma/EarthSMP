@@ -67,8 +67,10 @@ public final class WarCommand {
             try {
                 long id=number(args[2]);
                 var result=repo.adminEnd(id,sender instanceof Player p?p.getUniqueId():new UUID(0L,0L));
-                if(result.status()==WarRepository.Status.SUCCESS) broadcast("[" + plugin.getDisplayName() + "] Admin zakonczyl wojne #"+id);
-                else report(sender,result.status());
+                if (result.status() == WarRepository.Status.SUCCESS) {
+                    broadcast("[" + plugin.getDisplayName() + "] Admin zakonczyl wojne #" + id);
+                    plugin.getEventTitles().everyone("KONIEC WOJNY", "Administrator zakończył wojnę #" + id, NamedTextColor.GOLD);
+                } else report(sender, result.status());
             }catch(SQLException e){error(sender,"War admin end",e);}
             return true;
         }
@@ -133,6 +135,7 @@ public final class WarCommand {
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
         var w=repo.find(o.warId()).orElseThrow();
         broadcast("[" + plugin.getDisplayName() + "] WOJNA #"+w.id()+": "+w.attackerName()+" wypowiada wojne "+w.defenderName()+"!");
+        plugin.getEventTitles().everyone("WOJNA!", w.attackerName() + " vs " + w.defenderName(), NamedTextColor.RED);
         if(!w.declaration().isBlank()) broadcast("[" + plugin.getDisplayName() + "] Ogłoszenie: "+w.declaration());
         broadcast("[" + plugin.getDisplayName() + "] Sojusznicy moga dolaczyc przez pierwsze 4 godziny.");
     }
@@ -145,7 +148,10 @@ public final class WarCommand {
         for(Player online:Bukkit.getOnlinePlayers()) {
             var m=plugin.getNationDatabase().findMembership(online.getUniqueId());
             if(m.isPresent() && m.get().nationId().equals(targetId))
-                send(online,"[" + plugin.getDisplayName() + "] Zaproszenie do wojny #"+warId+". Otworz /esmp -> Dyplomacja.",NamedTextColor.GREEN);
+                {
+                    send(online,"[" + plugin.getDisplayName() + "] Zaproszenie do wojny #"+warId+". Otworz /esmp -> Dyplomacja.",NamedTextColor.GREEN);
+                    plugin.getEventTitles().show(online, "ZAPROSZENIE", "Do wojny #" + warId, NamedTextColor.GOLD);
+                }
         }
     }
     public void answer(Player player,long warId,boolean yes) throws SQLException {
@@ -153,6 +159,7 @@ public final class WarCommand {
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
         String name=plugin.getNationDatabase().findMembership(player.getUniqueId()).orElseThrow().nationName();
         alertWar(warId,"[" + plugin.getDisplayName() + "] "+name+(yes?" dolacza do wojny ":" odrzuca zaproszenie do wojny ")+"#"+warId);
+        if (yes) plugin.getEventTitles().warParticipants(warId, "NOWY SOJUSZNIK", name + " dołącza do wojny", NamedTextColor.GOLD);
         send(player,"Zapisano decyzje.",NamedTextColor.GREEN);
     }
     public void leave(Player player,long warId) throws SQLException {
@@ -161,14 +168,17 @@ public final class WarCommand {
         var o=repo.leaveWar(player.getUniqueId(),warId);
         if(o.status()!=WarRepository.Status.SUCCESS) {report(player,o.status());return;}
         alertWar(warId,"[" + plugin.getDisplayName() + "] "+name+" opuszcza wojne #"+warId);
+        plugin.getEventTitles().warParticipants(warId, "WYCOFANIE", name + " opuszcza wojnę", NamedTextColor.GOLD);
         send(player,"Twoj kraj wycofal sie z wojny.",NamedTextColor.GREEN);
     }
     public void peace(Player player,long warId) throws SQLException {
         var o=repo.peace(player.getUniqueId(),warId);
         if(o.status()==WarRepository.Status.PEACE_PROPOSED) {
             alertWar(warId,"[" + plugin.getDisplayName() + "] Propozycja pokoju w wojnie #"+warId+". Druga glowna strona musi ja zaakceptowac.");
+            plugin.getEventTitles().warParticipants(warId, "PROPOZYCJA POKOJU", "Wojna #" + warId, NamedTextColor.GOLD);
         } else if(o.status()==WarRepository.Status.PEACE_ENDED) {
             broadcast("[" + plugin.getDisplayName() + "] POKOJ! Wojna #"+warId+" zakonczyla sie za zgoda obu glownych panstw.");
+            plugin.getEventTitles().everyone("POKÓJ!", "Wojna #" + warId + " zakończona", NamedTextColor.GREEN);
         } else report(player,o.status());
     }
     public void cancelPeace(Player player,long warId) throws SQLException {

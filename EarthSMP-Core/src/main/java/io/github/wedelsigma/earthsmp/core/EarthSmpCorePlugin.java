@@ -24,6 +24,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     private MapPortalServer mapPortalServer;
     private ServerClock serverClock;
     private HomeCommand homeCommand;
+    private EventTitles eventTitles;
     private EarthSmpSidebar sidebar;
     private NationTierlistMenu tierlist;
     private NationMenu nationMenu;
@@ -68,6 +69,8 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         securityAlerts = new SecurityAlerts(this);
         serverClock = new ServerClock();
         homeCommand = new HomeCommand(this);
+        eventTitles = new EventTitles(this);
+        getServer().getPluginManager().registerEvents(homeCommand, this);
         PluginCommand home = Objects.requireNonNull(getCommand("home"), "Missing home command in plugin.yml");
         home.setExecutor((sender, command, label, args) -> {
             if (sender instanceof Player player) homeCommand.execute(player);
@@ -167,7 +170,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }, 40L);
             // Recovery polling: helps if squaremap's web world finishes loading later.
             // This also self-heals public markers after exceptional DB/admin changes.
-            getServer().getScheduler().runTaskTimer(this, this::refreshCoreMap, 20L * 60L, 20L * 60L);
+            getServer().getScheduler().runTaskTimer(this, () -> refreshCoreMap(), 20L * 60L * 10L, 20L * 60L * 10L);
         } else {
             getLogger().warning("squaremap not enabled: territory claims still work, but no public overlay");
         }
@@ -198,7 +201,7 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }
             }
         }
-        getLogger().info("EarthSMP Core 1.8.10 enabled - map portal security and WorldBorder overlay");
+        getLogger().info("EarthSMP Core 1.8.13 enabled - usability and performance polish");
     }
 
     @Override
@@ -245,7 +248,9 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         coreCaptureZone = null;
         siegePickaxe = null;
         blockOriginListener = null;
+        if (homeCommand != null) homeCommand.shutdown();
         homeCommand = null;
+        eventTitles = null;
         serverClock = null;
         siegeStorage = null;
         warMenu = null;
@@ -272,10 +277,13 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     }
 
     /** Refresh public XYZ lodestone markers after every committed core operation. */
-    public boolean refreshCoreMap() {
+    public boolean refreshCoreMap() { return refreshCoreMap(false); }
+    
+    /** Admin maprefresh must force rebuilding, even when coordinates are unchanged. */
+    public boolean refreshCoreMap(boolean force) {
         if (squaremapCoreLayer == null) return false;
         try {
-            return squaremapCoreLayer.refresh();
+            return squaremapCoreLayer.refresh(force);
         } catch (SQLException | RuntimeException error) {
             getLogger().log(Level.WARNING, "Could not refresh public squaremap core icons", error);
             return false;
@@ -363,6 +371,17 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         return Objects.requireNonNull(tierlist, "Tierlist not initialized");
     }
 
+    public EventTitles getEventTitles() {
+        return Objects.requireNonNull(eventTitles, "Event title notifications not initialized");
+    }
+    
+    /** Keep full-screen events out of combat and existing countdowns. */
+    public boolean majorTitleBlocked(Player player) {
+        return (combatTag != null && combatTag.isTagged(player))
+                || (warRespawn != null && warRespawn.isLocked(player))
+                || (homeCommand != null && homeCommand.isWarmingUp(player));
+    }
+    
     public HomeCommand getHomeCommand() {
         return Objects.requireNonNull(homeCommand, "Home teleport not initialized");
     }

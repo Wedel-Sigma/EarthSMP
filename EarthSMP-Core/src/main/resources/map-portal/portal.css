@@ -84,3 +84,7 @@ h1{font-size:1.36rem;letter-spacing:.11em;margin:0}h1 span{color:#e5bf66}.subtit
 #territory-count{font-size:.72rem;flex:2;text-align:right}
 #territory-section .message{min-height:0}
 .leaflet-pane.esmp-grid-pane{pointer-events:none}
+#map.esmp-middle-pan, #map.esmp-middle-pan * {cursor:grabbing!important}
+@media (hover:hover) and (pointer:fine) {
+  #brush-add, #brush-remove, #brush-pan {display:none!important}
+}

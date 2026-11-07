@@ -113,6 +113,20 @@ async function initMap() {
       tileSize:512, minNativeZoom:0,maxNativeZoom:details.zoom.max,
       maxZoom:details.zoom.max+(details.zoom.extra||0),errorTileUrl:"",noWrap:true
     }).addTo(map);
+
+    // Publiczny znacznik spawnu w Makau.
+    const spawnIcon = L.divIcon({
+      className: "",
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      html: '<span style="font-size:28px;line-height:32px;">🏠</span>'
+    });
+
+    L.marker(toLatLng(details.spawn.x, details.spawn.z), {
+      icon: spawnIcon,
+      interactive: false
+    }).addTo(map);
+
     layers.players = L.layerGroup();
     toggleLayer("players",el("show-players"));
     ready = true;
@@ -304,6 +318,42 @@ function initTerritoryMap() {
   };
   map.on("mouseup",finish);
   document.addEventListener("mouseup",finish);
+  // Desktop-only: middle mouse button pans without switching away from the LMB brush.
+  // Capture before Leaflet sees MMB; keep touch devices' existing brush controls.
+  const finePointer = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  let middlePan = null;
+  const mapElement = map.getContainer();
+  mapElement.addEventListener("mousedown", event => {
+    if (!territory.editing || !finePointer() || event.button !== 1) return;
+    event.preventDefault(); // Stop the browser's middle-click auto-scroll.
+    event.stopPropagation();
+    finish();
+    middlePan = {x: event.clientX, y: event.clientY};
+    mapElement.classList.add("esmp-middle-pan");
+  }, true);
+  document.addEventListener("mousemove", event => {
+    if (middlePan === null) return;
+    if ((event.buttons & 4) === 0) { // MMB released outside the map.
+      middlePan = null;
+      mapElement.classList.remove("esmp-middle-pan");
+      return;
+    }
+    event.preventDefault();
+    const dx = event.clientX - middlePan.x;
+    const dy = event.clientY - middlePan.y;
+    middlePan = {x: event.clientX, y: event.clientY};
+    if (dx || dy) map.panBy([-dx, -dy], {animate: false});
+  }, true);
+  document.addEventListener("mouseup", event => {
+    if (event.button === 1 && middlePan !== null) {
+      middlePan = null;
+      mapElement.classList.remove("esmp-middle-pan");
+    }
+  }, true);
+  window.addEventListener("blur", () => {
+    middlePan = null;
+    mapElement.classList.remove("esmp-middle-pan");
+  });
   map.on("click",e=>{
     // Touch screens generate click, but not always mousedown/mousemove.
     if(!territory.editing || territory.panning || territory.painting) return;
@@ -355,7 +405,8 @@ function restoreSelection(state){
 }
 function chooseBrush(kind){
   territory.brush=kind;
-  territory.panning=kind==="pan";
+  // On desktop LMB paints, RMB erases and MMB always pans. Phones retain the buttons.
+  territory.panning=kind==="pan" && !window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   if(territory.editing) {
     if(territory.panning) map.dragging.enable(); else map.dragging.disable();
   }
@@ -371,7 +422,9 @@ function editTerritory(){
     territory.grid.addTo(map);
     territory.selectionLayer.addTo(map);
     chooseBrush("add");
-    territoryInfo("Klikaj i przeciągaj po mapie. Prawym przyciskiem wymazujesz zaznaczenie.");
+    territoryInfo(window.matchMedia("(hover: hover) and (pointer: fine)").matches
+      ? "LPM: zaznaczanie, PPM: wymazywanie, ŚPM: przesuwanie."
+      : "Wybierz tryb pędzla przyciskami, aby zaznaczać lub przesuwać mapę.");
   }else{
     territory.grid.remove();
     territory.selectionLayer.remove();

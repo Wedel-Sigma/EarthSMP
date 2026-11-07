@@ -45,7 +45,7 @@ public final class EditionDimensionsListener implements Listener {
         String reason = target.getEnvironment() == World.Environment.THE_END
                 ? "End jest zamkniety przez cala edycje."
                 : "Nether jest zablokowany do dnia " + netherUnlockDay() + " (zmiana dnia: 06:00 PL).";
-        player.sendMessage(Component.text(reason, NamedTextColor.RED));
+        player.sendActionBar(Component.text(reason, NamedTextColor.RED));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -66,13 +66,13 @@ public final class EditionDimensionsListener implements Listener {
                 event.getFrom().getWorld().getEnvironment() == World.Environment.NORMAL;
         if (fromNormal && cause == PlayerTeleportEvent.TeleportCause.END_PORTAL) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage(Component.text("End jest zamkniety przez cala edycje.", NamedTextColor.RED));
+            event.getPlayer().sendActionBar(Component.text("End jest zamknięty przez całą edycję.", NamedTextColor.RED));
             return;
         }
         if (fromNormal && cause == PlayerTeleportEvent.TeleportCause.NETHER_PORTAL &&
                 !EditionDimensionRules.allowed("NETHER", currentDay(), netherUnlockDay())) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage(Component.text("Nether od dnia " + netherUnlockDay() + " (06:00 PL).",
+            event.getPlayer().sendActionBar(Component.text("Nether od dnia " + netherUnlockDay() + " (06:00 PL).",
                     NamedTextColor.RED));
         }
     }

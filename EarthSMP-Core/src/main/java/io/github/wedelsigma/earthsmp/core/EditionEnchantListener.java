@@ -98,8 +98,8 @@ public final class EditionEnchantListener implements Listener {
             if (invalid(entry.getKey(), entry.getValue(), currentDay)) {
                 event.setCancelled(true);
                 plugin.getSecurityAlerts().record(event.getEnchanter(), "ENCHANT_DENIED", "Enchantment table offered illegal result", true, false);
-                event.getEnchanter().sendMessage(Component.text(
-                        "Zaklecie zablokowane przez progresje edycji.", NamedTextColor.RED));
+                event.getEnchanter().sendActionBar(Component.text(
+                                "Zaklęcie zablokowane przez progresję edycji.", NamedTextColor.RED));
                 return;
             }
         }
@@ -136,7 +136,7 @@ public final class EditionEnchantListener implements Listener {
         if (resultSlot && isIllegal(event.getCurrentItem(), day())) {
             event.setCancelled(true);
             plugin.getSecurityAlerts().record(player, "ENCHANT_RESULT", "Illegal merchant/anvil/smithing output; " + type, true, false);
-            player.sendMessage(Component.text("Wynik ma niedozwolone zaklecie.", NamedTextColor.RED));
+            player.sendActionBar(Component.text("Wynik ma niedozwolone zaklęcie.", NamedTextColor.RED));
         }
         scheduleCheck(player);
     }

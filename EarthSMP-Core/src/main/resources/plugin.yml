@@ -1,5 +1,5 @@
 name: EarthSMPCore
-version: '1.8.11'
+version: '1.8.13'
 main: io.github.wedelsigma.earthsmp.core.EarthSmpCorePlugin
 api-version: '26.3'
 authors: [Wedel-Sigma]

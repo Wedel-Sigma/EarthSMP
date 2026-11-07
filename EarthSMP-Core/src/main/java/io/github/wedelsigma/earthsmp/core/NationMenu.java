@@ -286,6 +286,7 @@ public final class NationMenu implements Listener {
                             + actionLabel(action) + " - wykonano.", NamedTextColor.GREEN));
                     Player onlineTarget = Bukkit.getPlayer(targetUuid);
                     if (onlineTarget != null) {
+                        plugin.getEventTitles().show(onlineTarget, "ZMIANA RANGI", actionLabel(action), NamedTextColor.GOLD);
                         onlineTarget.sendMessage(Component.text("W panstwie wykonano: "
                                 + actionLabel(action) + " (przez " + player.getName() + ")",
                                 NamedTextColor.YELLOW));
@@ -397,7 +398,8 @@ public final class NationMenu implements Listener {
                 player.sendMessage(Component.text("Nazwa jest zajeta lub masz juz panstwo.", NamedTextColor.YELLOW));
             } else {
                 player.sendMessage(Component.text("Utworzono panstwo " + name + ". Jestes liderem!", NamedTextColor.GREEN));
-                player.sendMessage(Component.text("Darmowy rdzen otrzymasz po wdrozeniu systemu rdzeni.", NamedTextColor.GRAY));
+                player.sendMessage(Component.text("Odbierz darmowy rdzen: /esmp core free.", NamedTextColor.GRAY));
+                plugin.getEventTitles().show(player, "PAŃSTWO UTWORZONE!", name, NamedTextColor.GREEN);
             }
         } catch (SQLException error) {
             reportError(player, "Nation creation failed", error);
@@ -525,6 +527,7 @@ public final class NationMenu implements Listener {
                 case SENT -> {
                     NationDatabase.Membership nation = plugin.getNationDatabase().findMembership(player.getUniqueId()).orElseThrow();
                     player.sendMessage(Component.text("Zaproszenie wyslane do " + target.getName() + ".", NamedTextColor.GREEN));
+                    plugin.getEventTitles().show(target, "ZAPROSZENIE!", nation.nationName(), NamedTextColor.GOLD);
                     target.sendMessage(Component.text("Zaproszenie do panstwa " + nation.nationName()
                             + "! Otworz /earthsmp -> Zaproszenia", NamedTextColor.GREEN));
                 }
@@ -658,6 +661,7 @@ public final class NationMenu implements Listener {
             plugin.refreshCoreMap();
             player.sendMessage(Component.text("Panstwo rozwiazane; usunieto " + anchors.size()
                     + " rdzeni. Zwykle budowle pozostaly.", NamedTextColor.GREEN));
+            plugin.getEventTitles().show(player, "PAŃSTWO ROZWIĄZANE", "Usunięto " + anchors.size() + " rdzeni", NamedTextColor.RED);
             openMain(player);
         } catch (SQLException error) {
             reportError(player, "Disband nation failed", error);
@@ -730,9 +734,12 @@ public final class NationMenu implements Listener {
             switch (result) {
                 case TRANSFERRED -> {
                     player.sendMessage(Component.text("Nowy lider: " + playerName(targetUuid), NamedTextColor.GREEN));
+                    plugin.getEventTitles().show(player, "PRZEKAZANO WŁADZĘ", playerName(targetUuid), NamedTextColor.GOLD);
                     Player onlineTarget = Bukkit.getPlayer(targetUuid);
-                    if (onlineTarget != null) onlineTarget.sendMessage(Component.text(
-                            "Zostales nowym liderem panstwa!", NamedTextColor.GREEN));
+                    if (onlineTarget != null) {
+                        onlineTarget.sendMessage(Component.text("Zostales nowym liderem panstwa!", NamedTextColor.GREEN));
+                        plugin.getEventTitles().show(onlineTarget, "NOWY LIDER!", "Przejąłeś przywództwo", NamedTextColor.GREEN);
+                    }
                 }
                 case NOT_LEADER -> player.sendMessage(Component.text("Nie jestes juz liderem.", NamedTextColor.RED));
                 case INVALID_TARGET -> player.sendMessage(Component.text("Nieprawidlowy nowy lider.", NamedTextColor.YELLOW));

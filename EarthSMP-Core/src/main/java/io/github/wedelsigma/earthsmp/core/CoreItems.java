@@ -192,8 +192,9 @@ public final class CoreItems implements Listener {
             }
             plugin.getCoreProtection().reload();
             // One tick later avoids refreshing while Bukkit is still processing BlockPlaceEvent.
-            plugin.getServer().getScheduler().runTask(plugin, plugin::refreshCoreMap);
+            plugin.getServer().getScheduler().runTask(plugin, () -> plugin.refreshCoreMap());
             player.sendMessage(Component.text("Rdzen postawiony. Ochrona 65x65 aktywna!", NamedTextColor.GREEN));
+            plugin.getEventTitles().show(player, "RDZEŃ POSTAWIONY", "Ochrona 65 × 65 aktywna", NamedTextColor.GREEN);
         } catch (SQLException error) {
             event.setCancelled(true);
             plugin.getLogger().log(Level.SEVERE, "Could not place protection core", error);

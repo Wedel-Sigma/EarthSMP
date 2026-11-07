@@ -78,6 +78,7 @@ public final class CoreCommand {
                         msg(player, "Nie udalo sie przekazac rdzenia, sprobuj ponownie.", NamedTextColor.RED);
                     } else {
                         msg(player, "Otrzymales darmowy rdzen swojego panstwa. Postaw go na swoim terytorium.", NamedTextColor.GREEN);
+                        player.sendActionBar(net.kyori.adventure.text.Component.text("Otrzymano darmowy rdzeń ochronny", NamedTextColor.GOLD));
                     }
                 } else if (result.status() == NationDatabase.CoreIssueStatus.ALREADY_FREE) {
                     msg(player, "Panstwo wykorzystalo juz prawo do jednego darmowego rdzenia.", NamedTextColor.YELLOW);
@@ -153,6 +154,7 @@ public final class CoreCommand {
                     if (result == NationDatabase.OwnCapitalResult.UPDATED) {
                         plugin.getCoreProtection().reload();
                         msg(sender, "Nowa stolica twojego panstwa wyznaczona.", NamedTextColor.GREEN);
+                        plugin.getEventTitles().show(player, "NOWA STOLICA!", found.get().nationName(), NamedTextColor.GREEN);
                     } else {
                         msg(sender, switch (result) {
                             case NOT_AUTHORIZED -> "Tylko lider lub zastepca moze zmienic stolice.";
@@ -189,7 +191,7 @@ public final class CoreCommand {
             return true;
         }
         if (operation.equals("maprefresh")) {
-            msg(sender, plugin.refreshCoreMap() ? "squaremap: odswiezono publiczne rdzenie."
+            msg(sender, plugin.refreshCoreMap(true) ? "squaremap: odswiezono publiczne rdzenie."
                     : "squaremap nie jest gotowa; sprawdz konsole i sproboj ponownie.",
                     NamedTextColor.YELLOW);
             return true;
