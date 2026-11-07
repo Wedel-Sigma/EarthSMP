@@ -426,7 +426,11 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Reset dokładnie o 06:00 Europe/Warsaw**, przy przeskoku centralnego dnia serwera. To nie jest przesuwające się 24-godzinne okno. Akceptujemy możliwość użycia **4 teleportacji tuż przed 06:00 i 4 tuż po 06:00**.
 - Użycie jest pobierane **dopiero po pomyślnej teleportacji**; nieudane wywołanie nie zużywa limitu. Dane limitów pozostają w SQLite i nie resetują się przy restarcie lub wylogowaniu.
 - Informacja o pozostałych użyciach i następnym resecie powinna być czytelna dla gracza (komunikat i docelowo sidebar). W dniach 1–2 interfejs pokazuje `∞`.
-- **Status:** mechanika wdrożona od **1.8.2**, z zapisem limitów w SQLite i resetem o 06:00. Klasyczny respawn przy łóżku pozostaje niezależny od `/home`.
+- **NOWE WYMAGANIE — 30 sekund przygotowania `/home` (TODO, jeszcze NIEZAIMPLEMENTOWANE; ustalenie 7.11.2026):** po poprawnej weryfikacji możliwości użycia `/home` teleportacja **nie wykonuje się natychmiast**. Uruchamia się 30-sekundowe odliczanie widoczne bezpośrednio na ekranie (np. bossbar/actionbar), z czytelną informacją: **„Nie ruszaj się i nie otrzymuj obrażeń — inaczej teleportacja zostanie anulowana”**. Pokazywać pozostały czas i wynik (sukces/anulowano), bez zalewania czatu wiadomościami co sekundę.
+- **Anulowanie przygotowania:** każda rzeczywista zmiana pozycji gracza (współrzędne X/Y/Z; sam obrót kamery bez przemieszczenia nie liczy się jako ruch) albo otrzymanie obrażeń przerywa licznik. Anulowanie ma być natychmiastowe i usuwać ekranowy licznik. Dodatkowo w implementacji bezpiecznie sprzątać oczekiwanie po wylogowaniu, śmierci, zmianie świata, innym teleportowaniu i wyłączeniu pluginu; ponowne `/home` w czasie odliczania nie może tworzyć równoległych zadań.
+- **Limit i walidacja:** anulowane, nieskuteczne i niedokończone przygotowanie **nie zużywa** dziennego użycia. Limit należy rozliczać dopiero po faktycznie udanej teleportacji; w chwili zakończenia odliczania ponownie sprawdzić stan gracza, przynależność do państwa, aktualną stolicę, dostępność bezpiecznej pozycji i limit względem bieżącego dnia serwera (także przy zmianie dnia o 06:00). Czas 30 s dotyczy również dni 1–2 i okresu wojny — **nie zmienia** dotychczasowych uprawnień ani liczby dozwolonych użyć.
+- **Status bieżącego kodu (`HomeCommand.java`):** teleportacja jest natychmiastowa (`player.teleport(destination)` w `execute()`), bez timera, listenerów ruchu/obrażeń i ekranowego licznika. **Do zrobienia po aktualizacji dokumentacji**: zaimplementować przygotowanie i testy anulowania/wykorzystania limitu. Mechanika liczników po wojennym respawnie jest odrębną funkcją i nie powinna zostać przez to zmieniona.
+- **Status:** dotychczasowa mechanika teleportacji i dziennych limitów wdrożona od **1.8.2**, z zapisem limitów w SQLite i resetem o 06:00; nowe 30-sekundowe przygotowanie pozostaje **TODO**. Klasyczny respawn przy łóżku pozostaje niezależny od `/home`.
 
 ### 15.3. Zmiana stolicy i cooldown 6 godzin
 
@@ -615,6 +619,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Granice, rdzenie i kafelki mapy odświeżają się po zmianach; mapa nie ujawnia stolicy jako specjalnego statusu.
 - [x] **WorldBorder na naszej mapie WWW** wdrożony w 1.8.10 i potwierdzony w podstawowym teście użytkownika; dodatkowe sprawdzenie zoomu i zmian granicy podczas próby generalnej.
 - [ ] Edytor chunków i zatwierdzanie administracyjne działają lub są świadomie wyłączone przed startem, z komendami jako planem awaryjnym.
+- [ ] **30-sekundowe przygotowanie `/home`** z ekranowym odliczaniem i komunikatem o anulowaniu przy ruchu/otrzymaniu obrażeń; bez zużywania limitu po anulowaniu, bez pomijania sprawdzeń po 30 s. **Jeszcze niezaimplementowane.**
 - [ ] Zegar 06:00, limity `/home`, cooldown 6 h, oblężenia 10:00–00:00, upadek państwa i backupy mają zaliczone testy na docelowym środowisku.
 - [ ] **Antycheat i antydupe** są dobrane do konkretnej wersji Paper/Java, skonfigurowane, przetestowane pod kątem fałszywych alarmów i znanych metod duplikacji; logi/alerty dostępne dla administracji. Bez automatycznych banów przed weryfikacją trafności wykryć.
 - [ ] **Monitor prób obejścia zabezpieczeń** zapisuje szczegóły zdarzenia, informuje administrację i przy uzasadnionym podejrzeniu nadużycia wyświetla graczowi komunikat ostrzegawczy. Nie oznacza zwykłych, przypadkowo niedozwolonych transakcji jako oszustwa.
@@ -679,7 +684,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 4. **Precyzyjna mechanika startu oblężenia:** rozróżnienie obecności wrogiego gracza w chronionej bazie, startu ataku przy progu online i prowadzenia licznika; nie rozszerzać blokad na pokój lub neutralnych.
 5. **Mapa prywatnych pozycji i jawnych rdzeni:** od 1.8.4 istnieje uwierzytelnienie do pozycji współobywateli i filtrowanie po stronie serwera; potrzebne są testy wielu państw oraz audyt publicznych endpointów. **Pozycje wszystkich rdzeni są publiczne, ale pozycje graczy pozostają prywatne.**
 6. **Edytor terytoriów WWW (kierunek zatwierdzony):** autoryzacja konta Minecraft, narzędzia zaznaczania wielu chunków (również mobilnie), podgląd wniosków, panel admina i walidacja backendowa. Sam wybór mapy WWW zamiast moda jest już rozstrzygnięty.
-7. **Zegar i `/home`:** wdrożone od 1.8.2; nadal przetestować strefę `Europe/Warsaw`, zmianę czasu, restarty i czytelność komunikatów. Zachować ustalone 06:00, dni 1–2 bez limitu i 4 użycia od dnia 3.
+7. **Zegar i `/home`:** podstawowa teleportacja i limity wdrożone od 1.8.2; **nowy TODO: 30 sekund odliczania na ekranie przed teleportacją**, anulowanie po rzeczywistym ruchu/obrażeniach, bez naliczania nieudanych prób (szczegóły §15.2). Nadal przetestować strefę `Europe/Warsaw`, zmianę czasu, restarty i czytelność komunikatów. Zachować 06:00, dni 1–2 bez limitu i 4 użycia od dnia 3.
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
@@ -707,3 +712,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 <!-- Aktualizacja v1.8.8: monitor podejrzanych prób obejścia zabezpieczeń, alerty admina i komunikaty dla gracza; bez zmian w kodzie. -->
 
 <!-- Aktualizacja planu 7.11.2026: po instalacji antycheata i antydupe zaplanowano odświeżanie ikon rdzeni on-demand + lekki self-healing; Shopkeepers przetestowany, do wykonania tylko sklepy administracyjne na spawnie. Bez zmian w kodzie Core. -->
+
+<!-- 7.11.2026: zatwierdzony TODO /home: 30 s przygotowania z ekranowym licznikiem, anulowanie po ruchu i otrzymaniu obrażeń; brak implementacji w bieżącym HomeCommand. -->
