@@ -64,6 +64,7 @@ public final class EditionItemLimitListener implements Listener {
     }
 
     private void warn(Player player, Material material) {
+        plugin.getSecurityAlerts().record(player, "ITEM_LIMIT", material.name() + " cap=" + EditionItemRules.cap(material.name()), true, false);
         int cap = EditionItemRules.cap(material.name());
         player.sendActionBar(Component.text(cap == 0
                 ? "Przedmiot zabroniony: " + material.name()
@@ -299,6 +300,9 @@ public final class EditionItemLimitListener implements Listener {
                 }
             }
         }
-        if (touched) player.updateInventory();
+        if (touched) {
+            plugin.getSecurityAlerts().record(player, "INVENTORY_OVERFLOW", "Automatic cleanup of forbidden or excess items", true, true);
+            player.updateInventory();
+        }
     }
 }
