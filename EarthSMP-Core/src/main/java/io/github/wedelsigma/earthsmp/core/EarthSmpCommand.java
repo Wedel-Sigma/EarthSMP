@@ -97,6 +97,26 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
             if (player != null) plugin.getHomeCommand().execute(player);
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("security")) {
+            if (!requireAdmin(sender)) return true;
+            int limit = 10;
+            if (args.length == 2) {
+                try { limit = Integer.parseInt(args[1]); }
+                catch (NumberFormatException error) {
+                    send(sender, "Uzycie: /esmp security [1-30]", NamedTextColor.YELLOW);
+                    return true;
+                }
+            } else if (args.length > 2) {
+                send(sender, "Uzycie: /esmp security [1-30]", NamedTextColor.YELLOW);
+                return true;
+            }
+            limit = Math.max(1, Math.min(30, limit));
+            var entries = plugin.getSecurityAlerts().recent(limit);
+            send(sender, "Ostatnie zdarzenia EarthSMP Security (" + entries.size() + "):", NamedTextColor.GOLD);
+            if (entries.isEmpty()) send(sender, "Brak zdarzen od startu pluginu.", NamedTextColor.GRAY);
+            for (String entry : entries) send(sender, entry, NamedTextColor.GRAY);
+            return true;
+        }
         if (args.length == 1 && args[0].equalsIgnoreCase("status")) {
             if (!requireAdmin(sender)) return true;
             return showStatus(sender);
@@ -208,7 +228,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
         send(sender, "/" + label + " nation invite <nick> | accept <panstwo> | decline <panstwo>", NamedTextColor.YELLOW);
         send(sender, "/" + label + " nation promote <nick> | demote <nick> | kick <nick>", NamedTextColor.YELLOW);
         if (sender.hasPermission("earthsmp.admin")) {
-            send(sender, "/" + label + " status | clock | clock start", NamedTextColor.GRAY);
+            send(sender, "/" + label + " status | clock | clock start | security [1-30]", NamedTextColor.GRAY);
         }
     }
 
@@ -477,7 +497,7 @@ public final class EarthSmpCommand implements CommandExecutor, TabCompleter {
     ) {
         if (args.length == 1) {
             List<String> actions = sender.hasPermission("earthsmp.admin")
-                    ? List.of("status", "clock", "home", "map", "nation", "menu", "tierlist", "sidebar", "territory", "core", "war", "siege") : List.of("home", "map", "nation", "menu", "tierlist", "sidebar", "territory", "core", "war", "siege");
+                    ? List.of("status", "security", "clock", "home", "map", "nation", "menu", "tierlist", "sidebar", "territory", "core", "war", "siege") : List.of("home", "map", "nation", "menu", "tierlist", "sidebar", "territory", "core", "war", "siege");
             return filter(actions, args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("map")) return filter(List.of("code", "revoke", "reset"), args[1]);
