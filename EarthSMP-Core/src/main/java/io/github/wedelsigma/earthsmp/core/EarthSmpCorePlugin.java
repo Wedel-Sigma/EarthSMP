@@ -44,6 +44,13 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     private SiegeStorage siegeStorage;
     private SiegePickaxe siegePickaxe;
     private BlockOriginListener blockOriginListener;
+    private PvpProtectionListener pvpProtection;
+    private WarRespawnListener warRespawn;
+    private CombatTagListener combatTag;
+    private RespawnBedProtection respawnBeds;
+    private EditionItemLimitListener editionItemLimits;
+    private EditionEnchantListener editionEnchants;
+    private EditionDimensionsListener editionDimensions;
 
     @Override
     public void onEnable() {
@@ -111,6 +118,40 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
         // MONITOR events record only accepted placements/breaks after protection plugins.
         getServer().getPluginManager().registerEvents(blockOriginListener, this);
 
+        // Peace protection and death-time war cooldown (single-threaded Paper events).
+        try {
+            pvpProtection = new PvpProtectionListener(this);
+            getServer().getPluginManager().registerEvents(pvpProtection, this);
+            warRespawn = new WarRespawnListener(this);
+            getServer().getPluginManager().registerEvents(warRespawn, this);
+            getServer().getScheduler().runTaskTimer(this, warRespawn::tick, 20L, 20L);
+            respawnBeds = new RespawnBedProtection(this);
+            getServer().getPluginManager().registerEvents(respawnBeds, this);
+            combatTag = new CombatTagListener(this);
+            getServer().getPluginManager().registerEvents(combatTag, this);
+            getServer().getScheduler().runTaskTimer(this, combatTag::tick, 20L, 20L);
+        } catch (IOException error) {
+            getLogger().log(Level.SEVERE, "Cannot load persistent war respawn locks; disabling plugin", error);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+
+        // Edition 1.8.8: aggregate inventory limits, enchant progression and dimension gates.
+        editionItemLimits = new EditionItemLimitListener(this);
+        editionEnchants = new EditionEnchantListener(this);
+        editionDimensions = new EditionDimensionsListener(this);
+        getServer().getPluginManager().registerEvents(editionItemLimits, this);
+        getServer().getPluginManager().registerEvents(editionEnchants, this);
+        getServer().getPluginManager().registerEvents(editionDimensions, this);
+        // Regular safety pass closes /give and third-party plugin inventory bypasses.
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                editionItemLimits.audit(player);
+                editionEnchants.audit(player);
+            }
+        }, 40L, 40L);
+
         // Optional squaremap dependency: keep the core usable even when squaremap is absent.
         var mapPlugin = getServer().getPluginManager().getPlugin("squaremap");
         if (mapPlugin != null && mapPlugin.isEnabled()) {
@@ -153,11 +194,17 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
             }
             }
         }
-        getLogger().info("EarthSMP Core 1.8.6 enabled - tierlist and sidebar");
+        getLogger().info("EarthSMP Core 1.8.8 enabled - item limits, enchant and dimension progression");
     }
 
     @Override
     public void onDisable() {
+        editionDimensions = null;
+        editionEnchants = null;
+        editionItemLimits = null;
+        if (combatTag != null) { combatTag.shutdown(); combatTag = null; }
+        if (warRespawn != null) { warRespawn.shutdown(); warRespawn = null; }
+        if (pvpProtection != null) { pvpProtection.shutdown(); pvpProtection = null; }
         if (sidebar != null) { sidebar.shutdown(); sidebar = null; }
         tierlist = null;
         if (mapPortalServer != null) {
@@ -334,6 +381,8 @@ public final class EarthSmpCorePlugin extends JavaPlugin {
     public NationMenu getNationMenu() {
         return Objects.requireNonNull(nationMenu, "Nation menu not initialized");
     }
+
+    public WarRespawnListener getWarRespawn() { return Objects.requireNonNull(warRespawn, "War respawn not initialized"); }
 
     public WarRepository getWars() { return Objects.requireNonNull(wars, "Wars not initialized"); }
 

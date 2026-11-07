@@ -31,7 +31,7 @@ import org.bukkit.entity.Player;
  */
 public final class SiegeManager {
     public enum Result {
-        STARTED, NO_CORE, NO_NATION, OWN_CORE, NO_OPPOSING_WAR,
+        STARTED, NO_CORE, NO_NATION, RESPAWN_LOCKED, OWN_CORE, NO_OPPOSING_WAR,
         OUTSIDE_HOURS, TOO_FEW_DEFENDERS, ALREADY_ACTIVE, ERROR
     }
 
@@ -124,6 +124,7 @@ public final class SiegeManager {
 
     /** Automatically invoked from tick when an eligible enemy enters a protected base. */
     public Result begin(Player player) {
+        if (plugin.getWarRespawn().isLocked(player)) return Result.RESPAWN_LOCKED;
         var core = plugin.getCoreProtection().findAt(player.getLocation());
         if (core.isEmpty()) return Result.NO_CORE;
         if (active.containsKey(core.get().id()) || adminStopped.contains(core.get().id())) return Result.ALREADY_ACTIVE;
@@ -153,6 +154,7 @@ public final class SiegeManager {
             case STARTED -> "Szturm aktywny. Przejmowanie 9x9 uruchamia sie automatycznie.";
             case NO_CORE -> "Wejdz do chronionej bazy wrogiego rdzenia.";
             case NO_NATION -> "Musisz nalezec do panstwa uczestniczacego w wojnie.";
+            case RESPAWN_LOCKED -> "Poczekaj na koniec wojennego odrodzenia.";
             case OWN_CORE -> "Nie mozesz oblegac wlasnej bazy.";
             case NO_OPPOSING_WAR -> "Brak aktywnej wojny przeciw wlascicielowi tej bazy.";
             case OUTSIDE_HOURS -> "Szturmy tylko 10:00–00:00 Europe/Warsaw.";
@@ -228,7 +230,7 @@ public final class SiegeManager {
         boolean attackers = false, defenders = false;
         String firstAttackerId = null;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!inCaptureZone(player, core)) continue;
+            if (plugin.getWarRespawn().isLocked(player) || !inCaptureZone(player, core)) continue;
             var member = plugin.getNationDatabase().findMembership(player.getUniqueId());
             if (member.isEmpty()) continue;
             WarRepository.Side side = sides.get(member.get().nationId());
@@ -253,7 +255,7 @@ public final class SiegeManager {
                                             Map<String, WarRepository.Side> sides) throws SQLException {
         var defenderSide = sides.get(s.defenderId);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!inside(player, core)) continue;
+            if (plugin.getWarRespawn().isLocked(player) || !inside(player, core)) continue;
             var membership = plugin.getNationDatabase().findMembership(player.getUniqueId());
             if (membership.isPresent()) {
                 var side = sides.get(membership.get().nationId());
@@ -283,7 +285,7 @@ public final class SiegeManager {
         var defenderSide = sides.get(s.defenderId);
         Set<UUID> visible = new HashSet<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!inside(player, core)) continue;
+            if (plugin.getWarRespawn().isLocked(player) || !inside(player, core)) continue;
             var membership = plugin.getNationDatabase().findMembership(player.getUniqueId());
             if (membership.isEmpty() || !sides.containsKey(membership.get().nationId())) continue;
             // Only active belligerents physically inside the base see progress.
@@ -426,7 +428,7 @@ public final class SiegeManager {
             var core = plugin.getCoreProtection().all().stream().filter(c -> c.id().equals(coreId)).findFirst();
             if (core.isEmpty()) return true;
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!inside(player, core.get())) continue;
+                if (plugin.getWarRespawn().isLocked(player) || !inside(player, core.get())) continue;
                 try {
                     var nation = plugin.getNationDatabase().findMembership(player.getUniqueId());
                     if (nation.isPresent() && !nation.get().nationId().equals(core.get().nationId())) return false;
@@ -441,6 +443,7 @@ public final class SiegeManager {
         // No commands or GUI interactions are needed to initiate legal assaults.
         if (!SiegeRules.openAt(now)) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
+            if (plugin.getWarRespawn().isLocked(player)) continue;
             var core = plugin.getCoreProtection().findAt(player.getLocation());
             if (core.isEmpty() || active.containsKey(core.get().id()) || adminStopped.contains(core.get().id())) continue;
             begin(player);
@@ -449,6 +452,7 @@ public final class SiegeManager {
 
     /** Only a legal attacker can use the siege pickaxe inside the 65x65 protection. */
     public boolean isLegalAttacker(Player player, NationDatabase.ProtectionCore core) throws SQLException {
+        if (plugin.getWarRespawn().isLocked(player)) return false;
         Session s = active.get(core.id());
         if (s == null || !s.defenderId.equals(core.nationId()) ||
                 !SiegeRules.openAt(Instant.now()) || !stillOpposed(s)) return false;
@@ -460,10 +464,17 @@ public final class SiegeManager {
         return attacker.isPresent() && defender.isPresent() && attacker.get().side() != defender.get().side();
     }
 
+    /** Protect players' assigned beds and their support blocks for a whole active siege,
+     * including pauses when attackers temporarily leave the capture area. */
+    public boolean isActiveForCore(NationDatabase.ProtectionCore core) {
+        Session session = active.get(core.id());
+        return session != null && session.defenderId.equals(core.nationId());
+    }
+
     public boolean hostilePresent(NationDatabase.ProtectionCore core) throws SQLException {
         if (!active.containsKey(core.id())) return false;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (inside(player, core) && isLegalAttacker(player, core)) return true;
+            if (!plugin.getWarRespawn().isLocked(player) && inside(player, core) && isLegalAttacker(player, core)) return true;
         }
         return false;
     }

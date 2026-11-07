@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.7"
-version: "1.7"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8"
+version: "1.8"
 date: "2026-11-07"
-status: "main: EarthSMP-Core 1.8.5; 1.8.6 ranking i sidebar przetestowane; 1.8.6 R3 hotfix kompilacji do potwierdzenia; produkcja i testy multiplayer w planie"
+status: "main: EarthSMP-Core 1.8.6; 1.8.7 R3 uruchamia się w testach; 1.8.8 przygotowana do builda i testów; multiplayer oraz audyt produkcyjny w planie"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.7
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -23,11 +23,11 @@ language: "pl"
 - **Wydanie:** `1.8.6 R2` wprowadza nazwy widoczne w interfejsie, a `1.8.6 R3` usuwa błąd kompilacji w `SiegeManager.say(...)`. Nie zmieniają mechanik gry ani schematu SQLite v10. Pełny build R3 po poprawce wymaga jeszcze potwierdzenia przez użytkownika.
 - **Elementy historyczne:** dawniej wydane przedmioty mogą przechowywać starą nazwę w metadanych przedmiotu aż do ponownego uzyskania lub ręcznej aktualizacji — nie są bezpiecznie masowo nadpisywane.
 
-## STATUS IMPLEMENTACJI — aktualizacja 7 listopada 2026 (1.8.6 R3)
+## STATUS IMPLEMENTACJI — aktualizacja 7 listopada 2026 (1.8.8)
 
 > **Zamknięty etap funkcjonalny mapy i GUI, ale nie zakończone testy produkcyjne.** Rozdzielamy potwierdzone działanie przez użytkownika, poprawki w kodzie i funkcje wymagające jeszcze testów wielu graczy.
 
-**Repozytorium:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **`main`: EarthSMP-Core `1.8.5`** (zweryfikowane 7.11.2026: `build.gradle.kts`, commit `05bbe82c21084aca270abaeea8e375ce9fb42166`) · **lokalnie potwierdzone przez użytkownika:** `1.8.5` (edytor terytoriów i aktualizacja w grze) oraz podstawowe działanie `1.8.6` (ranking i sidebar) · **najnowszy pakiet źródłowy:** `1.8.6 R3` (poprawka kompilacji po rebrandingu, pełny build jeszcze niepotwierdzony) · **środowisko:** Paper 26.3 / Java 25 / SQLite / squaremap.
+**Repozytorium:** [Wedel-Sigma/EarthSMP](https://github.com/Wedel-Sigma/EarthSMP) · **`main`: `1.8.6`** (sprawdzone 7.11.2026, commit `4840e7f800196e3cd7f0d666129121e8eddefc75`) · **ostatnia uruchamiana lokalnie paczka:** `1.8.7 R3` (użytkownik potwierdził start serwera, *nie* testy PvP z wieloma graczami) · **przygotowana paczka do testów:** `1.8.8` (limity, enchanty, wymiary) · **środowisko docelowe:** Paper 26.3 / Java 25 / SQLite v10 / squaremap.
 
 ### Historia wydań i stan potwierdzenia
 
@@ -40,8 +40,10 @@ language: "pl"
 | **1.8.6** | `/esmp tierlist`, stronicowany ranking postawionych rdzeni (również zdobycznych), sidebar z danymi państwa, dnia, wojny i `/home`; przełącznik `/esmp sidebar`. | **Użytkownik potwierdził prawidłowe działanie rankingu i sidebaru.** Nie jest to pełna walidacja sytuacji wojennych i kilku państw. |
 | **1.8.6 R2** | Rebranding widoczny dla graczy do **Kabina Narodów 2.0**, konfiguracja `server.display-name`, bez ruszania `/esmp` i nazw technicznych. | Pierwsza próba kompilacji ujawniła błąd statycznego odwołania w `SiegeManager.say(...)`. Nie traktować R2 jako wydania poprawnie zbudowanego. |
 | **1.8.6 R3** | Hotfix: `SiegeManager.say(...)` zmienione ze `static` na metodę instancyjną, ponieważ używa `plugin`. | Kontrolna analiza kodu potwierdza poprawność zmiany; **brak przekazanego wyniku pełnego `./gradlew clean build` i testu R3 na serwerze**. |
+| **1.8.7 R3** | PvP pokojowe/tarcza, wojenny respawn z centralnym Title, combat log 60 s, ochrona przypisanych łóżek. Stan kary i timerów utrwalany w plikach pluginu. | **Użytkownik potwierdził, że serwer się uruchamia**, jednak mechaniki PvP, kary za logout i ochrony łóżek **czekają na zbiorcze testy multiplayer**. |
+| **1.8.8 — nowy ZIP** | Limity całego noszonego ekwipunku, zakaz 3 przedmiotów, reguły Mending/Fortune/PvP enchantów oraz dostęp do Netheru/Endu. Bez zmiany SQLite; domyślny Nether od dnia serwera 10, próg konfigurowalny. | Reguły i nowe listenery przeszły **kontrolną kompilację na atrapach API**, samodzielne testy logiczne. **Brak pełnego buildu Gradle z JDK 25 i prób na Paper**. Nie uznawać tego etapu za zaliczony. |
 
-**Stan obecny:** podstawowy system państw, rdzeni, wojen, mapa polityczna, prywatny portal z kontami, publiczne znaczniki, edytor chunków i wnioski, ranking oraz sidebar istnieją w kodzie. Funkcje mapy i interfejsu przeszły opisane wyżej testy użytkownika. **Nie uznajemy całego pluginu za gotowy produkcyjnie:** brakuje reguł PvP, opóźnionego respawnu, limitów wyposażenia i progresji oraz pełnych testów multiplayer.
+**Stan obecny:** systemy państw, rdzeni, wojen, mapa i GUI działają w zakresach potwierdzonych przez użytkownika. **1.8.7 R3 uruchamia się, ale testy kilku graczy pozostają niewykonane. 1.8.8 ma nowy kod i testy jednostkowe, lecz nie przeszła jeszcze pełnego Gradle ani uruchomienia na Paper.** Projekt nie jest gotowy produkcyjnie.
 
 **Zależność mapy:** portal `127.0.0.1:8766` wciąż pobiera publiczne kafelki i znaczniki z wewnętrznego squaremap `http://127.0.0.1:8080` (`map-portal.squaremap-internal-url`). **Nie wyłączać backendu HTTP 8080**. Oryginalnego GUI squaremap nie trzeba udostępniać graczom; 8080 powinno pozostać prywatne.
 
@@ -77,7 +79,7 @@ language: "pl"
 - **Centralny zegar edycji i `/home`:** wdrożone od **1.8.2** — zmiana dnia o 06:00 `Europe/Warsaw`, komendy zegara, teleportacja także podczas wojny, bez limitu w dniach 1–2, następnie 4 na gracza dziennie; cooldown ręcznej zmiany stolicy 6 h na państwo. Wciąż potrzebny test integracyjny wielu graczy, granicy dnia i restartu.
 - **Interfejs gracza (1.8.6 — podstawowe testy zaliczone):** `/esmp tierlist` — ranking wszystkich państw według aktualnie kontrolowanych postawionych rdzeni (własnych i zdobycznych); scoreboard/sidebar z dniem serwera, nazwą państwa, rdzeniami, liczbą członków online, pokojem/wojną i `/home`. **Użytkownik potwierdził działanie rankingu i sidebaru na serwerze.** Osobno pozostają testy zmian członkostwa, kilku państw, wojny i restartu.
 - Testy większych koalicji, jednoczesnych wojen i obciążenia serwera, omijania ochrony skrzyń (hoppery, wagoniki), niespodziewanych zdarzeń bloków, exploitów i odporności na awarie.
-- Pełne funkcje PvP pokojowego, timerów respawnu, progresji, limitów ekwipunku, enchantów, barterowych sklepów i pozostałych dodatków z dalszych rozdziałów — **zasady docelowe; bez osobnej weryfikacji nie oznaczamy jako ukończonych**.
+- **PvP i odrodzenie (1.8.7 R3):** zaimplementowane, potwierdzono jedynie uruchomienie na Paper; brak testów wielu graczy. **Limity, enchanty, wymiary (1.8.8):** zaimplementowane w paczce testowej, nadal wymagają pełnego buildu i weryfikacji interakcji. **Barterowe sklepy i pozostałe dodatki:** w planie.
 
 ### Feedback od testerów
 
@@ -121,7 +123,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - Aktualny skrypt **`EarthSMP-Backup.ps1`** tworzy backup **offline**: należy zatrzymać Paper (`stop`), następnie uruchomić skrypt z `-ConfirmStopped`. Sprawdza on m.in. port, blokadę świata, obecność `level.dat` oraz **`plugins/EarthSMPCore/earthsmp.db`**. Do ZIP trafiają świat, baza SQLite, dane pluginów (z wyłączeniem dużych odtwarzalnych danych squaremap) i konfiguracja. Nie należy traktować go jako działającego backupu online przez RCON.
 - Historyczny test przywracania wcześniejszej kopii świata: około **427,4 MB**, **14,6 s**. **Nie potwierdza on jeszcze przywracania nowego ZIP z SQLite**; test odtworzenia świata razem z bazą pozostaje do wykonania.
 - Harmonogram backupu co 2 godziny był przetestowany, a potem usunięty na czas testowania; backupy automatyczne i retencja na docelowym hostingu są osobnym zadaniem.
-- **Aktualizacja 2026-11-07:** na GitHub `main` jest **1.8.5**. Edytor chunków (w tym synchronizacja ze światem) oraz podstawowe GUI/HUD z 1.8.6 przeszły test użytkownika. **1.8.6 R3** to poprawka błędu kompilacji w `SiegeManager`; jej pełny build po hotfixie wymaga jeszcze potwierdzenia. Testy multiplayer mechanik wojennych bazują dotychczas głównie na **1.8.0**; pełne testy późniejszych funkcji dla wielu osób są do wykonania. Pozostałe rozdziały zawierają również zasady **planowane**, a nie wdrożone.
+- **Aktualizacja 2026-11-07:** na GitHub `main` jest **1.8.6**, a użytkownik potwierdził start `1.8.7 R3`. Testy multiplayer PvP, respawnu, combat logu i łóżek są zaplanowane; kod `1.8.8` stanowi **wydanie testowe**, nie wynik testu na Paper. Pozostałe rozdziały zawierają również zasady **planowane**, a nie wdrożone.
 
 ## 2. Państwa i terytoria
 
@@ -270,6 +272,7 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 | Respawn Anchors | **0 — zakazane** |
 
 - Plugin blokuje **podniesienie z ziemi** i **wyjęcie ze skrzyni** ponad limit; jeśli da się wziąć tylko część, nadmiar pozostaje w poprzednim miejscu. Bez kar i automatycznego kasowania legalnych zapasów.
+- **Implementacja 1.8.8 (jeszcze nietestowana na Paper):** kontrole podnoszenia, przenoszenia ze skrzyń, craftingu, Creative, drag, kliknięć wielokrotnych i okresowe przeglądy ekwipunku. W przypadkach nietypowych nadwyżka jest **odkładana na ziemię**, nie usuwana. Przed akceptacją wymagane testy zabezpieczeń, zwłaszcza z innymi pluginami sklepów i niestandardowymi interfejsami. Produkcyjny sposób obsługi nieprzewidzianych operacji do potwierdzenia.
 - End jest niedostępny, więc nie przewidujemy naturalnego źródła Shulker Boxów ani osobnego systemu wyjątków; administracja nie powinna dystrybuować ich wbrew tej zasadzie.
 - Pozostałe odziedziczone zasady PvP z dawnego regulaminu opisano w sekcji 14.
 
@@ -278,6 +281,7 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 - Zwykłe villagery zdobywa się **wyłącznie przez leczenie zombie villagerów**, a zaklęcia pozyskuje się przez **handel z tak uzyskanymi villagerami**. Nie ma adminowskiego sklepu z enchantami.
 - Ograniczenia obowiązują **na gotowym przedmiocie** i muszą obejmować łączenie książek w kowadle, oferty handlowe oraz inne potencjalne źródła. Nie wolno obejść progów przez łączenie.
 - **Mending** — zabroniony przez całą edycję.
+- **Implementacja 1.8.8:** blokuje niedozwolone wyniki kowadła i craftingu, nowe nielegalne oferty villagerów, niedozwolone enchanty przy enchantowaniu oraz efekt Mending. Istniejące przedmioty z niedozwolonymi enchantami są automatycznie **normalizowane** (enchant usuwany lub obniżany; przedmiot pozostaje). Dopuszczona lista wyjątków QoL jest ścisła: Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I, Respiration III. Pozostałe enchanty podlegają ostrożnie limitowi I/II do czasu ustalenia wyjątków mobilności. Niezależny test handlu i kowadła pozostaje do wykonania.
 - **Fortune II** — zabroniony przez całą edycję, nawet gdy Fortune I i III są dopuszczone.
 - **Fortune I** — dostępny od 7. dnia; **Fortune III** — od 16. dnia; przed dniem 7 Fortune niedostępny.
 - **Enchantmenty dające przewagę w PvP** (np. Protection, Sharpness, Power, Knockback, Fire Aspect, Thorns, Piercing, Quick Charge oraz analogiczne) — maksymalnie **poziom I przez pierwsze 9 dni edycji**, a **poziom II od 10. dnia do końca** (zaklęcia o naturalnym maks. I pozostają na I).
@@ -300,6 +304,7 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 
 - **Nether jest zablokowany przez pierwszych 10 dni** i otwierany po upływie 10 dni od startu edycji.
 - **End jest na stałe wyłączony**. W konsekwencji brak naturalnego dostępu do shulkerów/Shulker Boxów.
+- **Implementacja testowa 1.8.8:** blokuje portale/teleportacje, przekierowuje respawn i wejście gracza z niedostępnego wymiaru na Overworld. `progression.nether-unlock-day: 10` oznacza domyślnie od **dnia serwera 10 po 06:00**; można zmienić na `11` bez przebudowy. Zapisy historyczne „po dziesięciu pełnych dniach” znaczą dzień 11, dlatego **przed startem edycji administrator musi ostatecznie potwierdzić 10 vs 11**, a nie polegać na domyśle.
 - W Netherze **można wysadzać łóżka w celu wydobywania ancient debris**. **Nie wolno używać eksplozji łóżek do PvP.** Jest to **zasada pisemna**, nie osobna blokada kodowa.
 - **TNT Minecart PvP** jest zakazane **regulaminowo**, w tym pułapki z wagonikami TNT. Zwykłe TNT może służyć do prac budowlanych/górnictwa, ale nie wolno nim obchodzić ochrony baz.
 - **Portal trapping** (celowe blokowanie gracza w przejściu przy zmianie wymiaru) jest zabroniony regulaminowo, także podczas wojny. Normalne zasadzki w pobliżu portali nie są tym samym.
@@ -449,10 +454,10 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 
 - **3.1 — specyfikacja zasad:** ukończona i aktualizowana po większych zmianach.
 - **3.2 — dobór pluginów uzupełniających:** LuckPerms, WorldGuard/WorldEdit, CoreProtect, ewentualne Chest Shops, voice chat — ostateczny zestaw i wersje wymagają osobnej kontroli.
-- **3.3 — EarthSMP-Core:** na GitHub `main` jest `1.8.5` (zweryfikowane 7.11.2026). **1.8.5 przeszła test edytora i synchronizacji granic**, a **1.8.6 przeszła podstawowy test rankingu i HUD-u**. Rebranding `1.8.6 R2` wymagał poprawki kompilacji `R3`, której pełny build nie został jeszcze potwierdzony. Nie wszystkie funkcje przeszły końcowe testy multiplayer.
+- **3.3 — EarthSMP-Core:** na GitHub `main` jest `1.8.6` (zweryfikowane 7.11.2026). **1.8.5 przeszła test edytora i synchronizacji granic**, **1.8.6 przeszła podstawowy test GUI/HUD**, **1.8.7 R3 wystartowała na serwerze**, a **1.8.8 jest paczką do testów**. Pełne testy multiplayer pozostają do wykonania.
 - **3.4 — zakończony test podstawowy 1.8.5:** interaktywny edytor chunków, wnioski WWW, panel admina i poprawna synchronizacja granic z Minecraftem. Testy wieloosobowe i konkurencyjne wnioski pozostają do wykonania.
 - **3.5 — interfejs i branding 1.8.6:** ranking `/esmp tierlist` i sidebar potwierdzone w podstawowym teście; nazwa graczy „Kabina Narodów 2.0” w R2/R3. Weryfikacja ostatecznej paczki R3 oraz pełnych scenariuszy multiplayer pozostaje otwarta.
-- **3.6 — następny etap 1.8.7:** mechanika PvP pokojowego z §8 i opóźniony respawn wojenny z §9; zachowujemy istniejące zasady, bez dokładania nowych reguł. Po testach — limity wyposażenia, enchanty/progresja i dostęp do wymiarów.
+- **3.6 — najbliższa sesja testowa:** 1.8.7 R3 (dwa państwa, PvP, combat log, respawn i łóżka) oraz 1.8.8 (limity wyposażenia, enchanty, wymiary). Dopiero po wynikach zamkniemy te etapy.
 
 ### 18.2. Zakładana architektura po wdrożeniu
 
@@ -509,7 +514,7 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 4. **Zatrzymać lokalny Paper**; zachować nieruszony backup **`MAIN`**, dodatkowo utworzyć nową kopię migracyjną *offline* (świat Earth, Nether jeśli występuje, `plugins/` i konfiguracje, SQLite z ewentualnymi plikami `-wal`/`-shm` w spójnym stanie, folder danych squaremap, server.properties, lista wersji pluginów). Hasła i sekrety przekazać wyłącznie prywatnym kanałem.
 5. **Przenieść pliki na hosting**, zgodnie z układem oczekiwanym przez usługodawcę: świat i pliki konfiguracyjne, wymagane pluginy, **tylko shaded JAR EarthSMP-Core (nie `-plain.jar`)**, bazę `plugins/EarthSMPCore/earthsmp.db`, dane mapy. Gradle i źródła nie muszą być na produkcyjnym serwerze.
 6. **Przygotować i ustawić konfigurację**: `level-name=Earth`, `world-name: Earth`, identyfikator Overworldu, wewnętrzny upstream squaremap `http://127.0.0.1:8080`, bind portalu, `map-portal.public-origin`, rekordy DNS/TLS i ewentualne reguły reverse proxy. **Przed publicznym HTTPS poprawić walidację `public-origin`/`Host` w `MapPortalServer`**, która obecnie nie akceptuje standardowego adresu HTTPS bez jawnego portu; dodać test z proxy, nagłówkiem Host, cookies Secure i logowaniem.
-7. **Uruchomić testowo, ale jeszcze nie otwierać edycji**: sprawdzić konsolę, schemat SQLite (**v10 dla 1.8.5/1.8.6**), spójność państw, rdzeni, zegara, `/home`, wojen, kafelków, kont WWW oraz uprawnień. Pamiętać, że uruchomienie `/esmp clock start` jest decyzją startową edycji — nie wykonywać jej podczas migracyjnej próby na bazie produkcyjnej.
+7. **Uruchomić testowo, ale jeszcze nie otwierać edycji**: sprawdzić konsolę, schemat SQLite (**v10 również dla 1.8.7/1.8.8**), spójność państw, rdzeni, zegara, `/home`, wojen, kafelków, kont WWW oraz uprawnień. Pamiętać, że uruchomienie `/esmp clock start` jest decyzją startową edycji — nie wykonywać jej podczas migracyjnej próby na bazie produkcyjnej.
 8. **Skonfigurować oficjalny adres** gry i portalu oraz w razie potrzeby dodać klikalne `/esmp map` (przyszły etap). Ograniczyć dostęp do 8080 i 8766, by ruch publiczny przechodził wyłącznie przez kontrolowaną warstwę HTTPS.
 9. **Wykonać próbę obciążeniową i test bezpieczeństwa**, w tym równoległe państwa i przeglądarki, login/revoke/reset, zmiany członkostwa, Nether, brak wycieków przez API i przez oryginalną squaremap. Sprawdzić odtwarzanie kopii. Dopiero potem ogłosić datę edycji i rozpocząć zegar.
 
@@ -533,34 +538,19 @@ Gracz w przeglądarce ─HTTPS─> stabilny adres portalu EarthSMP
 - [ ] Istnieje działający **backup i przetestowane odtworzenie** świata + SQLite; zapas dyskowy potwierdzony.
 - [ ] Regulamin, sposób zgłaszania błędów, link do mapy i koszt utrzymania zostały podane graczom.
 
-### 18.8. Kolejny etap rozwoju — plan wydań po 1.8.6
+### 18.8. Etapy 1.8.7–1.8.8 i następne kroki
 
-> **Plan techniczny, jeszcze niezrealizowany.** Numery 1.8.7+ oznaczają proponowaną kolejność prac, nie potwierdzenie wydania. Nie modyfikujemy automatycznie zasad opisanych w §8–12.
+**1.8.7 R3 — implementacja gotowa do testów multiplayer:** PvP pokojowe i tarcza; combat tag 60 s z karą za wyjście; wojenny respawn 15–50 s z dużym centralnym odliczaniem; ochrona przypisanych łóżek. Potwierdzony jest tylko start pluginu, nie przypadki bojowe. Zbiorcza sesja z 3–4 graczami i minimum dwoma państwami jest obowiązkowa przed akceptacją.
 
-**Przed 1.8.7: zamknięcie wydania 1.8.6 R3**
+**1.8.8 — paczka do lokalnego builda i testów:**
 
-1. Uruchomić `./gradlew clean build` na Java 25 i potwierdzić usunięcie błędu `SiegeManager.say(...)` (`static` → metoda instancyjna).
-2. W grze skontrolować nazwy „Kabina Narodów 2.0” w `/esmp`, `/esmp tierlist`, sidebarze, komunikatach wojennych, nowych przedmiotach i portalu. Zweryfikować, że komendy `/esmp` i stare dane SQLite pozostają bez zmian.
-3. Zrobić świeży backup testowy; **nie nadpisywać backupu `MAIN`**. Po potwierdzeniu działania wgrać poprawną bazową wersję kodu do `main` zgodnie z decyzją właściciela repo.
+- Limity plecak + hotbar + offhand (i wyposażenie gracza): 8 zwykłych złotych jabłek, 3 perły, 16 pajęczyn, 3 totemy; zakaz posiadania zaklętych złotych jabłek, End Crystals i Respawn Anchors. Częściowe pobieranie przedmiotów ma pozostawiać resztę w źródle. Nietypowy nadmiar jest upuszczany na ziemię, nie kasowany.
+- Mending zakazany; Fortune I od 7. dnia, III od 16., II nigdy. Zaklęcia walki I do dnia 9, II od dnia 10. Jawna lista wyłączonych z tych ograniczeń enchantów QoL; **nieustalone wyjątki mobilności ograniczane ostrożnie**, bez uznawania ich za zatwierdzone.
+- End zawsze zamknięty. Nether blokowany przed numerem dnia podanym w `progression.nether-unlock-day` (domyślnie **10**, o 06:00 PL). **Próg wymaga potwierdzenia** ze względu na dawną sprzeczność w specyfikacji.
+- Brak nowego schematu SQLite: nadal **v10**. Nowa logika nie wymaga resetu danych, lecz pełnego backupu i testu ze starymi przedmiotami.
+- **Kryterium akceptacji:** `./gradlew clean build` na Java 25, start pluginu i seria testów: częściowe podnoszenie, shift-click, drag, Creative, `/give`, enderchest, craft, villagery, kowadło, Mending, granice dni 6/7/9/10/15/16 oraz portale End/Nether i próby /tp.
 
-**Proponowane 1.8.7 — PvP pokojowe i wojenny respawn**
-
-- **Ochrona rdzenia 65 × 65 w pokoju:** brak zadawania i otrzymywania obrażeń PvP we własnej chronionej bazie; ochrona nie jest bezkarnym miejscem do ataku z dystansu. Wyjątki wojenne zgodnie z §8.
-- **Tarcza terytorialna poza rdzeniem:** pierwszy wrogi cios na własnym politycznym terenie w pokoju nie zadaje obrażeń i daje **8 s** ochrony; kolejna aktywacja dopiero po **5 min**, atak chronionego gracza kończy ochronę. Nie uruchamia jej środowisko ani własne pułapki. Bez tarczy na cudzym/neutralnym terenie. Chronić również przed obejściami (pociski, efekty, zmiany warunków wojny).
-- **Respawn wyłącznie podczas wojny:** po kliknięciu Respawn blokada 15/20/30/40/50 sekund według §9, ustalana na podstawie liczby członków własnego państwa online w chwili śmierci. Odliczanie **na ekranie, nie na czacie**; pełna nietykalność i blokada ruchu, walki, przedmiotów, interakcji oraz udziału w przejmowaniu rdzeni. Po zakończeniu brak dodatkowego immunitetu. `keepInventory=false` pozostaje bez zmian.
-- **Testy akceptacyjne:** dwa państwa w pokoju i podczas wojny; rdzeń/terytorium/neutralny teren; PvP bezpośrednie i dystansowe; atak z ochrony; cooldown 5 min i przerwanie przez kontratak; respawn solo i z różną liczbą online; blokada komend, skrzyń, teleportów i wpływu na oblężenie; restart/rozłączenie w trakcie licznika.
-
-**Proponowane 1.8.8 — limity wyposażenia i enchantów**
-
-- Limity całego ekwipunku (§10): **8** zwykłych złotych jabłek, **3** perły, **16** pajęczyn, **3** totemy; 0 zaklętych złotych jabłek, End Crystals i Respawn Anchors. Pilnować podnoszenia, przenoszenia ze skrzyń, stacków, shift-click, drag, hopperów i innych ścieżek; nadmiaru nie kasować.
-- Enchanty (§11): Mending niedostępny; Fortune II zakazany, Fortune I od dnia 7 i III od dnia 16; PvP enchanty maks. I do dnia 9 i maks. II od dnia 10, plus ustalone wyjątki QoL. Najpierw technicznie doprecyzować niejednoznaczną listę wyjątków, nie wprowadzać nowej zasady bez decyzji.
-
-**Proponowane 1.8.9 — wymiary i kontrola dostępu**
-
-- Nether zablokowany przez pierwszych 10 dni, End zamknięty na całą edycję (§12). **Przed kodowaniem rozstrzygnąć** istniejącą rozbieżność „od dnia 10” vs „po 10 dniach” w odniesieniu do zegara edycji i 06:00; bez samowolnego wyboru progu.
-- Testy przejść portalowych, respawnu i zachowania znaczników mapy przy zmianie wymiaru.
-
-**Przed uruchomieniem produkcyjnym:** pełne testy multiplayer, niezależne testy prywatności mapy, poprawki HTTPS/reverse proxy, odtwarzanie backupu oraz próba na docelowym hostingu zgodnie z §18.3–18.7. Handel i dodatkowe funkcje pozostają na liście po mechanikach krytycznych.
+**Po sesji testowej:** poprawki, aktualizacja stanu dokumentacji, audyt publicznego portalu, instalacja na hostingu z HTTPS, test backupu i obciążenia; gospodarka barterowa / Chest Shops to osobny etap. Nie planujemy obecnie rozszerzać specyfikacji o kolejne nieuzgodnione mechaniki.
 
 ## 19. Szczegóły do rozstrzygnięcia podczas projektowania technicznego (NIE nowe reguły)
 
@@ -573,10 +563,12 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 5. **Mapa prywatnych pozycji i jawnych rdzeni:** od 1.8.4 istnieje uwierzytelnienie do pozycji współobywateli i filtrowanie po stronie serwera; potrzebne są testy wielu państw oraz audyt publicznych endpointów. **Pozycje wszystkich rdzeni są publiczne, ale pozycje graczy pozostają prywatne.**
 6. **Edytor terytoriów WWW (kierunek zatwierdzony):** autoryzacja konta Minecraft, narzędzia zaznaczania wielu chunków (również mobilnie), podgląd wniosków, panel admina i walidacja backendowa. Sam wybór mapy WWW zamiast moda jest już rozstrzygnięty.
 7. **Zegar i `/home`:** wdrożone od 1.8.2; nadal przetestować strefę `Europe/Warsaw`, zmianę czasu, restarty i czytelność komunikatów. Zachować ustalone 06:00, dni 1–2 bez limitu i 4 użycia od dnia 3.
-8. **Istniejące zapisy „od dnia 10” a „po 10 dniach”:** rozdziały 11–12 historycznie używają obu sformułowań dla Netheru. Przed implementacją ustalić jednoznaczny próg wg centralnego numeru dnia, bez domyślnej reinterpretacji wcześniejszych reguł.
+8. **Istniejące zapisy „od dnia 10” a „po 10 dniach”:** w 1.8.8 próg jest **parametrem konfiguracyjnym**, z roboczym `10` (06:00 na początku dnia serwera 10); przed startem edycji wybrać ostatecznie `10` albo `11` w dyskusji administracyjnej.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.7.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. W razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia (w szczególności §15–16 dotyczące `/home`, zegara i mapy).
+**Koniec dokumentacji v1.8.** Sekcja stanu implementacji oddziela to, co przetestowane, od zasad i planów. W razie kolizji obowiązują nowsze, wyraźnie oznaczone ustalenia (w szczególności §15–16 dotyczące `/home`, zegara i mapy).
 
 
-<!-- Aktualizacja v1.7: potwierdzony test GUI 1.8.6, rebranding R2, hotfix kompilacji R3, aktualizacja stanu main 1.8.5, plan 1.8.7. -->
+<!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
+
+<!-- Aktualizacja v1.8: 1.8.7 R3 start bez testów PvP; 1.8.8 przygotowana do builda; limity/enchanty/wymiary, próg Netheru do potwierdzenia; audyt dzienny w osobnym pliku. -->

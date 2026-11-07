@@ -256,3 +256,21 @@ Stan: gotowe źródła **do lokalnego clean build i testów in-game**; brak potw
 - HUD: dzień edycji, państwo, rdzenie, członkowie online/ogółem, pokój/wojna, pozostałe `/home` (bez limitu w dniach 1–2, od 3 dnia 4 dziennie) i reset o 06:00 czasu Polski.
 - Centrum `/esmp`: slot 22 otwiera ranking, slot 24 przełącza HUD.
 - Bez zmian bazy danych (schemat v10). HUD co 2 sekundy aktualizuje dane na wątku głównym Paper. Jeśli inny plugin przejmie sidebar, EarthSMP nie będzie z nim walczył o scoreboard; ponowne wejście do gry umożliwi kolejną próbę.
+
+
+## 1.8.7-R2 — 60-second combat tag
+
+- The accepted, positive damage from a player (melee, projectile, and tracked indirect damage) tags **both** players for 60 seconds. Every further hit refreshes both timers. Applies at peace and war; cancelled hits do not count.
+- PlayerQuitEvent cannot be cancelled. Quitting while combat-tagged is punished as a **normal death** (items drop with keepInventory=false). This also covers Alt+F4, kicks, and network timeouts.
+- If Paper cannot finish the death during logout, `combat-logout-pending.properties` records the penalty and it is carried out at the next join. Normal server shutdowns are excluded via `Bukkit.isStopping()`.
+- Administrators must back up the extra `.properties` file alongside other plugin data. Test disconnect/drop behavior with two accounts before production.
+
+## EarthSMP-Core 1.8.8 (Kabina Narodów 2.0) — testy
+
+Wydanie 1.8.8 rozszerza 1.8.7 R3 o limity wyposażenia, niedozwolone przedmioty,
+Mending/Fortune/enchanty PvP i blokadę wymiarów. `progression.nether-unlock-day`
+w `config.yml` domyślnie wynosi **10** (dzień serwera liczony od 06:00 PL);
+przed startem edycji potwierdzić 10 vs 11, zgodnie z dokumentacją.
+SQLite nadal w schemacie v10. Po rozpakowaniu do istniejącego repo uruchomić
+`.\gradlew clean build` z JDK 25, instalować wyłącznie nie-plain JAR.
+Dokładne przypadki testowe: `INSTRUKCJA-1.8.8.md` w katalogu głównym paczki.

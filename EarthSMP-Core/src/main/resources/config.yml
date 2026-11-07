@@ -25,3 +25,9 @@ map-portal:
 # Minecraft sidebar; players can disable individually with /esmp sidebar.
 sidebar:
   disabled-players: []
+
+# Progresja wymiarow: 10 oznacza dostep od dnia serwera 10 o 06:00 PL.
+# W starych zapisach wystepuje tez "po dziesieciu pelnych dniach" (czyli 11).
+# Ustalic ostateczny prog przed startem edycji; mozna zmienic na 11 bez przebudowy.
+progression:
+  nether-unlock-day: 10
