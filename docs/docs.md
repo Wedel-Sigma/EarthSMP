@@ -1,12 +1,12 @@
 ---
-title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.6"
-version: "1.8.6"
+title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.7"
+version: "1.8.7"
 date: "2026-11-07"
-status: "main: EarthSMP-Core 1.8.8; mechaniki kuszy Multishot/Quick Charge zatwierdzone regulaminowo, kod do zmiany w następnym etapie; Unbreaking III zawsze na wszystkich przedmiotach; 1.8.7-1.8.8 czekają na pełne testy"
+status: "main: EarthSMP-Core 1.8.9; podstawowy start w Paper oraz testy limitów ekwipunku/enchantów w EQ i wymiarów potwierdzone przez administratora; handel villagerów, mechaniki PvP i pozostałe scenariusze multiplayer do testów"
 language: "pl"
 ---
 
-# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.6
+# KABINA NARODÓW 2.0 — DOKUMENTACJA I SPECYFIKACJA v1.8.7
 
 **Stan ustaleń: 7 listopada 2026 r.**  
 **Przeznaczenie:** aktualny zapis zasad, postępu implementacji oraz informacji dla testujących. Dokument nie jest potwierdzeniem wdrożenia każdej wymienionej funkcji.  
@@ -99,7 +99,7 @@ Przy zgłaszaniu uwag podaj: **wersję pluginu**, **rolę i czy miałeś OP**, *
 - W czasie pokoju ochrona PvP we własnej bazie; na własnym terytorium politycznym po pierwszej próbie ataku **8 s obronnej nietykalności, cooldown 5 min**, pierwszy cios anulowany. W wojnie PvP działa normalnie; neutralne państwa zachowują pokojowe zabezpieczenia.
 - Podczas wojny po kliknięciu **Respawn** rozpoczyna się widoczne **na ekranie (nie na czacie)** odliczanie zależne od członków **własnego państwa online**: 1–2 = 15 s; 3–5 = 20 s; 6–10 = 30 s; 11–15 = 40 s; 16+ = 50 s. Przez ten czas gracz nie może się poruszać, z niczym wchodzić w interakcje ani zostać zabity. Po zakończeniu odliczania natychmiast wraca zwykła rozgrywka, w tym możliwość zaatakowania go przez wrogów. W pokoju brak dodatkowego timera.
 - Limity w **całym ekwipunku przez cały czas**: zwykłe złote jabłka 8; perły Endu 3; pajęczyny 16; totemy 3. Zaklęte złote jabłka, End Crystals i Respawn Anchors — całkowicie wyłączone. Po śmierci **cały ekwipunek wypada**.
-- **Nether** dostępny od **06:00 (Europe/Warsaw) dnia serwera 10**; **End** wyłączony na stałe. Pierwszych **dwóch villagerów** do rozpoczęcia hodowli trzeba zdobyć przez leczenie zombie villagerów; późniejsze rozmnażanie jest dozwolone. Zasada pochodzenia villagerów jest na razie **regulaminowa, nieegzekwowana automatycznie przez plugin**. Mending zakazany. Fortune: brak do dnia 6, I od dnia 7, III od dnia 16, Fortune II nigdy. Pozostałe enchanty dokładnie według reguł w 1.8.8, bez rozszerzania wyjątków QoL.
+- **Nether** dostępny od **06:00 (Europe/Warsaw) dnia serwera 10**; **End** wyłączony na stałe. Mapa **nie ma naturalnych wiosek**, dlatego pierwszych villagerów w praktyce zdobywa się przez **leczenie zombie villagerów**; następnie można je normalnie rozmnażać. **Nie jest to dodatkowy zakaz ani hardcoded reguła pluginu** — ograniczenie wynika z dostępnych źródeł mobów na mapie. Mending zakazany. Fortune: brak do dnia 6, I od dnia 7, III od dnia 16, Fortune II nigdy. Pozostałe enchanty dokładnie według reguł w 1.8.8, bez rozszerzania wyjątków QoL.
 - Barter **przedmiot za przedmiot**, bez wirtualnej waluty. Gracze: sklepy skrzynkowe. Admin: nieskończone wymiany podstawowych materiałów (np. cobblestone ↔ cobbled deepslate 1:1). Docelowa mapa przeglądarkowa koloruje chunki państw, pokazuje **graczy tylko członkom tego samego państwa**, a **wszystkie postawione rdzenie publicznie** z ikoną lodestone i współrzędnymi.
 - **Zegar edycji:** centralny numer dnia zmienia się codziennie o **06:00 czasu polskiego**. Docelowe `/home` działa także podczas wojny: dni 1–2 bez limitu, od dnia 3 maksymalnie **4 razy dziennie na gracza** (reset 06:00). Ręczna zmiana stolicy: **6 godzin cooldownu na państwo** (plan).
 - **Interfejs 1.8.6:** `/esmp tierlist` — państwa sortowane według kontrolowanych postawionych rdzeni (w tym zdobycznych); indywidualny panel boczny serwera/państwa. Podstawowe działanie obu funkcji zostało potwierdzone w grze.
@@ -279,7 +279,7 @@ Wszystkie limity dotyczą **całego ekwipunku gracza łącznie** (plecak + hotba
 
 ## 11. Zaklęcia (enchanty) i progresja
 
-- Pierwszych **dwóch villagerów** pozyskuje się **przez leczenie zombie villagerów**. Po zdobyciu tej pary można **normalnie rozmnażać villagerów**. Nie ma adminowskiego sklepu z enchantami. **Uwaga implementacyjna:** plugin 1.8.8 sprawdza legalność ofert enchantów, lecz nie weryfikuje pochodzenia pierwszej pary — obecnie jest to zasada regulaminowa.
+- **Nie ma naturalnych wiosek na mapie.** Leczenie zombie villagerów to praktyczna droga pozyskania pierwszych villagerów, po czym można je rozmnażać normalnie. **Nie wprowadzamy osobnego wymogu prawnego ani kontroli pochodzenia pierwszych dwóch villagerów w pluginie**; nie ma adminowskiego sklepu z enchantami. **Sprawdzenie poprawności oferowanych i kupowanych enchantów** (np. książek i gotowych zbroi) to odrębny test bezpieczeństwa handlu, jeszcze niepotwierdzony.
 - Ograniczenia obowiązują **na gotowym przedmiocie** i muszą obejmować łączenie książek w kowadle, oferty handlowe oraz inne potencjalne źródła. Nie wolno obejść progów przez łączenie.
 - **Mending** — zabroniony przez całą edycję.
 - **Implementacja 1.8.8:** blokuje niedozwolone wyniki kowadła i craftingu, nowe nielegalne oferty villagerów, niedozwolone enchanty przy enchantowaniu oraz efekt Mending. Istniejące przedmioty z niedozwolonymi enchantami są automatycznie **normalizowane** (enchant usuwany lub obniżany; przedmiot pozostaje). Dopuszczona lista wyjątków QoL jest ścisła: Unbreaking III, Efficiency V, Looting III, Silk Touch I, Aqua Affinity I, Respiration III. **Wszystkie inne enchanty pozostają ograniczone tak, jak w kodzie 1.8.8** (w tym mobilność), bez dodatkowych wyjątków. Testy handlu i kowadła nadal do wykonania.
@@ -662,7 +662,7 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 8. **Nether — rozstrzygnięte:** start o **06:00 dnia 10** (`Europe/Warsaw`), zgodnie z aktualnym kodem. Dawne sformułowania „po 10 dniach” są nieaktualne.
 9. **Interfejsy i konkretne pluginy:** wygląd ikony państwa, szczegóły bezpiecznego miejsca przy stolicy, współdziałanie sidebaru z innymi scoreboardami oraz adminowskie komendy ręcznej korekty. Sam przełącznik `/esmp sidebar` jest już zaimplementowany. To decyzje techniczne, nie nowe zasady.
 
-**Koniec dokumentacji v1.8.6.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
+**Koniec dokumentacji v1.8.7.** Decyzje administracyjne z 7 listopada 2026 r. rozstrzygają próg Netheru, wyjątki enchantów oraz pozyskiwanie pierwszej pary villagerów; mechanizmy PvP i 1.8.8 wymagają dalszych testów.
 
 
 <!-- Historia aktualizacji v1.7: GUI 1.8.6, rebranding R2, hotfix R3; informacje o main uaktualniono w v1.8. -->
@@ -680,3 +680,5 @@ Dla przejrzystości poniższe elementy nie są ukrytymi „zatwierdzonymi zasada
 <!-- Aktualizacja v1.8.5: potwierdzony plan sklepów Shopkeepers i spawnu Makau, dobór antycheat/antydupe do weryfikacji, kolejność testów przed warunkowym startem; bez zmian w kodzie. -->
 
 <!-- Aktualizacja v1.8.6: TODO obrys WorldBorder na autorskiej mapie WWW; granica widoczna w squaremap :8080, lecz brak jej na naszym portalu. Bez zmian w kodzie. -->
+
+<!-- Korekta v1.8.7: villagery z leczenia to konsekwencja mapy bez wiosek, nie ograniczenie regulaminowe/kodowe; main ma 1.8.9, potwierdzono lokalnie start, limity EQ, enchanty w ekwipunku i wymiary; test ofert villagerów w toku. -->
