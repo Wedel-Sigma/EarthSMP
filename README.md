@@ -11,6 +11,7 @@ Prywatny serwer **Minecraft Java** dla znajomych: państwa, kolorowane terytoria
 | [Specyfikacja zasad i mechanik](docs/docs.md) | Kompletny zestaw reguł edycji, status 1.8.13, świat, rdzenie, państwa, PvP, oblężenia, progresja |
 | [Checklista przed premierą](docs/CHECKLISTA-STARTU.md) | Faktycznie wykonane testy i lista otwartych działań, bez duplikowania już zaliczonych mechanik |
 | [Runbook VPS i backupów](docs/OPERACJE-VPS.md) | Systemd, SSH, Caddy, porty, logi, ręczne backupy, odtwarzanie i aktualizacja pluginu |
+| [Karta awaryjna](docs/AWARYJNE.md) | Krótkie komendy: Minecraft nie działa, mapa padła, problemy z SQLite, backupami i SSH |
 | [Archiwum rozwoju](docs/HISTORIA-ROZWOJU.md) | Starsze statusy, próby i plany od 1.8.0 — materiał historyczny |
 | [Historia porządkowania repo](docs/REPO-PORZADKI.md) | Uwagi o prywatnych plikach i historycznych sekretach, nie instrukcja bieżącej migracji |
 
