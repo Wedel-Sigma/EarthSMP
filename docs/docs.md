@@ -15,23 +15,12 @@ language: "pl"
 > **Zasada pierwszeństwa:** wszystkie uzgodnione poniżej zasady nowej edycji mają pierwszeństwo przed regulaminem poprzednich edycji. Ze starego regulaminu obowiązuje wszystko, co nie koliduje bezpośrednio z nowymi zasadami. Nie przedstawiać propozycji jako decyzji zatwierdzonych.
 
 
-## WDROŻENIE PRZEDPREMIEROWE — 8 listopada 2026
-
-**Stan faktyczny potwierdzony przez administratora:** EarthSMP-Core 1.8.13 działa na VPS Contabo z Ubuntu 24.04 i Eclipse Temurin Java 25. Paper uruchamiany przez usługę systemd `earthsmp.service` na użytkowniku systemowym `minecraft`, konto administracyjne `esmpadmin` loguje się kluczem SSH. Gra jest dostępna przez publiczny adres serwera; działa również portal polityczny WWW przez Caddy / Let's Encrypt / HTTPS, wewnętrznie na 127.0.0.1:8766 i squaremap na 127.0.0.1:8080. Logowanie WWW zostało przetestowane po ponownym powiązaniu konta (nowa SQLite).
-
-- **Świat:** czysta kopia mapy z nienaruszalnego `MAIN.zip` odtworzona lokalnie i przeniesiona na VPS. W nowej bazie `earthsmp.db` zegar pozostaje na **dniu 0**, nie wywołano `/esmp clock start`. Spawn Makau i sklepy administracyjne są do przygotowania przed premierą.
-- **Backupy:** skrypt `/usr/local/sbin/earthsmp-backup` wykonuje spójny offline backup po zatrzymaniu Paper oraz ponownie uruchamia usługę. Pierwszy backup uruchomiony pomyślnie, timer systemd ustawiony na **07:00 Europe/Warsaw**, retencja 14 dni na VPS. Pierwsze archiwum pobrano przez SCP na Windows i sprawdzono jego integralność. **Nie wykonano jeszcze pełnego testu odtworzenia**; automatyczne przesyłanie backupów poza VPS również pozostaje do wdrożenia.
-- **Zabezpieczenia:** Paper Anti-Xray (Overworld i Nether) administrator przetestował pozytywnie; GrimAC i Better Anti-Dupe zainstalowane, podstawowe mechaniki multiplayer działają. Nie wykonano pełnego testu 3-państwowej koalicji ani próby obciążenia docelową liczbą graczy; Simple Voice Chat po migracji wymaga potwierdzenia.
-- **Repozytorium:** nie przechowywać tutaj świata, baz SQLite, kopii migracyjnych i danych produkcyjnych. Przedpremierowy katalog testowy `PRELAUNCH_OLD_TEST_DATA/` oraz `EarthSMP-migrate.tar.gz` są lokalnymi artefaktami i powinny pozostawać ignorowane przez Git.
-
-**Uwaga:** starsze akapity poniżej opisują historię projektu i wcześniejsze plany. Ten wpis stanowi aktualizację stanu wdrożenia na 8 listopada 2026; brak potwierdzenia wymienionych testów nie oznacza błędu w kodzie.
-
 ## OFICJALNA NAZWA SERWERA — Kabina Narodów 2.0
 
 - **Nazwa prezentowana graczom:** **Kabina Narodów 2.0**. Dotyczy nagłówków w portalu, wiadomości na czacie, Minecraft GUI, sidebaru i etykiet mapy.
 - **Nazwy techniczne bez zmian:** `EarthSMP`, `EarthSMPCore`, `EarthSMP-Core`, repozytorium, pakiety i zmienne Javy, identyfikatory w SQLite, nazwy kluczy w squaremap, uprawnienia oraz polecenia `/esmp` i `/earthsmp`.
 - **Konfiguracja:** `server.display-name: "Kabina Narodów 2.0"` w `plugins/EarthSMPCore/config.yml` (na nowych instalacjach wpis jest w domyślnym `config.yml`, a na starszych plikach działa wartość domyślna). Zmiana wymaga restartu pluginu/serwera, nie zmiany plików źródłowych.
-- **Wydanie:** `1.8.6 R2` wprowadza nazwy widoczne w interfejsie, a `1.8.6 R3` usuwa błąd kompilacji w `SiegeManager.say(...)`. Nie zmieniają mechanik gry ani schematu SQLite v10. Pełny build R3 po poprawce wymaga jeszcze potwierdzenia przez użytkownika.
+- **Historia rebrandingu:** `1.8.6 R2` wprowadził nazwy widoczne dla graczy, a `1.8.6 R3` naprawił błąd kompilacji w `SiegeManager.say(...)`. Bieżący build **1.8.13** jest sprawdzony i uruchomiony na VPS.
 - **Elementy historyczne:** dawniej wydane przedmioty mogą przechowywać starą nazwę w metadanych przedmiotu aż do ponownego uzyskania lub ręcznej aktualizacji — nie są bezpiecznie masowo nadpisywane.
 
 ## STAN AKTUALNY — 8 listopada 2026
@@ -49,7 +38,7 @@ language: "pl"
 | Obszar | Stan na 8.11.2026 |
 | --- | --- |
 | Państwa, rangi, rdzenie, claimy, GUI | Podstawowe scenariusze przetestowane. Edytor chunków i zatwierdzanie działały na środowisku testowym. |
-| Oblężenia | Historyczna pierwsza seria **40/49 OK**, a końcowa seria **12/12 OK**, w tym 480 s, przejęcie rdzenia, dostęp do zdobytej bazy, upadek państwa i restart. Nieinterpretować 9 pozycji pierwszej serii jako 9 błędów. |
+| Oblężenia | Historyczna pierwsza seria **40/49 OK**, a końcowa seria **12/12 OK**, w tym 480 s, przejęcie rdzenia, dostęp do zdobytej bazy, upadek państwa i restart. Nie należy interpretować 9 pozostałych pozycji pierwszej serii jako 9 błędów. |
 | PvP, Combat Tag i wojenny respawn | Sesja z 2 graczami na **1.8.13: 8/8 OK**, w tym wylogowanie podczas walki i pokój. |
 | Shopkeepers | Plugin i podstawowy handel sprawdzone. Sklepy administracyjne na spawnie jeszcze niegotowe. |
 | GrimAC / Better Anti-Dupe | Zainstalowane i sprawdzone podstawowo; brak gwarancji wykrywania wszystkich exploitów. |
@@ -503,7 +492,7 @@ Pochodzenie: regulamin poprzedniej edycji pokazany na Discordzie; **zachowujemy 
 - **Prywatność:** backend wylicza uprawnienia z **aktualnego członkostwa w państwie**, nawet gdy oglądający jest offline. Udostępnia jedynie aktualnie zalogowanych graczy tego samego państwa (oraz samego siebie); nie pokazuje obcych państw ani sojuszników, a Nether i End są ukryte. Pozycje odświeżane na bieżąco. **Przed publicznym uruchomieniem konieczny test dwóch państw i bezpośrednich zapytań HTTP bez zalogowania/po zmianie państwa**.
 - **Przeglądarkowe GUI:** publiczne kafelki, kolory terytoriów i publiczne rdzenie są widoczne bez konta; prywatne pozycje wymagają konta. R3 naprawia układ kafelków i uszkodzone obrazki przy pustych kafelkach, dodaje odświeżanie.
 - **Architektura obecnej wersji:** portal jest serwerem HTTP wewnątrz pluginu Paper, domyślnie `127.0.0.1:8766`. Publiczne kafelki i znaczniki pobiera z **wewnętrznego squaremap `127.0.0.1:8080`**. **Nie usuwać ani nie wyłączać backendu 8080 w tej wersji.** Portu 8080 nie trzeba jednak podawać graczom ani udostępniać z Internetu.
-- **Dostęp zewnętrzny:** produkcyjnie działa HTTPS przez Caddy. Kontrole `Host`/`Origin`, sesje i cookies są zaimplementowane; ich pełne testy brzegowe i prywatności API pozostają otwarte. **Dawny opis nieaktualnego błędu `MapPortalServer.validateOrigin`: `hostAllowed` porównuje dokładnie nagłówek Host**; przed użyciem ładnego adresu `https://map...` bez `:443` należy tę logikę dostosować i przetestować z reverse proxy. Nie traktować aktualnego 1.8.4 R3 jako gotowego do wystawienia wprost do Internetu.
+- **Dostęp zewnętrzny (stan 1.8.13):** portal działa przez Caddy i prawidłowy HTTPS bez jawnego portu 443. Kontrole `Host`/`Origin`, sesje oraz ciasteczka są zaimplementowane, a stronę i logowanie sprawdzono po migracji. Do zrobienia pozostaje weryfikacja prywatności surowych endpointów dla członków różnych państw oraz testy graniczne sesji. Historyczne uwagi o błędach wersji 1.8.4 nie obowiązują obecnego wdrożenia.
 
 ## 17. Administracja i wyjątkowe przypadki
 
