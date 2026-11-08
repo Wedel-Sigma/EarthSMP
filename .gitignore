@@ -52,3 +52,10 @@
 *.iml
 *.class
 # Keep EarthSMP-Backup.ps1 and start.bat in Git (they are scripts, not runtime state).
+
+# Migration packages and local prelaunch/test snapshots
+*.tar.gz
+*.tgz
+/PRELAUNCH_OLD_TEST_DATA/
+/EarthSMP_MAIN_CLEAN/
+/EarthSMP_VPS_Backups/
