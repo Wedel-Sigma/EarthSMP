@@ -4,7 +4,7 @@
 
 > **Zacznij tutaj, nawet jeśli nigdy nie grałeś na EarthSMP.** Ten poradnik opisuje to, co powinien wiedzieć gracz: państwa, GUI, rdzenie, mapę, wojny, handel, enchanty i najważniejsze zakazy. Nie wymaga znajomości komend administracyjnych.
 >
-> **Jedyna główna komenda: `/esmp`.** Większość czynności wykonasz klikając ikony w menu. Dwa wyjątki obecnej wersji — teleportacja do stolicy i zakładanie konta mapy — korzystają z **podkomend `/esmp`**, opisanych poniżej. Nie musisz używać `/nation`, `/war` ani żadnych osobnych komend.
+> **Główna komenda serwera: `/esmp`.** Państwami, granicami, wojnami i rdzeniami zarządzasz klikając ikony w GUI. Powrót do stolicy i zakładanie konta mapy korzystają z **podkomend `/esmp`**. **Wyjątek: sklepy graczy korzystają z osobnego pluginu Shopkeepers i polecenia `/shopkeeper`** — instrukcja w §12. Nie musisz używać osobnych komend do obsługi państw i wojen.
 >
 > **Przedpremierowo:** serwer działa, ale edycja nadal jest na **dniu 0**. Czas rozpoczęcia i ewentualne zmiany adresów ogłosi administracja na Discordzie.
 
@@ -296,15 +296,79 @@ Serwer ogranicza m.in. podnoszenie przedmiotów i wyjmowanie ich z magazynów. C
 - Świat to **Ziemia ok. 1:1500**, z nietypowo ograniczonymi jaskiniami i **bez naturalnych struktur/wiosek**. Pierwszych villagerów można uzyskać np. przez **leczenie zombie villagerów**, potem normalnie rozmnażać.
 - W Netherze wolno używać łóżek do wydobywania ancient debris, **ale nie do PvP**.
 
-## 12. Handel i gospodarka
+## 12. Handel i gospodarka — jak założyć sklep Shopkeepers?
 
-**Nie ma pieniędzy, banków ani wirtualnych kont**. Gospodarka to **barter: przedmiot za przedmiot**.
+**Nie ma pieniędzy, banków ani wirtualnych kont.** Gospodarka EarthSMP opiera się na **barterze: przedmiot za przedmiot**.
 
-- **Sklepy graczy:** plugin Shopkeepers; NPC sprzedaje to, co faktycznie znajduje się w powiązanym magazynie. Gdy skończy się towar, kończy się sprzedaż.
-- **Sklepy administracyjne:** na spawnie Makau planowane są **nielimitowane wymiany podstawowych budowlanych surowców**, np. bruk ↔ brukowany łupek 1:1. Ich ostateczny asortyment ogłosi administracja.
-- Sklep może stać we własnym mieście/bazie, nie tylko na spawnie. Planowany model to **NPC dostępny dla klientów na zewnątrz i magazyn chroniony wewnątrz** — konkretny układ i odległość zależą od konfiguracji Shopkeepers.
-- Nie ma adminowskiego sklepu z diamentami, netherite czy zakazanymi enchantami.
-- Naturalni villagerzy i handel przedmiotami między graczami nadal istnieją, ale **limity przedmiotów i enchantów nadal obowiązują**.
+Sklepy obsługuje osobny plugin **Shopkeepers**, więc **wyjątkowo używamy też komendy `/shopkeeper`** (alias `/shopkeepers`). Zwykły sklep gracza **pobiera towar z przypisanej skrzyni**; nie ma nieskończonych zapasów. Nielimitowane sklepy administracji są zarezerwowane dla obsługi serwera.
+
+### 12.1. Jak stworzyć własny sklep?
+
+**Przygotuj:** skrzynię, towary i miejsce na NPC (np. villagera). Postaw skrzynię w bezpiecznym miejscu, najlepiej w swojej bazie chronionej rdzeniem. Shopkeepers obsługuje dwa sposoby zakładania sklepu — dostępny zależy od uprawnień skonfigurowanych przez administrację.
+
+**Sposób A — komendą, jeśli administracja włączyła tworzenie sklepów poleceniem:**
+
+1. Ustaw celownik na **skrzyni**, z którą sklep ma współpracować.
+2. Wpisz:
+
+   ```mcfunction
+   /shopkeeper trading villager
+   ```
+
+3. Powstanie sklep typu **Trading Shop** przy wskazanej skrzyni. Możesz potem przestawić NPC przez edytor, jeśli miejsce na to pozwala.
+
+**Ważne:** samo `/shopkeeper` bez podania typu, szczególnie gdy nie patrzysz na skrzynię, może próbować utworzyć **sklep administracyjny**, a nie zwykły sklep gracza. Do tworzenia przez komendę potrzeba uprawnienia `shopkeeper.create` (domyślnie mają je tylko operatorzy). **Jeżeli komenda odmawia dostępu, to nie błąd gry — użyj sposobu B albo zgłoś się do administracji.**
+
+**Sposób B — specjalnym przedmiotem Shopkeepers (domyślna metoda dla zwykłych graczy):**
+
+1. Uzyskaj od administracji specjalny **przedmiot do tworzenia sklepów** (domyślnie jajo przywołania villagera o nazwie *Shopkeeper*). To nie musi być zwykłe jajo z Minecrafta.
+2. Trzymając przedmiot i **nie celując w blok**, klikaj **PPM**, aż wybierzesz typ **Trading**. **Shift + PPM** przełącza wygląd sklepikarza, np. villager / tabliczka, jeśli jest dostępny.
+3. **PPM na skrzyni**, by ją przypisać do sklepu.
+4. **PPM na wybranym bloku**, by umieścić sklepikarza. Zwróć uwagę na dozwoloną odległość od skrzyni.
+
+**Dla EarthSMP polecam „Trading”** — ten typ umożliwia barter za *dowolny przedmiot*. Typy **Selling** i **Buying** opierają się na przedmiotach skonfigurowanych jako waluta, dlatego nie są domyślnym wyborem do naszej gospodarki.
+
+### 12.2. Jak ustawić wymiany? (NPC i GUI)
+
+1. Włóż **towar na sprzedaż** do powiązanej skrzyni.
+2. Podejdź do swojego sklepikarza i wykonaj **Shift + PPM**, aby otworzyć **edytor sklepu** (zwykłe PPM to okno handlu klienta).
+3. W **Trading Shop** górne sloty pokazują sprzedawane towary. W slotach ceny umieszczasz **wzory przedmiotów**, które chcesz otrzymywać za towar: weź je kursorem ze swojego ekwipunku i kliknij odpowiednie pole ceny w GUI. Przedmiot jest tam **kopiowany jako wzór**, a nie sprzedawany podczas konfiguracji.
+4. Klikaj **LPM / PPM** na pozycjach edytora, aby zwiększać lub zmniejszać ilości. Dostosuj liczbę sztuk produktu i zapłaty, np. **32 brukowane łupki za 32 sztuki bruku**.
+5. Zamknij edytor, aby zapisać ofertę, i sprawdź transakcję z perspektywy klienta.
+
+| Co chcesz zrobić? | Jak? |
+|---|---|
+| Otworzyć sklep jak klient | **PPM** na NPC |
+| Edytować swój sklep | **Shift + PPM** na NPC |
+| Sprawdzić / uzupełnić zapasy | Skrzynia sklepu; w edytorze także **ikona skrzyni** |
+| Tymczasowo zamknąć / otworzyć sklep | W edytorze **ikona banera** |
+| Przenieść NPC | W edytorze **ikona perły Endu**, następnie PPM na nowe miejsce |
+| Usunąć sklep na stałe | W edytorze **ikona kości** — **brak cofnięcia** |
+
+**Jak działa handel:** po zakupie z przypisanej skrzyni znika sprzedany towar, a do skrzyni trafia zapłata. **Brak towaru lub miejsca na zapłatę = transakcja nie dojdzie do skutku.** Uzupełniaj magazyn, jeśli chcesz prowadzić sklep bez przerwy.
+
+### 12.3. Komendy Shopkeepers przydatne graczowi
+
+| Komenda | Zastosowanie |
+|---|---|
+| `/shopkeeper help` | Pomoc i dostępne dla Ciebie komendy |
+| `/shopkeeper list` | Lista **Twoich** sklepów |
+| `/shopkeeper trading villager` | Tworzenie sklepu barterowego przy wskazanej skrzyni (**jeśli masz uprawnienie tworzenia przez komendę**) |
+| `/shopkeeper notify trades` | Włącza/wyłącza powiadomienia o transakcjach |
+| `/shopkeeper remove` | Próbuje usunąć sklep, na który patrzysz (**wymaga uprawnień; najprościej użyć ikony kości w edytorze**) |
+
+**Nie używaj `/shopkeeper give` do zdobywania przedmiotów na własną rękę** — to polecenie administracyjne, nie sklep gracza. Przedmiot do tworzenia sklepów udostępnia administracja.
+
+### 12.4. Gdzie można ustawić sklep?
+
+- Sklep gracza może działać **w dowolnym dozwolonym miejscu**, nie tylko w Makau. Najbezpieczniej ustawić **skrzynię wewnątrz chronionej bazy**, a NPC dostępnego dla klientów na zewnątrz, jeśli pozwala na to aktualna konfiguracja maksymalnej odległości.
+- **Sam NPC nie zastępuje Rdzenia Ochronnego**: niechroniona skrzynia może być narażona na dostęp lub zniszczenie zgodnie z innymi mechanikami świata. W pokoju kradzież/grief pozostają zabronione regulaminowo.
+- **Sklepy administracyjne na spawnie Makau** mają oferować nieograniczone wymiany podstawowych surowców budowlanych, np. bruk ↔ brukowany łupek 1:1. Asortyment określi administracja; nie będzie automatycznej sprzedaży strategicznych surowców, takich jak diamenty czy netherite.
+- **Naturalni villagerzy** są oddzielną mechaniką Minecrafta — nie myl ich z NPC Shopkeepers. Zakazy enchantów i limity przedmiotów obowiązują przy każdym handlu.
+
+> **Uwaga dotycząca premiery:** Shopkeepers jest zainstalowany i podstawowo przetestowany, ale nie potwierdzono jeszcze produkcyjnego sposobu udostępnienia graczom **tworzenia sklepów** (komenda z uprawnieniem czy specjalny przedmiot) oraz odległości NPC od skrzyni. Administracja ogłosi tę decyzję przed startem. Bez tego gracz bez OP może handlować, ale niekoniecznie może od razu stworzyć sklep.
+
+**Dokumentacja pluginu:** [Creating Shops](https://github-wiki-see.page/m/Shopkeepers/Shopkeepers-Wiki/wiki/Creating-Shops), [Player Shop Setup](https://github-wiki-see.page/m/Shopkeepers/Shopkeepers-Wiki/wiki/Player-Shop-Setup), [Editing Shops](https://github-wiki-see.page/m/Shopkeepers/Shopkeepers-Wiki/wiki/Editing-Shops).
 
 ## 13. Mapa polityczna i konto WWW
 
