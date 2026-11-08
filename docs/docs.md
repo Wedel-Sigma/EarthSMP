@@ -2,7 +2,7 @@
 title: "Kabina Narodów 2.0 — dokumentacja i specyfikacja v1.8.13"
 version: "1.8.13"
 date: "2026-11-07"
-status: "main: EarthSMP-Core 1.8.13, podstawowy build i działanie w grze potwierdzone; rozpoczęty audyt bezpieczeństwa, testy multiplayer oraz odtworzenie backupu wciąż wymagane"
+status: "main: EarthSMP-Core 1.8.13 uruchomiony na VPS Ubuntu 24.04 / Java 25; Minecraft i portal HTTPS działają, zegar edycji nierozpoczęty; próba odtworzenia backupu i finalne testy przed premierą pozostały"
 language: "pl"
 ---
 
@@ -14,6 +14,17 @@ language: "pl"
 
 > **Zasada pierwszeństwa:** wszystkie uzgodnione poniżej zasady nowej edycji mają pierwszeństwo przed regulaminem poprzednich edycji. Ze starego regulaminu obowiązuje wszystko, co nie koliduje bezpośrednio z nowymi zasadami. Nie przedstawiać propozycji jako decyzji zatwierdzonych.
 
+
+## WDROŻENIE PRZEDPREMIEROWE — 8 listopada 2026
+
+**Stan faktyczny potwierdzony przez administratora:** EarthSMP-Core 1.8.13 działa na VPS Contabo z Ubuntu 24.04 i Eclipse Temurin Java 25. Paper uruchamiany przez usługę systemd `earthsmp.service` na użytkowniku systemowym `minecraft`, konto administracyjne `esmpadmin` loguje się kluczem SSH. Gra jest dostępna przez publiczny adres serwera; działa również portal polityczny WWW przez Caddy / Let's Encrypt / HTTPS, wewnętrznie na 127.0.0.1:8766 i squaremap na 127.0.0.1:8080. Logowanie WWW zostało przetestowane po ponownym powiązaniu konta (nowa SQLite).
+
+- **Świat:** czysta kopia mapy z nienaruszalnego `MAIN.zip` odtworzona lokalnie i przeniesiona na VPS. W nowej bazie `earthsmp.db` zegar pozostaje na **dniu 0**, nie wywołano `/esmp clock start`. Spawn Makau i sklepy administracyjne są do przygotowania przed premierą.
+- **Backupy:** skrypt `/usr/local/sbin/earthsmp-backup` wykonuje spójny offline backup po zatrzymaniu Paper oraz ponownie uruchamia usługę. Pierwszy backup uruchomiony pomyślnie, timer systemd ustawiony na **07:00 Europe/Warsaw**, retencja 14 dni na VPS. Pierwsze archiwum pobrano przez SCP na Windows i sprawdzono jego integralność. **Nie wykonano jeszcze pełnego testu odtworzenia**; automatyczne przesyłanie backupów poza VPS również pozostaje do wdrożenia.
+- **Zabezpieczenia:** Paper Anti-Xray (Overworld i Nether) administrator przetestował pozytywnie; GrimAC i Better Anti-Dupe zainstalowane, podstawowe mechaniki multiplayer działają. Nie wykonano pełnego testu 3-państwowej koalicji ani próby obciążenia docelową liczbą graczy; Simple Voice Chat po migracji wymaga potwierdzenia.
+- **Repozytorium:** nie przechowywać tutaj świata, baz SQLite, kopii migracyjnych i danych produkcyjnych. Przedpremierowy katalog testowy `PRELAUNCH_OLD_TEST_DATA/` oraz `EarthSMP-migrate.tar.gz` są lokalnymi artefaktami i powinny pozostawać ignorowane przez Git.
+
+**Uwaga:** starsze akapity poniżej opisują historię projektu i wcześniejsze plany. Ten wpis stanowi aktualizację stanu wdrożenia na 8 listopada 2026; brak potwierdzenia wymienionych testów nie oznacza błędu w kodzie.
 
 ## OFICJALNA NAZWA SERWERA — Kabina Narodów 2.0
 
