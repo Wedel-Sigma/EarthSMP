@@ -8,6 +8,7 @@ Prywatny serwer **Minecraft Java** dla znajomych: państwa, kolorowane terytoria
 
 | Plik | Co zawiera |
 | --- | --- |
+| [**Przewodnik gracza**](docs/PRZEWODNIK-GRACZA.md) | **Od pierwszego wejścia po wojny: GUI, craftingi 3×3, limity, mapa i zasady** |
 | [Specyfikacja zasad i mechanik](docs/docs.md) | Kompletny zestaw reguł edycji, status 1.8.13, świat, rdzenie, państwa, PvP, oblężenia, progresja |
 | [Checklista przed premierą](docs/CHECKLISTA-STARTU.md) | Faktycznie wykonane testy i lista otwartych działań, bez duplikowania już zaliczonych mechanik |
 | [Runbook VPS i backupów](docs/OPERACJE-VPS.md) | Systemd, SSH, Caddy, porty, logi, ręczne backupy, odtwarzanie i aktualizacja pluginu |
