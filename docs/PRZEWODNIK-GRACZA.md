@@ -317,16 +317,7 @@ Sklepy obsługuje osobny plugin **Shopkeepers**, więc **wyjątkowo używamy te�
 
 3. Powstanie sklep typu **Trading Shop** przy wskazanej skrzyni. Możesz potem przestawić NPC przez edytor, jeśli miejsce na to pozwala.
 
-**Ważne:** samo `/shopkeeper` bez podania typu, szczególnie gdy nie patrzysz na skrzynię, może próbować utworzyć **sklep administracyjny**, a nie zwykły sklep gracza. Do tworzenia przez komendę potrzeba uprawnienia `shopkeeper.create` (domyślnie mają je tylko operatorzy). **Jeżeli komenda odmawia dostępu, to nie błąd gry — użyj sposobu B albo zgłoś się do administracji.**
-
-**Sposób B — specjalnym przedmiotem Shopkeepers (domyślna metoda dla zwykłych graczy):**
-
-1. Uzyskaj od administracji specjalny **przedmiot do tworzenia sklepów** (domyślnie jajo przywołania villagera o nazwie *Shopkeeper*). To nie musi być zwykłe jajo z Minecrafta.
-2. Trzymając przedmiot i **nie celując w blok**, klikaj **PPM**, aż wybierzesz typ **Trading**. **Shift + PPM** przełącza wygląd sklepikarza, np. villager / tabliczka, jeśli jest dostępny.
-3. **PPM na skrzyni**, by ją przypisać do sklepu.
-4. **PPM na wybranym bloku**, by umieścić sklepikarza. Zwróć uwagę na dozwoloną odległość od skrzyni.
-
-**Dla EarthSMP polecam „Trading”** — ten typ umożliwia barter za *dowolny przedmiot*. Typy **Selling** i **Buying** opierają się na przedmiotach skonfigurowanych jako waluta, dlatego nie są domyślnym wyborem do naszej gospodarki.
+**Ważne:** samo `/shopkeeper` bez podania typu, szczególnie gdy nie patrzysz na skrzynię, może próbować utworzyć **sklep administracyjny**, a nie zwykły sklep gracza.
 
 ### 12.2. Jak ustawić wymiany? (NPC i GUI)
 
