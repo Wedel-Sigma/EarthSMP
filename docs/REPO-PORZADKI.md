@@ -1,5 +1,7 @@
 # Porządkowanie repozytorium — 7 listopada 2026
 
+> **MATERIAŁ HISTORYCZNY.** Opis dawnych zmian indeksu Git i ryzyka wcześniejszego pull/merge; bieżące porządki w repo zostały ukończone. Aktualna dokumentacja: [docs.md](docs.md), [OPERACJE-VPS.md](OPERACJE-VPS.md), [CHECKLISTA-STARTU.md](CHECKLISTA-STARTU.md). Nadal należy pamiętać, że dawne sekrety mogły pozostać w historii Git.
+
 ## Ważne przed scaleniem
 
 Ta gałąź usuwa z **indeksu Git** wygenerowane katalogi `plugins/`, `config/` oraz lokalne pliki konfiguracyjne Paper. **Samo usunięcie z repo nie oznacza usunięcia danych z historii Git.** W historii nadal może być dostępny `plugins/LuckPerms/editor-keystore.json`.
